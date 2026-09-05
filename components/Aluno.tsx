@@ -5,14 +5,18 @@ interface AlunoProps{
     nome: string
     Neuro: string
     Turma: string
+    index: number
 }
 export default function Aluno( props: AlunoProps) {
-
+    const coresPerfil = [
+        "bg-[#CEFFCA]", "bg-[#FF9999]", "bg-[#D4C7F8]", "bg-[#CAF3FF]", "bg-[#FFD279]"
+    ]
+    const corPerfil = coresPerfil[props.index % coresPerfil.length];
 
   return (
-    <div className="flex w-180 h-27 bg-[#FFFDFA] rounded-[80px] justify-between"> 
+    <div className="flex w-[515px] h-[90px] bg-[#FFFDFA] rounded-[80px] justify-between cursor-pointer"> 
     <div className="flex justify-around items-center px-5 gap-5">
-        <div className="w-21.5 h-21.5 rounded-[70%] bg-blue-300 flex justify-center items-center">
+        <div className={`w-[60px] h-[60px] rounded-[70%] ${corPerfil} flex justify-center items-center`}>
             <p className="font-bold text-2xl">{pegainicial(props.nome)}</p>
         </div>
         <div className="flex flex-col gap-2">

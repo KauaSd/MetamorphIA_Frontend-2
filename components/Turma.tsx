@@ -1,5 +1,7 @@
 import TagAluno from "@/components/TagAluno"
 import { EllipsisVertical } from 'lucide-react';
+import Encaracolado from "@/public/EncaracoladoTurma.svg";
+
 export interface Aluno{
     id?: string | number
     nome: string
@@ -12,8 +14,10 @@ interface TurmaProps{
 
 export default function Turma( props: TurmaProps) {
     return(
-        <div className="flex flex-col w-142 h-38.5 bg-[#FFFDFA] rounded-[80px] px-12 py-6 gap-3">
-            <div className="flex justify-between items-center">
+        <div className="relative flex flex-col w-[480px] h-38.5 bg-[#FFFDFA] rounded-[80px] px-12 py-6 gap-5">
+            <img src={Encaracolado.src} className="absolute left-[-10px] top-1/2 -translate-y-1/2" />
+
+            <div className="flex justify-between items-center cursor-pointer">
                 <div className="nome">
                     <p className={`text-[28px] font-(family-name:--font-text-me-one)`}>{props.nomeTurma}</p>
                 </div>

@@ -27,7 +27,7 @@ export default function Input({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full rounded-[70px] py-[0.55rem] text-sm text-[#797979] outline-none transition-colors ${
+        className={`w-[1056px] rounded-[70px] py-[0.55rem] text-sm text-[#797979] outline-none transition-colors ${
           isSearch 
             ? "bg-[#FFFDFA] pl-12 pr-[0.7rem]" 
             : "bg-[#D9D9D9] px-[0.7rem]"

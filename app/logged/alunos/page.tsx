@@ -23,7 +23,7 @@ export default function ViewAlunos(){
                         <BarraPesquisa type="search" placeholder="Procurar alunos..."/>
                     </div>
 
-                    <div className="grid flex-1 grid-cols-2 mt-[-150px] content-center gap-5">
+                    <div className="grid grid-cols-2 mt-[-150px] w-full mt-[48px] gap-5">
                         {alunos.map((aluno, index) => (
                             <Aluno
                                 key={aluno.nome}

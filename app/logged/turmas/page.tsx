@@ -27,7 +27,7 @@ export default function ViewTurmas(){
                         <BarraPesquisa type="search" placeholder="Procurar turmas..."/>
                     </div>
 
-                    <div className="grid flex-1 grid-cols-2 mt-[-300px] content-center gap-20">
+                    <div className="grid grid-cols-2 mt-[48px] w-full gap-20">
                         {turmas.map((turma, index) => (
                             <Turma
                                 key={index}

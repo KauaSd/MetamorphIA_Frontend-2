@@ -21,6 +21,7 @@ export default function Logged({
             
             
                 <main className={`flex-1 ${poppins.variable} font-(family-name:--font-poppins)`}>
+                    
                     {children}
                 </main>
             </div>

@@ -1,6 +1,7 @@
 interface TagProps {
   label: string
   nome: string
+  ismenu: boolean
 }
 const colorMap: Record<string, string> = {
   TDAH: 'bg-[#CAF3FF]',        
@@ -17,7 +18,7 @@ export default function TagNeuro( props: TagProps) {
   return (
     <span className="flex gap-2 items-center">
       <div  className={`h-3.5 w-3.5 rounded-full ${colorStyles}`}></div>
-      <p className="text-[#797979] text-sm text-justify">{[props.nome]}</p>
+      <p className={`text-[#797979] text-sm text-justify ${props.ismenu ? "text-[#FFFFFF]" : "text-[#797979]" }`}>{[props.nome]}</p>
     </span>
   )
 }

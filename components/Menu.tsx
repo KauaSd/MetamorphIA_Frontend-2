@@ -3,10 +3,12 @@
 import Icon from "@/public/icon.png";
 import { ChevronDown } from "lucide-react";
 import React from "react";
-
+import TagAluno from './TagAluno';
 export default function Menu() {
   const [isOpen, setIsOpen] = React.useState(true);
-
+  const [isAlunoOpen, setIsAlunoOpen] = React.useState(false);
+  const [isTurmaOpen, setIsTurmaOpen] = React.useState(false); 
+  const [isRecentesOpen,setIsRecentesOpen] = React.useState(false);
   React.useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1200) {
@@ -27,7 +29,7 @@ export default function Menu() {
 
   return (
     <>
-      {/* Backdrop: só aparece no mobile quando o menu está aberto (overlay) */}
+      {/* Backdrop: só aparece no mobile quando o menu está aberto (overlay) da pra usar isso direto com o coiso que a Angel vai fazer */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -45,13 +47,14 @@ export default function Menu() {
           }
         }}
       >
-        <div className="flex flex-col p-5 w-full h-screen">
 
+        <div className="flex flex-col p-5 w-full h-full justify-between overflow-y-auto">
+        <div className="c1">
           <div
             className={`flex flex-row items-center ${
               isOpen ? "justify-between" : "justify-center"
             }`}
-          >
+          >      
             <div className="flex gap-1 items-center">
               <img
                 src={Icon.src}
@@ -60,7 +63,7 @@ export default function Menu() {
               />
 
               <h1
-                className={`text-[#FFFDFA] text-3xl font-(family-name:--font-text-me-one) ${
+                className={`text-[#FFFDFA] text-3xl font-(family-name:--font-text-me-one) select-none ${
                   !isOpen && "hidden"
                 }`}
               >
@@ -73,6 +76,9 @@ export default function Menu() {
               onClick={(e) => {
                 e.stopPropagation();
                 setIsOpen(false);
+                setIsAlunoOpen(false);
+                setIsTurmaOpen(false);
+                setIsRecentesOpen(false);
               }}
             >
               <svg
@@ -89,34 +95,24 @@ export default function Menu() {
                   rx="4.5"
                   stroke="white"
                 />
-                <line
-                  x1="8.92676"
-                  x2="8.92676"
-                  y2="20"
-                  stroke="white"
-                />
+                <line x1="8.92676" x2="8.92676" y2="20" stroke="white" />
               </svg>
             </div>
           </div>
 
-          <div className="h-px w-full bg-[#FFFDFA] my-5" />
+          <div className="border-t w-full border-[#FFFDFA] my-5" />
 
-          <div
-            className={`flex flex-col ${
-              isOpen ? "gap-3" : "gap-0"
-            }`}
-          >
-
+          <div className={`flex flex-col ${isOpen ? "gap-3" : "gap-0"}`}>
             {/* TURMAS */}
             <div className="flex flex-col w-full">
               <div
-                className={`h-[35px] flex items-center cursor-pointer ${
+                className={`h-[35px] flex items-center ${
                   isOpen
                     ? "w-full justify-between"
                     : "w-[30px] justify-center mx-auto"
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 cursor-pointer">
                   <svg
                     width="30"
                     height="30"
@@ -156,39 +152,43 @@ export default function Menu() {
                     </defs>
                   </svg>
 
-                  <p
-                    className={`text-white text-xl ${
-                      !isOpen && "hidden"
-                    }`}
-                  >
+                  <p className={`text-white text-xl ${!isOpen && "hidden"} select-none`}>
                     Turmas
                   </p>
                 </div>
 
                 <ChevronDown
-                  className={`w-7.5 h-7.5 text-[#FFFDFA] shrink-0 ${
+                  className={`w-7.5 h-7.5 text-[#FFFDFA] shrink-0 cursor-pointer transition-transform duration-200 ${
                     !isOpen && "hidden"
-                  }`}
+                  }
+                  ${
+                    isTurmaOpen ? "rotate-180" : "rotate-0"
+                  }
+                  `}
+                  onClick={() => {setIsTurmaOpen(!isTurmaOpen)}}
                 />
               </div>
-
-              {!isOpen && (
-                <div className="h-px w-full bg-[#FFFDFA] mt-1" />
-              )}
+                <div className={`grid transition-all duration-200 ease-in-out ${isTurmaOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+  <div className="overflow-hidden">
+    <div className="flex flex-col gap-2 mt-3 ml-5">
+      <TagAluno label="TDAH" nome="1º Ano N - Período" ismenu={true}/>
+    </div>
+  </div>
+</div>
+              {!isOpen && <div className="border-t w-full border-[#FFFDFA] my-5" />}
             </div>
 
-            {!isOpen && <div className="h-5" />}
 
             {/* ALUNOS */}
             <div className="flex flex-col w-full">
               <div
-                className={`h-[35px] flex items-center cursor-pointer ${
+                className={`h-[35px] flex items-center ${
                   isOpen
                     ? "w-full justify-between"
                     : "w-[30px] justify-center mx-auto"
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 cursor-pointer">
                   <svg
                     width="30"
                     height="30"
@@ -210,27 +210,115 @@ export default function Menu() {
                     </defs>
                   </svg>
 
-                  <p
-                    className={`text-white text-xl ${
-                      !isOpen && "hidden"
-                    }`}
-                  >
+                  <p className={`text-white text-xl ${!isOpen && "hidden"} select-none`}>
                     Alunos
+                  </p>
+                </div>
+                <ChevronDown
+                  className={`w-7.5 h-7.5 text-[#FFFDFA] shrink-0 cursor-pointer transition-transform duration-200 ${
+                    !isOpen && "hidden"
+                  }
+                  ${
+                    isAlunoOpen ? "rotate-180" : "rotate-0"
+                  }
+                  `}
+                  onClick={() => {setIsAlunoOpen(!isAlunoOpen)}}
+                />
+              </div>
+<div className={`grid transition-all duration-200 ease-in-out ${isAlunoOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+  <div className="overflow-hidden">
+    <div className="flex flex-col gap-2 mt-3 ml-5">
+      <TagAluno label="TDAH" nome="Aluno" ismenu={true}/>
+    </div>
+  </div>
+</div>
+              {!isOpen && <div className="h-px w-full bg-[#FFFDFA] mt-1" />}
+            </div>
+             {isOpen && <div className="h-px w-full bg-[#FFFDFA] mt-1 mb-1" />}
+            {/* RECENTES */}
+
+            <div className="flex flex-col w-full mt-3">
+              <div
+                className={`h-[35px] flex items-center ${
+                  isOpen
+                    ? "w-full justify-between"
+                    : "w-[30px] justify-center mx-auto"
+                }`}
+              >
+                <div className="flex items-center gap-4 cursor-pointer">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g clipPath="url(#clip0_1103_1127)">
+                      <path
+                        d="M4 6H2V20C2 21.1 2.9 22 4 22H18V20H4V6Z"
+                        fill="#FFFDFA"
+                      />
+                      <path
+                        d="M20 2H8C6.9 2 6 2.9 6 4V16C6 17.1 6.9 18 8 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 12L17.5 10.5L15 12V4H20V12Z"
+                        fill="#FFFDFA"
+                      />
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_1103_1127">
+                        <rect width="24" height="24" fill="white" />
+                      </clipPath>
+                    </defs>
+                  </svg>
+
+                  <p className={`text-white text-xl ${!isOpen && "hidden"} select-none`}>
+                    Recentes
                   </p>
                 </div>
 
                 <ChevronDown
-                  className={`w-7.5 h-7.5 text-[#FFFDFA] shrink-0 ${
+                  className={`w-7.5 h-7.5 text-[#FFFDFA] shrink-0 transition-transform duration-200 cursor-pointer ${
                     !isOpen && "hidden"
-                  }`}
+                  }
+                  ${
+                    isRecentesOpen ? "rotate-180" : "rotate-0"
+                  }
+                  `}
+                  onClick={() => setIsRecentesOpen(!isRecentesOpen)}
                 />
               </div>
-
-              {!isOpen && (
-                <div className="h-px w-full bg-[#FFFDFA] mt-1" />
-              )}
+              <div className={`grid transition-all duration-200 ease-in-out ${isRecentesOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+  <div className="overflow-hidden">
+    <div className="flex flex-col gap-2 mt-3 ml-5">
+      <TagAluno label="TDAH" nome="Aluno - Chat" ismenu={true}/>
+    </div>
+  </div>
+</div>
             </div>
+            </div>
+          </div>
+          <div className="config">
+                      <div className="border-t w-full border-[#FFFDFA]" />
+                        <div className="flex flex-col w-full mt-3">
+              <div
+                className={`h-[35px] flex items-center cursor-pointer ${
+                  isOpen
+                    ? "w-full justify-between"
+                    : "w-[30px] justify-center mx-auto"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M23.9251 16.175C23.9751 15.8 24.0001 15.4125 24.0001 15C24.0001 14.6 23.9751 14.2 23.9126 13.825L26.4501 11.85C26.6751 11.675 26.7376 11.3375 26.6001 11.0875L24.2001 6.9375C24.0501 6.6625 23.7376 6.575 23.4626 6.6625L20.4751 7.8625C19.8501 7.3875 19.1876 6.9875 18.4501 6.6875L18.0001 3.5125C17.9501 3.2125 17.7001 3 17.4001 3H12.6001C12.3001 3 12.0626 3.2125 12.0126 3.5125L11.5626 6.6875C10.8251 6.9875 10.1501 7.4 9.53764 7.8625L6.55014 6.6625C6.27514 6.5625 5.96264 6.6625 5.81264 6.9375L3.42514 11.0875C3.27514 11.35 3.32514 11.675 3.57514 11.85L6.11264 13.825C6.05014 14.2 6.00014 14.6125 6.00014 15C6.00014 15.3875 6.02514 15.8 6.08764 16.175L3.55014 18.15C3.32514 18.325 3.26264 18.6625 3.40014 18.9125L5.80014 23.0625C5.95014 23.3375 6.26264 23.425 6.53764 23.3375L9.52514 22.1375C10.1501 22.6125 10.8126 23.0125 11.5501 23.3125L12.0001 26.4875C12.0626 26.7875 12.3001 27 12.6001 27H17.4001C17.7001 27 17.9501 26.7875 17.9876 26.4875L18.4376 23.3125C19.1751 23.0125 19.8501 22.6125 20.4626 22.1375L23.4501 23.3375C23.7251 23.4375 24.0376 23.3375 24.1876 23.0625L26.5876 18.9125C26.7376 18.6375 26.6751 18.325 26.4376 18.15L23.9251 16.175ZM15.0001 19.5C12.5251 19.5 10.5001 17.475 10.5001 15C10.5001 12.525 12.5251 10.5 15.0001 10.5C17.4751 10.5 19.5001 12.525 19.5001 15C19.5001 17.475 17.4751 19.5 15.0001 19.5Z" fill="#FFFDFA"/>
+</svg>
 
+
+                  <p className={`text-white text-xl ${!isOpen && "hidden"} select-none`}>
+                    Configurações
+                  </p>
+                </div>
+                
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Button from "./Button";
 import { X } from 'lucide-react'
+import Blurfundo from "./Blurfundo";
+
 export default function FormDeletaTurma() {
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -10,6 +12,7 @@ export default function FormDeletaTurma() {
   };
 
   return (
+    <Blurfundo>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
@@ -35,5 +38,6 @@ export default function FormDeletaTurma() {
       </div>
       </div>
     </form>
+    </Blurfundo>
   );
 }

@@ -4,6 +4,7 @@ import Icon from "@/public/icon.png";
 import { ChevronDown } from "lucide-react";
 import React from "react";
 import TagAluno from './TagAluno';
+import Link from "next/link"
 export default function Menu() {
   const [isOpen, setIsOpen] = React.useState(true);
   const [isAlunoOpen, setIsAlunoOpen] = React.useState(false);
@@ -112,6 +113,7 @@ export default function Menu() {
                     : "w-[30px] justify-center mx-auto"
                 }`}
               >
+                <Link href="./turmas">
                 <div className="flex items-center gap-4 cursor-pointer">
                   <svg
                     width="30"
@@ -156,7 +158,7 @@ export default function Menu() {
                     Turmas
                   </p>
                 </div>
-
+                </Link>
                 <ChevronDown
                   className={`w-7.5 h-7.5 text-[#FFFDFA] shrink-0 cursor-pointer transition-transform duration-200 ${
                     !isOpen && "hidden"
@@ -188,6 +190,7 @@ export default function Menu() {
                     : "w-[30px] justify-center mx-auto"
                 }`}
               >
+                <Link href="./alunos">
                 <div className="flex items-center gap-4 cursor-pointer">
                   <svg
                     width="30"
@@ -214,6 +217,7 @@ export default function Menu() {
                     Alunos
                   </p>
                 </div>
+                </Link>
                 <ChevronDown
                   className={`w-7.5 h-7.5 text-[#FFFDFA] shrink-0 cursor-pointer transition-transform duration-200 ${
                     !isOpen && "hidden"
@@ -245,6 +249,7 @@ export default function Menu() {
                     : "w-[30px] justify-center mx-auto"
                 }`}
               >
+                <Link href="./recentes">
                 <div className="flex items-center gap-4 cursor-pointer">
                   <svg
                     width="24"
@@ -274,7 +279,7 @@ export default function Menu() {
                     Recentes
                   </p>
                 </div>
-
+                </Link>
                 <ChevronDown
                   className={`w-7.5 h-7.5 text-[#FFFDFA] shrink-0 transition-transform duration-200 cursor-pointer ${
                     !isOpen && "hidden"

@@ -58,8 +58,8 @@ export default function ChatInicial() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row justify-center md:justify-end gap-3 sm:gap-7 w-full sm:w-auto">
-                    <EditaPEI ativado={true} />
-                    <GeraPEI ativado={false} />
+                    <EditaPEI ativado={false} />
+                    <GeraPEI ativado={true} />
                   </div>
 
                 </div>

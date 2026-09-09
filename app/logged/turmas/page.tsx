@@ -13,6 +13,15 @@ export default function ViewTurmas(){
                 {nome: "Lucas O.", neuro: "TDAH", turma: "3º Ano A - Manhã"},
                 {nome: "Rodrigo M.", neuro: "AH/SD", turma: "3º Ano A - Manhã"},
             ]
+        },
+         {
+            nomeTurma: "3º Ano A - Manhã",
+            alunos: [
+                {nome: "Junior M.", neuro: "TDAH", turma: "3º Ano A - Manhã"},
+                {nome: "Julia H.", neuro: "TEA", turma: "3º Ano A - Manhã"},
+                {nome: "Lucas O.", neuro: "TDAH", turma: "3º Ano A - Manhã"},
+                {nome: "Rodrigo M.", neuro: "AH/SD", turma: "3º Ano A - Manhã"},
+            ]
         }
     ]
 
@@ -21,13 +30,13 @@ export default function ViewTurmas(){
             <Menu />
         
             <div className="flex justify-center items-center w-full">
-                <div className="flex w-[1056px] flex-col h-full items-center">
+                <div className="flex w-[1056px] flex-col h-full items-center gap-10">
                     <div className="flex flex-col w-full mt-[70px] gap-[15px]">
                         <HeaderPag />
                         <BarraPesquisa type="search" placeholder="Procurar turmas..."/>
                     </div>
 
-                    <div className="grid flex-1 grid-cols-2 mt-[-300px] content-center gap-20">
+                    <div className="grid flex-1 grid-cols-2 gap-20">
                         {turmas.map((turma, index) => (
                             <Turma
                                 key={index}
@@ -36,6 +45,7 @@ export default function ViewTurmas(){
                             />
                         ))}
                     </div>
+                    
                 </div>
             </div>
         </div>

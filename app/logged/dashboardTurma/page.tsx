@@ -34,7 +34,7 @@ export default function dashboardTurma(){
                         </div>
                     </div>
                     <Resumo tipo={1} txt="A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA,  Dislexia). A maioria responde bem a atividades visuais e instruções  segmentadas. Recomenda-se uso de recursos multissensoriais e tempos  flexíveis nas avaliações." />
-                    <Engajamento />
+                    <Engajamento tipo={2} />
                     <div className="flex flex-col gap-[16px]">
                         <div className="flex flex-row justify-between items-center">
                             <p className="font-(family-name:--font-text-me-one) text-3xl">Alunos</p>

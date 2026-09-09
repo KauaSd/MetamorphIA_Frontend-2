@@ -4,6 +4,7 @@ import Estatistica from "@/components/CardEstatistica";
 import Resumo from "@/components/Resumo";
 import Button from "@/components/Button";
 import Engajamento from "@/components/EngajamentoTurma";
+import Add from "@/public/add.svg";
 
 export default function dashboardTurma(){
     return(
@@ -23,15 +24,14 @@ export default function dashboardTurma(){
                             <Estatistica tipo={3} valor={12} />
                         </div>
                     </div>
-                    <div>
-                        <Resumo tipo={1} txt="A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA,  Dislexia). A maioria responde bem a atividades visuais e instruções  segmentadas. Recomenda-se uso de recursos multissensoriais e tempos  flexíveis nas avaliações." />
-                    </div>
+                    <Resumo tipo={1} txt="A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA,  Dislexia). A maioria responde bem a atividades visuais e instruções  segmentadas. Recomenda-se uso de recursos multissensoriais e tempos  flexíveis nas avaliações." />
                     <Engajamento />
                     <div>
-                        <div>
-                            <p>Alunos</p>
-                            <Button type="button">
-                                <p>Novo Aluno</p>
+                        <div className="flex flex-row justify-between">
+                            <p className="font-(family-name:--font-text-me-one) text-3xl">Alunos</p>
+                            <Button type="button" className="flex flex-row w-[200px] gap-[16px]">
+                                <img src={Add.src}  />
+                                <p className="text-[#433F3F] font-(family-name:--font-text-me-one) text-2xl">Novo Aluno</p>
                             </ Button>
                         </div>
                     </div>

@@ -7,8 +7,9 @@ import { X } from "lucide-react";
 import { Text_Me_One } from "next/font/google";
 import { useRef } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { CheckBoxAluno } from "./CheckBoxAl";
+import CheckBoxAluno from "./CheckBoxAl";
 import  DropDown  from "./DropDown";
+import Blurfundo from "./Blurfundo";
 
 interface turma{
   value : string
@@ -17,7 +18,7 @@ interface turma{
 interface turmasprops{
   turmas: turma[]
 }
-export default function FormRecuperaSenha( { turmas } : turmasprops) {
+export default function FormAluno( { turmas } : turmasprops) {
   const inputRef = useRef<HTMLInputElement>(null);
     const [neuro, setNeuro] = useState<string[]>([])
     const [Nome, setNome] = useState("");
@@ -37,6 +38,7 @@ export default function FormRecuperaSenha( { turmas } : turmasprops) {
   
 
   return (
+    <Blurfundo>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-10 rounded-[40px] bg-[#F0F0F0] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
@@ -143,5 +145,6 @@ export default function FormRecuperaSenha( { turmas } : turmasprops) {
         </div>
       </div>
     </form>
+    </Blurfundo>
   );
 }

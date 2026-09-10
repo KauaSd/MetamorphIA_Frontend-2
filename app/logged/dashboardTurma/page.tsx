@@ -17,33 +17,33 @@ export default function dashboardTurma(){
     ]
 
     return(
-        <div className="flex flex-row w-full h-screen">
+        <div className="flex min-h-screen w-full">
             <Menu />
         
-            <div className="flex justify-center items-center w-full">
-                <div className="flex w-[1056px] flex-col h-full gap-[24px]">
-                    <div className="flex flex-col w-full mt-[70px]">
+            <main className="min-w-0 flex-1 overflow-y-auto pl-16 md:pl-0">
+                <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
+                    <div className="flex w-full flex-col">
                         <HeaderPag />
                     </div>
-                    <div className="flex flex-col gap-[16px]">
+                    <div className="flex flex-col gap-4">
                         <p className="text-lg text-[#797979] font-semibold">Contextualização geral da turma</p>
-                        <div className="flex flex-row w-full justify-between">
+                        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                             <Estatistica tipo={1} valor={18} subtexto={3} />
                             <Estatistica tipo={2} valor={5} subtexto={28} />
                             <Estatistica tipo={3} valor={12} />
                         </div>
                     </div>
                     <Resumo tipo={1} txt="A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA,  Dislexia). A maioria responde bem a atividades visuais e instruções  segmentadas. Recomenda-se uso de recursos multissensoriais e tempos  flexíveis nas avaliações." />
-                    <Engajamento tipo={2} />
-                    <div className="flex flex-col gap-[16px]">
-                        <div className="flex flex-row justify-between items-center">
-                            <p className="font-(family-name:--font-text-me-one) text-3xl">Alunos</p>
-                            <Button type="button" className="flex flex-row w-[210px] gap-[16px]">
+                    <Engajamento tipo={1} />
+                    <div className="flex flex-col gap-4 pb-8">
+                        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+                            <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Alunos</p>
+                            <Button type="button" className="flex w-full flex-row justify-center gap-3 sm:w-[210px]">
                                 <img src={Add.src}  />
                                 <p className="text-[#433F3F] font-(family-name:--font-text-me-one) text-2xl">Novo Aluno</p>
                             </ Button>
                         </div>
-                        <div className="grid grid-cols-2 w-full gap-5">
+                        <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
                         {alunos.map((aluno, index) => (
                             <Aluno
                                 key={aluno.nome}
@@ -56,7 +56,7 @@ export default function dashboardTurma(){
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     )
 }

@@ -5,17 +5,17 @@ import Download from "@/public/file_download.svg";
 
 export default function HeaderPag(){
     return(
-        <div className="flex flex-col gap-[15px] w-full">
-            <div className="flex flex-row gap-[12px] cursor-pointer">
+        <div className="flex w-full flex-col gap-4">
+            <div className="flex flex-row gap-3 cursor-pointer">
                 <img src={Seta.src} className="w-[24px] h-[24px]" />
-                <p className="text-base font-semibold text-[#797979]">3º Ano A - Manhã</p>
+                <p className="text-sm font-semibold text-[#797979] sm:text-base">3º Ano A - Manhã</p>
             </div>
-            <div className="flex flex-row justify-between items-center">
-                <div className="flex flex-row gap-3">
-                    <div className="bg-[#D4C7F8] w-20 h-20 rounded-[70%] flex items-center justify-center text-[#433F3F] text-3xl font-bold">LO</div>
+            <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+                <div className="flex min-w-0 flex-row gap-3">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[70%] bg-[#D4C7F8] text-2xl font-bold text-[#433F3F] sm:h-20 sm:w-20 sm:text-3xl">LO</div>
                     <div className="flex flex-col gap-1">
-                        <p className="font-(family-name:--font-text-me-one) text-3xl">Lucas Olioti</p>
-                        <div className="flex flex-row items-center gap-5 text-[#797979] text-sm">
+                        <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Lucas Olioti</p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#797979] sm:gap-5">
                             <p>9 anos</p>
                             <div className="w-2 h-2 rounded-full bg-[#797979]"></div>
                             <p>3º Ano A - Manhã</p>
@@ -25,12 +25,12 @@ export default function HeaderPag(){
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-row gap-5 h-8">
-                    <Button type="button" className="flex flex-row gap-2 py-0 justify-center items-center">
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-5 sm:h-8">
+                    <Button type="button" className="flex flex-row items-center justify-center gap-2 py-2 sm:py-0">
                         <img src={Add.src} className="w-6 h-6"/>
                         <p className="font-(family-name:--font-text-me-one) text-xl">Bate-Papo</p>
                     </Button>
-                    <Button type="button" className="flex flex-row gap-2 py-0 bg-[#FFD279] justify-center items-center">
+                    <Button type="button" className="flex flex-row items-center justify-center gap-2 bg-[#FFD279] py-2 sm:py-0">
                         <img src={Download.src} className="w-6 h-6"/>
                         <p className="font-(family-name:--font-text-me-one) text-xl">Gerar PEI</p>
                     </Button>

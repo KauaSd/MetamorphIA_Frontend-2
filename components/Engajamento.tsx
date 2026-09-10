@@ -18,7 +18,7 @@ export default function Engajamento(props : EngajamentoProps){
 
     return(
         <div className="flex flex-col gap-[16px]">
-            <p className="font-(family-name:--font-text-me-one) text-3xl"> {config.titulo} </p>
+            <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl"> {config.titulo} </p>
             <div>
                 <div className="flex flex-row justify-between w-full text-[#797979]">
                     <p>Leitura e Escrita</p>

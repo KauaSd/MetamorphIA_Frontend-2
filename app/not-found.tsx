@@ -1,6 +1,7 @@
 import Logo from "@/public/icon.png";
 import { Poppins, Text_Me_One } from "next/font/google";
 import Button from "@/components/Button";
+import desenho1 from '@/public/desenho.svg'
 
 const TextMeOne = Text_Me_One({
   variable: "--font-text-me-one",
@@ -21,7 +22,7 @@ export default function NotFound() {
       <div className="absolute inset-0 z-0 h-full w-full pointer-events-none select-none">
 
         <img
-          src="/VetorFita07.svg"
+          src="/VetorFitaErro.svg"
           alt=""
           className="absolute top-1/3 -left-[10%] w-[120%] max-w-none pointer-events-none select-none sm:left-0 sm:w-full"
         />
@@ -38,17 +39,17 @@ export default function NotFound() {
         </div>
 
         <main className={`flex flex-1 items-center justify-center px-4 ${poppins.variable} font-(family-name:--font-poppins)`}>
-          <div className="flex w-full max-w-3xl flex-col items-center gap-5 rounded-[40px] bg-[#FFFDFA] p-8 sm:flex-row sm:gap-6 sm:rounded-[70px] sm:p-10">
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-[#FF9999] text-6xl sm:text-7xl">404</p>
-              <h1 className="text-sm text-[#797979]">Ops, não encontramos</h1>
-              <Button className="bg-[#FF9999] hover:bg-[#FF9999]/80mt-1">
+          <div className="flex h-auto w-full max-w-[985px] flex-col items-center justify-between gap-10 rounded-[40px] bg-[#FFFDFA] p-8 sm:h-[598px] sm:flex-row sm:gap-8 sm:rounded-[70px] sm:p-14">
+            <div className="flex flex-col items-center text-center sm:items-start sm:text-left">
+              <p className="text-[#FF9999] text-[100px] sm:text-[150px]">404</p>
+              <h1 className="text-[20px] sm:text-[25px] text-[#797979]">Ops, não encontramos</h1>
+              <Button className="bg-[#FF9999] hover:bg-[#FF9999]/80 mt-1 p-1 text-[14px] text-[#433F3F]">
                 Voltar
               </Button>
             </div>
 
-            <div className="hidden h-32 w-32 shrink-0 sm:block">
-
+            <div className="flex w-full max-w-[380px] items-center justify-center sm:w-auto">
+              <img src={desenho1.src} className="h-auto w-full max-w-[380px]" />
             </div>
           </div>
         </main>

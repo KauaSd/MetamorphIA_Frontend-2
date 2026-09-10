@@ -4,6 +4,7 @@ import { useState } from "react";
 import Input from "./Input";
 import Button from "./Button";
 import { X } from 'lucide-react'
+import Blurfundo from "./Blurfundo";  
 import { Text_Me_One } from "next/font/google";
 
 const TextMeOne = Text_Me_One({
@@ -20,6 +21,7 @@ export default function FormRecuperaSenha() {
   };
 
   return (
+    <Blurfundo>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
@@ -46,5 +48,6 @@ export default function FormRecuperaSenha() {
       </div>
       </div>
     </form>
+    </Blurfundo>
   );
 }

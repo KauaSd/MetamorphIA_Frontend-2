@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Input from "./Input";
 import Button from "./Button";
-import Link from 'next/link';
-
+import Link from "next/link";
 
 export default function FormLogin() {
   const [identificador, setIdentificar] = useState("");
@@ -30,18 +29,25 @@ export default function FormLogin() {
         <div className="flex flex-col items-end">
           <Link href="/auth/recuperaSenha">
             <p className="text-right text-sm text-[#797979]">
-              <u><b>Esqueci a senha</b></u>
+              <u>
+                <b>Esqueci a senha</b>
+              </u>
             </p>
           </Link>
         </div>
-
-        <Button type="submit">Entrar</Button>
-
-        <div className="text-sm text-[#797979] flex flex-row items-center justify-center gap-1">
-            <p> Não tem uma conta? </p>
-                <Link href="/auth/cadastro">
-            <p className="cursor-pointer"> <u><b>Cadastre-se</b></u> </p>
+        <Link href="/chat">
+          <Button type="submit">Entrar</Button>
         </Link>
+        <div className="text-sm text-[#797979] flex flex-row items-center justify-center gap-1">
+          <p> Não tem uma conta? </p>
+          <Link href="/auth/cadastro">
+            <p className="cursor-pointer">
+              {" "}
+              <u>
+                <b>Cadastre-se</b>
+              </u>{" "}
+            </p>
+          </Link>
         </div>
       </div>
     </form>

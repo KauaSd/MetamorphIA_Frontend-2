@@ -4,7 +4,7 @@ import { useState } from "react";
 import Input from "./Input";
 import CheckBox from "./CheckBox";
 import Button from "./Button";
-import Link from 'next/link';
+import Link from "next/link";
 
 export default function FormCadastro() {
   const [tel, setTel] = useState("");
@@ -24,21 +24,41 @@ export default function FormCadastro() {
         </div>
 
         <div className="flex flex-col items-center gap-3">
-          <Input type="text" placeholder="Digite seu telefone" value={tel} onChange={(e) => setTel(e.target.value)} />
-          <Input type="text" placeholder="Digite seu e-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Input type="password" placeholder="Digite sua senha" value={senha} onChange={(e) => setSenha(e.target.value)} />
+          <Input
+            type="text"
+            placeholder="Digite seu telefone"
+            value={tel}
+            onChange={(e) => setTel(e.target.value)}
+          />
+          <Input
+            type="text"
+            placeholder="Digite seu e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            type="password"
+            placeholder="Digite sua senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+          />
         </div>
 
         <div className="flex items-center">
           <CheckBox />
         </div>
-
-        <Button type="button">Cadastrar</Button>
-
+        <Link href="/auth/login">
+          <Button type="button">Cadastrar</Button>
+        </Link>
         <div className="text-sm text-[#797979] flex flex-row items-center justify-center gap-1">
           <p>Já tem uma conta?</p>
           <Link href="/auth/login">
-            <p className="cursor-pointer"> <u><b>Entre</b></u> </p>
+            <p className="cursor-pointer">
+              {" "}
+              <u>
+                <b>Entre</b>
+              </u>{" "}
+            </p>
           </Link>
         </div>
       </div>

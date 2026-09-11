@@ -44,7 +44,7 @@ export default function ConteudoTurmas(){
             </div>
 
             {temTurma ? (
-                <div className="grid grid-cols-2 gap-20 mt-20">
+                <div className="grid grid-cols-2 gap-20 mt-10">
                     {turmas.map((turma, index) => (
                         <Turma
                             key={index}

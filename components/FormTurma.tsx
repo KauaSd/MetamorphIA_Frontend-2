@@ -7,13 +7,21 @@ import { X } from 'lucide-react'
 import Blurfundo from "./Blurfundo";  
 import { Text_Me_One } from "next/font/google";
 
+interface FormTurmaProps{
+  onClose: () => void;
+  onCriar: () => void;
+}
+
 const TextMeOne = Text_Me_One({
   variable: "--font-text-me-one",
   weight: "400",
   subsets: ["latin"],
 });
 
-export default function FormRecuperaSenha() {
+export default function FormRecuperaSenha({
+  onClose,
+  onCriar,
+}: FormTurmaProps) {
   const [email, setEmail] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -31,6 +39,7 @@ export default function FormRecuperaSenha() {
           type="button"
           aria-label="Fechar"
           className="cursor-pointer"
+          onClick={onClose}
           >
             <X className="w-6 h-6"/>
           </button>
@@ -43,8 +52,8 @@ export default function FormRecuperaSenha() {
         </div>
 
         <div className="flex gap-5">
-        <Button type="button" className="bg-[#433F3F] text-[#FFFDFA]">Cancelar</Button>
-        <Button type="button">Salvar</Button>
+        <Button type="button" onClick={onClose} className="bg-[#433F3F] text-[#FFFDFA]">Cancelar</Button>
+        <Button type="button" onClick={onCriar}>Salvar</Button>
       </div>
       </div>
     </form>

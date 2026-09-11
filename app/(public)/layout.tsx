@@ -1,4 +1,3 @@
-
 import Logo from '@/public/icon.png'
 import Button from '@/components/Button'
 import elipse1 from '@/public/ElipseHome1.svg'
@@ -17,10 +16,10 @@ export default function RootLayout({ children }: {children: React.ReactNode}) {
             </p>
         </div>
         <div className="flex items-center justify-center gap-3">
-        <Link href="auth/cadastro">
+        <Link href="/auth/cadastro">
         <Button className="font-(family-name:--font-text-me-one) py-1 bg-[#FFFDFA] hover:bg-[#CAC7C2] text-xl w-auto">Cadastro</Button>
         </Link>
-        <Link href="auth/login">
+        <Link href="/login">
         <Button className="font-(family-name:--font-text-me-one) py-1 text-xl w-auto">Login</Button>
         </Link>
         </div>

@@ -6,7 +6,7 @@ export default function CheckBox() {
   const [aceitaTermos, setAceitaTermos] = useState(false);
 
   return (
-    <label className="flex cursor-pointer items-start gap-2">
+    <label className="flex cursor-pointer items-center gap-2">
       <input
         type="checkbox"
         onChange={(e) => setAceitaTermos(e.target.checked)}

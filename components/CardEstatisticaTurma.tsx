@@ -1,3 +1,5 @@
+import Encaracolado from "@/public/EncaracoladoEstatistica.svg";
+
 type TipoStat = 1 | 2 | 3;
 
 interface CardEstatisticaProps {
@@ -28,7 +30,8 @@ export default function CardEstatistica({ tipo, valor, subtexto }: CardEstatisti
   const config = CONFIG_TIPOS[tipo] || CONFIG_TIPOS[1];
 
   return (
-    <div className="font-(family-name:--font-poppins) relative flex items-center w-63 h-31.5 bg-[#FAF8F5] rounded-[70px] px-4 py-5">
+    <div className="font-(family-name:--font-poppins) relative flex min-h-31.5 w-full items-center rounded-[45px] bg-[#FAF8F5] px-4 py-5 sm:rounded-[70px]">
+      <img src={Encaracolado.src} className="absolute left-[-5] top-1/2 -translate-y-1/2 w-[28px] h-auto pointer-events-none select-none" />
 
       <div className="flex flex-col justify-between h-full ml-4">
         <span className="text-sm text-[#797979]">

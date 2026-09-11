@@ -29,7 +29,7 @@ export default function FormCadastro() {
           <Input type="password" placeholder="Digite sua senha" value={senha} onChange={(e) => setSenha(e.target.value)} />
         </div>
 
-        <div className="flex flex-col items-center">
+        <div className="flex items-center">
           <CheckBox />
         </div>
 

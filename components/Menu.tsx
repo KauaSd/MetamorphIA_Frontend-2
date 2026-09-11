@@ -12,9 +12,9 @@ export default function Menu() {
   const [isRecentesOpen,setIsRecentesOpen] = React.useState(false);
   React.useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1200) {
+      if (window.innerWidth < 1280) {
         setIsOpen(false);
-      } else if (window.innerWidth >= 1400) {
+      } else {
         setIsOpen(true);
       }
     };
@@ -39,8 +39,8 @@ export default function Menu() {
       )}
 
       <div
-        className={`bg-[#433F3F] shrink-0 h-screen fixed inset-y-0 left-0 z-50 md:static md:z-auto ${
-          isOpen ? "w-75" : "w-20 cursor-pointer"
+        className={`fixed inset-y-0 left-0 z-50 h-[100dvh] shrink-0 bg-[#433F3F] md:static md:z-auto ${
+          isOpen ? "w-[min(18rem,85vw)] md:w-72" : "w-16 cursor-pointer md:w-20"
         } flex flex-col transition-all duration-300 ease-in-out`}
         onClick={() => {
           if (!isOpen) {
@@ -49,7 +49,7 @@ export default function Menu() {
         }}
       >
 
-        <div className="flex flex-col p-5 w-full h-full justify-between overflow-y-auto">
+        <div className="flex h-full w-full flex-col justify-between overflow-y-auto p-4 md:p-5">
         <div className="c1">
           <div
             className={`flex flex-row items-center ${
@@ -60,11 +60,11 @@ export default function Menu() {
               <img
                 src={Icon.src}
                 alt=""
-                className="h-10 w-10 pointer-events-none select-none"
+                className="h-8 w-8 pointer-events-none select-none md:h-10 md:w-10"
               />
 
               <h1
-                className={`text-[#FFFDFA] text-3xl font-(family-name:--font-text-me-one) select-none ${
+                className={`text-2xl text-[#FFFDFA] font-(family-name:--font-text-me-one) select-none md:text-3xl ${
                   !isOpen && "hidden"
                 }`}
               >

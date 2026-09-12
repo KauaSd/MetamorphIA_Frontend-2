@@ -9,7 +9,26 @@ import { Moon } from "lucide-react";
 import engrenagem from "../public/engrenagem.svg";
 import circulo_conta from "../public/circulo_conta.svg";
 import cadeado from "../public/cadeado.svg";
+import FormDeletaConta from "./FormDeletaConta";
+import { ReactNode } from "react";
 
+interface SidebarProps {
+  abaAtiva: string;
+  setAbaAtiva: (aba: string) => void;
+}
+
+interface PainelProps {
+  Preencher: ReactNode;
+}
+
+interface LinhaConfigProps {
+  label: string;
+  children: ReactNode;
+}
+
+interface CampoValorProps {
+  value: string;
+}
 
 export default function Configuracoes() {
 
@@ -25,18 +44,18 @@ export default function Configuracoes() {
   );
 }
 
-function renderizarAba(aba) {
+function renderizarAba(aba : string) {
   if (aba === "conta") return <ContaConfig />;
   if (aba === "privacidade") return <PrivacidadeConfig />;
   return <GeralConfig />;
 }
 
-function SidebarEscura({ abaAtiva, setAbaAtiva }) {
+function SidebarEscura({ abaAtiva, setAbaAtiva } : SidebarProps) {
   return (
     <div className="flex w-[210px] shrink-0 flex-col gap-2 bg-[#433F3F] px-5 py-5 text-[#EDEBE8]">
       <h1 className="text-[28px] text-[#F0F0F0] font-(family-name:--font-text-me-one)">Configurações</h1>
     
-      <BarraPesquisa type="search" placeholder="Procurar"/>
+      <BarraPesquisa type="search" placeholder="Procurar" className="w-full"/>
 
       <nav className="flex flex-col gap-1">
         <div
@@ -74,7 +93,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva }) {
   );
 }
 
-function PainelClaro({Preencher}) {
+function PainelClaro({Preencher} : PainelProps) {
   return (
     <section className="relative flex-1 overflow-y-auto px-8 py-6 text-[#3D3838]">
       <BotaoFechar />
@@ -141,6 +160,8 @@ export function GeralConfig() {
 }
 
 export function ContaConfig() {
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -154,12 +175,13 @@ export function ContaConfig() {
           </LinhaConfig>
 
           <LinhaConfig label="Apagar sua conta">
-            <button className="rounded-[70px] bg-[#FF9999] px-8 py-1 text-[18px] hover:bg-[#FF9999]/80">
+            <button className="rounded-[70px] bg-[#FF9999] px-8 py-1 text-[18px] hover:bg-[#FF9999]/80" onClick={() => setMostrarFormulario(true)}>
               Apagar conta
             </button>
           </LinhaConfig>
         </div>
       </div>
+      {mostrarFormulario && <FormDeletaConta />}
     </div>
   );
 }
@@ -193,7 +215,7 @@ export function PrivacidadeConfig() {
   );
 }
 
-function LinhaConfig({ label, children }) {
+function LinhaConfig({ label, children } : LinhaConfigProps) {
   return (
     <div className="flex items-center justify-between py-3">
       <span className="text-[18px]">{label}</span>
@@ -202,7 +224,7 @@ function LinhaConfig({ label, children }) {
   );
 }
 
-function CampoValor({ value }) {
+function CampoValor({ value } : CampoValorProps) {
   return (
     <div className="rounded-[70px] bg-[#D9D9D9] px-8 py-1 text-[18px]">
       {value}

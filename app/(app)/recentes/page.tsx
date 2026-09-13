@@ -10,29 +10,27 @@ export default function Recentes(){
     ]
 
     return(
-        <div className="flex flex-row w-full h-screen">
-                        <Menu />
-        
-                    <div className="flex justify-center w-full">
-                        <div className="flex w-[1056px] flex-col h-full">
-                            <div className="flex flex-col w-full gap-5 mt-20">
-                                <HeaderPag />
-                            </div>
-        
-                            <div className="flex flex-col mt-10 gap-5">
-                                {chats.map((chat, index) => (
-                                    <Historico
-                                        key={index}
-                                        aluno={chat.aluno}
-                                        neuro={chat.neuro}
-                                        data={chat.data}
-                                        turma={chat.turma}
-                                        chat={chat.chat}
-                                    />
-                                ))}
-                            </div>
-                        </div>
+        <div className="flex flex-row w-full min-h-screen">
+            <Menu />
+            <main className="flex justify-center w-full min-w-0">
+                <div className="flex w-full max-w-[1056px] flex-col px-5 sm:px-8 lg:px-12">
+                    <div className="flex flex-col w-full gap-5 mt-8 sm:mt-12 lg:mt-20">
+                        <HeaderPag />
+                    </div>
+                    <div className="flex flex-col mt-6 sm:mt-10 gap-4 sm:gap-5 pb-8">
+                        {chats.map((chat, index) => (
+                            <Historico
+                                key={index}
+                                aluno={chat.aluno}
+                                neuro={chat.neuro}
+                                data={chat.data}
+                                turma={chat.turma}
+                                chat={chat.chat}
+                            />
+                        ))}
                     </div>
                 </div>
+            </main>
+        </div>
     )
 }

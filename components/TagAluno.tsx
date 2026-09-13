@@ -12,13 +12,15 @@ const colorMap: Record<string, string> = {
   Outro: 'bg-[#948F9E]',
 }
 
-export default function TagNeuro( props: TagProps) {
+export default function TagNeuro(props: TagProps) {
   const colorStyles = colorMap[props.label] || 'bg-[#a77464]'
 
   return (
-    <span className="flex gap-2 items-center">
-      <div  className={`h-3.5 w-3.5 rounded-full ${colorStyles}`}></div>
-      <p className={`text-[#797979] text-sm text-justify ${props.ismenu ? "text-[#FFFFFF]" : "text-[#797979]" }`}>{[props.nome]}</p>
+    <span className="flex gap-2 items-center w-full min-w-0">
+      <div className={`h-3.5 w-3.5 shrink-0 rounded-full ${colorStyles}`}></div>
+      <p className={`text-[10px] sm:text-sm md:text-sm truncate min-w-0 ${props.ismenu ? "text-[#FFFFFF]" : "text-[#797979]"}`}>
+        {props.nome}
+      </p>
     </span>
   )
 }

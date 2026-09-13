@@ -6,10 +6,8 @@ export default function ViewAlunos(){
         <div className="flex flex-row w-full h-screen">
             <Menu />
         
-            <div className="flex justify-center w-full">
-                <div>
+            <div className="flex justify-center w-full px-10! sm:px-15! md:px-64!">
                     <ConteudoAlunos />
-                </div>
             </div>
         </div>
     )

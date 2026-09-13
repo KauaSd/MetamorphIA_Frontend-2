@@ -3,8 +3,16 @@ import HeaderPag from "@/components/HeaderDashAl";
 import Estatistica from "@/components/CardEstatisticaAluno";
 import Resumo from "@/components/Resumo";
 import Engajamento from "@/components/Engajamento";
+import Recentes from "@/components/HistoricoTags";
 
 export default function DashboardAluno(){
+
+    const chats = [
+        {chat: "Adaptação de atividade de leitura", data: "15/05/2026"},
+        {chat: "Estratégia para concentração em sala", data: "15/05/2026"},
+        {chat: "Avaliação adaptada de matemática", data: "08/05/2026"}
+    ]
+
     return(
         <div className="flex min-h-screen w-full text-[#433F3F]">
             <Menu />
@@ -22,9 +30,18 @@ export default function DashboardAluno(){
                     <Resumo tipo={2} txt="Lucas apresenta atenção fragmentada em tarefas longas, mas excelente desempenho em atividades curtas e gamificadas. Responde  bem a instruções visuais e recompensas imediatas. Sugere-se segmentar  atividades em blocos de no máximo 10 minutos." />
                     <Engajamento tipo={1} />
                     <div className="flex flex-col gap-4 pb-8">
-                        <div className="flex flex-col items-start justify-between gap-1 sm:flex-row sm:items-center">
+                        <div className="flex flex-row items-start justify-between gap-1 sm:flex-row sm:items-center">
                             <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Histórico de Conversas</p>
-                            <p className="text-sm text-[#797979]">5 conversas</p>
+                            <p className="text-sm text-[#797979]">{chats.length} conversas</p>
+                        </div>
+                        <div className="flex flex-col gap-5">
+                            {chats.map((chat, index) => (
+                                <Recentes
+                                    key={index}
+                                    chat={chat.chat}
+                                    data={chat.data}
+                                />
+                            ))}
                         </div>
                     </div>
                 </div>

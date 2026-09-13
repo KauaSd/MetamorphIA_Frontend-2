@@ -23,6 +23,10 @@ export default function dashboardTurma(){
         {nome: "Sofia Gabriele", neuro: "Dislexia", turma: "3º Ano A - Manhã"},
     ]
 
+    const turmas = [
+        {value: "3ano-a-manha", label: "3º Ano A - Manhã"}
+    ]
+
     function abrirForm(){
         setMostrarForm(true);
     }
@@ -53,10 +57,10 @@ export default function dashboardTurma(){
                     <div className="flex flex-col gap-4 pb-8">
                         <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
                             <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Alunos</p>
-                            <Button type="button" className="flex w-full flex-row justify-center gap-3 sm:w-[210px]">
+                            <Button type="button" onClick={abrirForm} className="flex w-full flex-row justify-center gap-3 sm:w-[210px]">
                                 <img src={Add.src}  />
                                 <p className="text-[#433F3F] font-(family-name:--font-text-me-one) text-2xl">Novo Aluno</p>
-                            </ Button>
+                            </Button>
                         </div>
                         <Link href="/dashboardAluno">
                             <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
@@ -71,6 +75,13 @@ export default function dashboardTurma(){
                             ))}
                             </div>
                         </Link>
+
+                        {mostrarForm && (
+                            <FormAluno
+                                turmas={turmas}
+                                onClose={fecharForm}
+                            />
+                        )}
                     </div>
                 </div>
             </main>

@@ -4,18 +4,26 @@ interface HistoricoProps {
 }
 
 function formatarData(data: Date): string {
+  const [dia, mes, ano] = data.split("/");
+
+  const dataFormatada = new Date(
+    Number(ano),
+    Number(mes) - 1,
+    Number(dia)
+  );
+
   return new Intl.DateTimeFormat("pt-BR", {
     day: "numeric",
     month: "short",
     year: "numeric",
   })
-    .format(data)
+    .format(dataFormatada)
     .replace(/ de /g, " ");
 }
 
 export default function ConversasRecentes(props: HistoricoProps) {
   return (
-    <div className="flex px-6 items-center gap-4 w-full h-20! sm:h-22! md:h-25.25! bg-[#FFFDFA] rounded-[70px]">
+    <div className="flex px-6 items-center gap-4 w-full h-15 sm:h-22! md:h-10 bg-[#FFFDFA] rounded-[70px]">
     <div className="flex shrink-0 items-center justify-center w-14 h-14 rounded-full bg-[#433F3F] text-2xl font-extrabold">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0_394_535)">

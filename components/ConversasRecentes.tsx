@@ -2,19 +2,27 @@ import TagNeuro from "./TagNeuro";
 import { pegainicial } from "@/utils/pegariniciais";
 interface RecentesProps {
   aluno: string;
-  Neuro: string;
-  data: Date;
+  neuro: string;
+  data: string;
   turma: string;
   chat: string;
 }
 
 function formatarData(data: Date): string {
+  const [dia, mes, ano] = data.split("/");
+
+  const dataFormatada = new Date(
+    Number(ano),
+    Number(mes) - 1,
+    Number(dia)
+  );
+
   return new Intl.DateTimeFormat("pt-BR", {
     day: "numeric",
     month: "short",
     year: "numeric",
   })
-    .format(data)
+    .format(dataFormatada)
     .replace(/ de /g, " ");
 }
 
@@ -33,7 +41,7 @@ export default function ConversasRecentes(props: RecentesProps) {
           <a className="text-sm mr-0! sm:mr-12! md:mr-17!  "> {formatarData(props.data)} </a>
           </div>
           <div className="flex gap-2">
-            <TagNeuro label={props.Neuro} />
+            <TagNeuro label={props.neuro} />
             <a className="text-sm">{props.turma}</a>
           </div>
         </div>

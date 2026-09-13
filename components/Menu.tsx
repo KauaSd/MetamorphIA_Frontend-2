@@ -6,12 +6,14 @@ import { ChevronDown } from "lucide-react";
 import React from "react";
 import TagAluno from './TagAluno';
 import Link from "next/link";
+
 export default function Menu() {
   const [isOpen, setIsOpen] = React.useState(true);
   const [isAlunoOpen, setIsAlunoOpen] = React.useState(false);
   const [isTurmaOpen, setIsTurmaOpen] = React.useState(false); 
   const [isRecentesOpen,setIsRecentesOpen] = React.useState(false);
   const [isConfigOpen, setIsConfigOpen] = React.useState(false);
+
   React.useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1280) {
@@ -294,16 +296,20 @@ export default function Menu() {
                 />
               </div>
               <div className={`grid transition-all duration-200 ease-in-out ${isRecentesOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-  <div className="overflow-hidden">
-    <div className="flex flex-col gap-2 mt-3 ml-5">
-      <TagAluno label="TDAH" nome="Aluno - Chat" ismenu={true}/>
-    </div>
-  </div>
-</div>
-            </div>
+              <div className="overflow-hidden">
+                <div className="flex flex-col gap-2 mt-3 ml-5">
+                  <TagAluno label="TDAH"
+                  nome="Aluno - Chat" 
+                  ismenu={true}/>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="config" onClick={() => (<Configuracoes />)}>
+          </div>
+          </div>
+
+          {/* CONFIGURAÇÕES */}
+          <div className="config" onClick={() => setIsConfigOpen(true)}>
                       <div className="border-t w-full border-[#FFFDFA]" />
                         <div className="flex flex-col w-full mt-3">
               <div
@@ -331,6 +337,12 @@ export default function Menu() {
           </div>
         </div>
       </div>
+      {/* MODAL DE CONFIGURAÇÕES */}
+      {isConfigOpen && (
+        <Configuracoes
+          onClose={() => setIsConfigOpen(false)}
+        />
+      )}
     </>
   );
 }

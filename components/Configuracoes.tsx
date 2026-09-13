@@ -1,16 +1,16 @@
 "use client";
 
+import { ReactNode } from "react";
 import { useState } from "react";
 import BarraPesquisa from "./Input";
 import Blurfundo from "./Blurfundo";
-import { X } from 'lucide-react'
-import { Sun } from "lucide-react";
-import { Moon } from "lucide-react";
+import { X , Sun, Moon} from 'lucide-react'
 import engrenagem from "../public/engrenagem.svg";
 import circulo_conta from "../public/circulo_conta.svg";
 import cadeado from "../public/cadeado.svg";
 import FormDeletaConta from "./FormDeletaConta";
-import { ReactNode } from "react";
+import FormDesconecta from "./FormDesconecta";
+import Link from "next/link";
 
 interface SidebarProps {
   abaAtiva: string;
@@ -19,6 +19,7 @@ interface SidebarProps {
 
 interface PainelProps {
   Preencher: ReactNode;
+  onClose: () => void;
 }
 
 interface LinhaConfigProps {
@@ -30,15 +31,27 @@ interface CampoValorProps {
   value: string;
 }
 
-export default function Configuracoes() {
+interface ConfiguracoesProps {
+  onClose: () => void;
+}
 
+export default function Configuracoes({
+  onClose,
+}: ConfiguracoesProps) {
   const [abaAtiva, setAbaAtiva] = useState("geral");
 
   return (
     <Blurfundo>
       <div className="flex h-[590px] w-[890px] overflow-hidden rounded-[40px] bg-[#F0F0F0]">
-        <SidebarEscura abaAtiva={abaAtiva} setAbaAtiva={setAbaAtiva} />
-        <PainelClaro Preencher={renderizarAba(abaAtiva)} />
+        <SidebarEscura
+          abaAtiva={abaAtiva}
+          setAbaAtiva={setAbaAtiva}
+        />
+
+        <PainelClaro
+          Preencher={renderizarAba(abaAtiva)}
+          onClose={onClose}
+        />
       </div>
     </Blurfundo>
   );
@@ -87,29 +100,31 @@ function SidebarEscura({ abaAtiva, setAbaAtiva } : SidebarProps) {
           <img src={cadeado.src} />
           Privacidade
         </div>
-
       </nav>
     </div>
   );
 }
 
-function PainelClaro({Preencher} : PainelProps) {
+function PainelClaro({ Preencher, onClose }: PainelProps) {
   return (
     <section className="relative flex-1 overflow-y-auto px-8 py-6 text-[#3D3838]">
-      <BotaoFechar />
+      <BotaoFechar onClose={onClose} />
       {Preencher}
     </section>
   );
 }
 
-function BotaoFechar() {
+function BotaoFechar({onClose}: { onClose: () => void;}) 
+{
   return (
-    <button 
-          aria-label="Fechar"
-          className="cursor-pointer absolute right-6 top-6 hover:text-[#797979]"
-          >
-            <X className="w-6 h-6"/>
-          </button>
+    <button
+      type="button"
+      aria-label="Fechar"
+      onClick={onClose}
+      className="absolute top-6 right-6 cursor-pointer hover:text-[#797979]"
+    >
+      <X className="h-6 w-6" />
+    </button>
   );
 }
 
@@ -140,7 +155,7 @@ export function GeralConfig() {
           </p>
           <textarea
             placeholder="ex: faça perguntas de esclarecimento antes de dar respostas detalhadas"
-            className="mt-3 h-16 w-full resize-none rounded-[70px] bg-[#D9D9D9] px-4 py-3 text-[14px] text-[#797979] placeholder:text-[#797979] focus:outline-none"
+            className="mt-3 h-20 w-full resize-none rounded-[30px] bg-[#D9D9D9] px-4 py-3 text-[14px] text-[#797979] placeholder:text-[#797979] focus:outline-none overflow-auto scrollbar-none"
           />
           </div>
         </div>  
@@ -151,7 +166,7 @@ export function GeralConfig() {
         <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Preferências</h2>
         <div className="divide-y-2 divide-[#D9D9D9]">
           <LinhaConfig label="Aparência">
-            <ToggleAparencia />
+            <Mode />
           </LinhaConfig>
         </div>
       </div>
@@ -160,7 +175,8 @@ export function GeralConfig() {
 }
 
 export function ContaConfig() {
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarFormDeleta, setMostrarFormDeleta] = useState(false);
+  const [mostrarFormDesconecta, setMostrarFormDesconecta] = useState(false);
 
   return (
     <div className="flex flex-col gap-6">
@@ -169,19 +185,28 @@ export function ContaConfig() {
         <div className="divide-y-2 divide-[#D9D9D9]">
 
           <LinhaConfig label="Desconectar de todos os dispositivos">
-            <button className="rounded-[70px] bg-[#D9D9D9] px-8 py-1 text-[18px] hover:bg-[#C0C0C0]">
+            <button className="rounded-[70px] bg-[#D9D9D9] px-8 py-1 text-[18px] hover:bg-[#C0C0C0]" onClick={() => setMostrarFormDesconecta(true)}>
               Sair
             </button>
           </LinhaConfig>
 
           <LinhaConfig label="Apagar sua conta">
-            <button className="rounded-[70px] bg-[#FF9999] px-8 py-1 text-[18px] hover:bg-[#FF9999]/80" onClick={() => setMostrarFormulario(true)}>
+            <button className="rounded-[70px] bg-[#FF9999] px-8 py-1 text-[18px] hover:bg-[#FF9999]/80" onClick={() => setMostrarFormDeleta(true)}>
               Apagar conta
             </button>
           </LinhaConfig>
         </div>
       </div>
-      {mostrarFormulario && <FormDeletaConta />}
+      {mostrarFormDeleta && (
+        <FormDeletaConta
+          onClose={() => setMostrarFormDeleta(false)}
+        />
+      )}
+      {mostrarFormDesconecta && (
+        <FormDesconecta
+          onClose={() => setMostrarFormDesconecta(false)}
+        />
+      )}
     </div>
   );
 }
@@ -191,14 +216,20 @@ export function PrivacidadeConfig() {
     <div className="flex flex-col gap-4">
       <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Privacidade</h2>
         <div className="divide-y-2 divide-[#D9D9D9]">
-          <div className="py-3 pl-6 w-full resize-none rounded-[70px] bg-[#D9D9D9] px-4 py-3">
+          <div className="py-3 pl-6 w-full resize-none rounded-[30px] bg-[#D9D9D9] px-4 py-3">
           <p className="px-3 text-[14px] text-[#797979]">A MetamorphIA acredita em práticas transparentes de dados. Saiba como suas informações são protegidas ao usar os produtos da MetamorphIA e visite nossos Termos de Privacidade e Termos de Uso para mais detalhes.</p>
-          <button className="px-3 text-[14px] text-[#797979] font-bold underline hover:cursor-pointer">
+          <div className="flex space-x-20 gap-4 mt-3">
+          <Link href="./privacidade">
+          <div className="px-3 text-[14px] text-[#797979] font-bold underline hover:cursor-pointer">
               Termos de Privacidade
-          </button>
-          <button className="px-3 text-[14px] text-[#797979] font-bold underline hover:cursor-pointer">
+          </div>
+          </Link>
+          <Link href="./uso">
+          <div className="text-[14px] text-[#797979] font-bold underline hover:cursor-pointer">
               Termos de Uso
-          </button>
+          </div>
+          </Link>
+          </div>
           </div>
         </div>
 
@@ -232,15 +263,43 @@ function CampoValor({ value } : CampoValorProps) {
   );
 }
 
-function ToggleAparencia() {
+function Mode() {
+  const [modeAtivo, setModeAtivo] = useState<"light" | "dark">("light");
+
+  const handleModeChange = (mode: "light" | "dark") => {
+    setModeAtivo(mode);
+    // PLACEHOLDER: if (mode === "dark") {} ...
+  };
+
   return (
     <div className="flex items-center gap-2">
-    <div className="hover:cursor-pointer hover:text-[#797979]">
-      <Sun />
-    </div>
-    <div className="hover:cursor-pointer hover:text-[#797979]">
-      <Moon />
-    </div>
+      {/* MODO CLARO */}
+      <button
+        type="button"
+        aria-label="Modo claro"
+        onClick={() => handleModeChange("light")}
+        className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+          modeAtivo === "light"
+            ? "bg-[#FFD279]"
+            : "hover:bg-[#D9D9D9]"
+        }`}
+      >
+        <Sun className="h-5 w-5 text-[#433F3F]" />
+      </button>
+
+      {/* MODO ESCURO */}
+      <button
+        type="button"
+        aria-label="Modo escuro"
+        onClick={() => handleModeChange("dark")}
+        className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+          modeAtivo === "dark"
+            ? "bg-[#D4C7F8]"
+            : "hover:bg-[#D9D9D9]"
+        }`}
+      >
+        <Moon className="h-5 w-5 text-[#433F3F]" />
+      </button>
     </div>
   );
 }

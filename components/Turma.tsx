@@ -29,9 +29,10 @@ export default function Turma( props: TurmaProps) {
             <div className="grid grid-cols-[auto_auto] justify-start gap-x-3 gap-y-0.5">
             {props.alunos.map((aluno, index) =>(
                 <TagAluno
-                key={aluno.id || index}
-                nome={aluno.nome}
-                label={aluno.neuro}/>
+                    key={aluno.id || index}
+                    nome={aluno.nome}
+                    label={aluno.neuro}
+                />
             ))}
             </div>
         </div>

@@ -124,7 +124,7 @@ export default function RootLayout({
             </Link>
             <Link href="/uso">
               <p className="text-[#797979] text-sm underline cursor-pointer">
-                Termos de serviço
+                Termos de Serviço
               </p>
             </Link>
           </div>

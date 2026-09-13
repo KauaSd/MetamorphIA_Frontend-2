@@ -1,3 +1,5 @@
+"use client"
+
 import Menu from "@/components/Menu";
 import HeaderPag from "@/components/HeaderDashTurma";
 import Estatistica from "@/components/CardEstatisticaTurma";
@@ -6,8 +8,13 @@ import Button from "@/components/Button";
 import Engajamento from "@/components/Engajamento";
 import Add from "@/public/add.svg";
 import Aluno from "@/components/Aluno";
+import Link from "next/link";
+import { useState } from "react";
+import FormAluno from "@/components/FormAluno";
 
 export default function dashboardTurma(){
+    const [mostrarForm, setMostrarForm] = useState(false);
+
     const alunos = [
         {nome: "Junior Marcos", neuro: "TDAH", turma: "3º Ano A - Manhã"},
         {nome: "Julia Holanda", neuro: "TEA", turma: "3º Ano A - Manhã"},
@@ -15,6 +22,14 @@ export default function dashboardTurma(){
         {nome: "Rodrigo Mauro", neuro: "AH/SD", turma: "3º Ano A - Manhã"},
         {nome: "Sofia Gabriele", neuro: "Dislexia", turma: "3º Ano A - Manhã"},
     ]
+
+    function abrirForm(){
+        setMostrarForm(true);
+    }
+
+    function fecharForm(){
+        setMostrarForm(false);
+    }
 
     return(
         <div className="flex min-h-screen w-full">
@@ -43,17 +58,19 @@ export default function dashboardTurma(){
                                 <p className="text-[#433F3F] font-(family-name:--font-text-me-one) text-2xl">Novo Aluno</p>
                             </ Button>
                         </div>
-                        <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
-                        {alunos.map((aluno, index) => (
-                            <Aluno
-                                key={aluno.nome}
-                                nome={aluno.nome}
-                                Neuro={aluno.neuro}
-                                Turma={aluno.turma}
-                                index={index}
-                            />
-                        ))}
-                        </div>
+                        <Link href="/dashboardAluno">
+                            <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+                            {alunos.map((aluno, index) => (
+                                <Aluno
+                                    key={aluno.nome}
+                                    nome={aluno.nome}
+                                    Neuro={aluno.neuro}
+                                    Turma={aluno.turma}
+                                    index={index}
+                                />
+                            ))}
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </main>

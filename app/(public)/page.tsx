@@ -94,10 +94,16 @@ export default function Home() {
                   Adaptar uma atividade
                 </Button>
               </Link>
-
-              <Button className="py-1 bg-[#FFFDFA] border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-xl w-auto">
+              <div onClick={() => {
+              window.scrollTo({
+                top: 600,
+                behavior: "smooth",
+              });
+            }}>
+              <Button className="py-1 bg-[#FFFDFA]/10 border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-xl w-auto">
                 Como funciona?
               </Button>
+              </div>
             </div>
           </div>
 

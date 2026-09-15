@@ -10,7 +10,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative isolate font-(family-name:--font-poppins) min-h-full flex flex-col overflow-x-hidden px-5 sm:px-10 md:px-16 lg:px-23 pt-5 sm:pt-7 md:pt-10 bg-[#FFFDFA]">
+    <div className="relative isolate font-(family-name:--font-poppins) min-h-full flex flex-col overflow-x-hidden px-5 sm:px-10 md:px-16 lg:px-23 pt-5 sm:pt-7 md:pt-10 bg-[#F0F0F0]">
       <header className="flex w-full h-14 bg-[#433F3F] rounded-[70px]">
         <div className="flex justify-between w-full px-5 sm:px-8 md:px-12 lg:px-15 items-center">
           <Link href="/">
@@ -124,7 +124,7 @@ export default function RootLayout({
             </Link>
             <Link href="/uso">
               <p className="text-[#797979] text-sm underline cursor-pointer">
-                Termos de serviço
+                Termos de Serviço
               </p>
             </Link>
           </div>

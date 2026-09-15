@@ -2,14 +2,17 @@ import Seta from "@/public/seta.svg";
 import Button from "@/components/Button";
 import Add from "@/public/add.svg";
 import Download from "@/public/file_download.svg";
+import Link from "next/link";
 
 export default function HeaderPag(){
     return(
         <div className="flex w-full flex-col gap-4">
-            <div className="flex flex-row gap-3 cursor-pointer">
-                <img src={Seta.src} className="w-[24px] h-[24px]" />
-                <p className="text-sm font-semibold text-[#797979] sm:text-base">3º Ano A - Manhã</p>
-            </div>
+            <Link href="/dashboardTurma">
+                <div className="flex flex-row gap-3 cursor-pointer">
+                    <img src={Seta.src} className="w-[24px] h-[24px]" />
+                    <p className="text-sm font-semibold text-[#797979] sm:text-base">3º Ano A - Manhã</p>
+                </div>
+            </Link>
             <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
                 <div className="flex min-w-0 flex-row gap-3">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[70%] bg-[#D4C7F8] text-2xl font-bold text-[#433F3F] sm:h-20 sm:w-20 sm:text-3xl">LO</div>

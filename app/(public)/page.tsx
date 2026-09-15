@@ -10,6 +10,7 @@ import desenho3 from "@/public/desenho3.svg";
 import fitacolorida from "@/public/FitaColoridahome.svg";
 import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import * as React from "react";
+import Link from "next/link";
 
 type Testimonial = {
   name: string;
@@ -88,9 +89,11 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 lg:gap-20 px-2 sm:px-8 justify-center">
-              <Button className="py-1 font-(family-name:--font-text-me-one) text-xl w-auto">
-                Adaptar uma atividade
-              </Button>
+              <Link href="../auth/cadastro">
+                <Button className="py-1 font-(family-name:--font-text-me-one) text-xl w-auto">
+                  Adaptar uma atividade
+                </Button>
+              </Link>
 
               <Button className="py-1 bg-[#FFFDFA] border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-xl w-auto">
                 Como funciona?
@@ -201,10 +204,11 @@ export default function Home() {
               </p>
             </div>
           </div>
-
-          <Button className="w-auto mt-3 py-1 self-center text-xl font-(family-name:--font-text-me-one)">
-            Adaptar uma Atividade
-          </Button>
+          <Link href="../auth/cadastro">
+            <Button className="w-auto mt-3 py-1 self-center text-xl font-(family-name:--font-text-me-one)">
+              Adaptar uma Atividade
+            </Button>
+          </Link>
         </div>
 
         <div className="relative flex flex-col mt-10 text-2xl gap-6">
@@ -315,7 +319,7 @@ export default function Home() {
               src={ImgRabisco}
               alt=""
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[130%] h-[75%] max-w-none pointer-events-none select-none z-0"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] max-w-none pointer-events-none select-none z-0"
             />
           </div>
 

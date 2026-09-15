@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import PersonSearch from "@/public/person_search.svg";
 import Button from "@/components/Button";
 import GroupAdd from "@/public/group_add.svg";

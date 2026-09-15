@@ -28,16 +28,16 @@ export default function HeaderPag(){
                         </div>
                     </div>
                 </div>
-                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-5 sm:h-8">
-                    <Button type="button" className="flex flex-row items-center justify-center gap-2 py-2 sm:py-0">
-                        <img src={Add.src} className="w-6 h-6"/>
-                        <p className="font-(family-name:--font-text-me-one) text-xl">Bate-Papo</p>
-                    </Button>
-                    <Button type="button" className="flex flex-row items-center justify-center gap-2 bg-[#FFD279] py-2 sm:py-0">
-                        <img src={Download.src} className="w-6 h-6"/>
-                        <p className="font-(family-name:--font-text-me-one) text-xl">Gerar PEI</p>
-                    </Button>
-                </div>
+<div className="flex w-full flex-row gap-2 sm:gap-3 lg:gap-5 sm:w-auto">
+    <Button type="button" className="w-auto flex flex-row items-center justify-center gap-1.5 px-3 py-2">
+        <img src={Add.src} className="w-4 h-4 sm:w-6 sm:h-6 shrink-0"/>
+        <p className="font-(family-name:--font-text-me-one) text-xs sm:text-xl whitespace-nowrap">Bate-Papo</p>
+    </Button>
+    <Button type="button" className="w-auto flex flex-row items-center justify-center gap-1.5 bg-[#FFD279] px-3 py-2">
+        <img src={Download.src} className="w-4 h-4 sm:w-6 sm:h-6 shrink-0"/>
+        <p className="font-(family-name:--font-text-me-one) text-xs sm:text-xl whitespace-nowrap">Gerar PEI</p>
+    </Button>
+</div>
             </div>
         </div>
     )

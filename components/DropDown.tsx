@@ -43,7 +43,7 @@ export default function Dropdown({ options, isTurma = false }: OptionsProps) {
 
   return (
     <div
-      className={`relative font-(family-name:--font-text-me-one) text-xl ${
+      className={`relative font-(family-name:--font-text-me-one) text-base sm:text-xl ${
         isTurma ? "w-full block" : "inline-block text-left"
       }`}
       ref={dropdown}
@@ -51,13 +51,13 @@ export default function Dropdown({ options, isTurma = false }: OptionsProps) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between px-4 py-1.5 bg-[#D9D9D9] rounded-[30px] text-[#433F3F] hover:bg-[#FFFDFA] focus:outline-none transition-colors ${
-          isTurma ? "w-full" : "min-w-[140px]"
+        className={`flex items-center justify-between gap-2 px-3 py-1 sm:px-4 sm:py-1.5 bg-[#D9D9D9] rounded-[30px] text-[#433F3F] hover:bg-[#FFFDFA] focus:outline-none transition-colors ${
+          isTurma ? "w-full" : "min-w-[100px] sm:min-w-[140px]"
         }`}
       >
-        <span>{renderLabel()}</span>
+        <span className="whitespace-nowrap">{renderLabel()}</span>
         <ChevronDown
-          className={`w-5 h-5 transition-transform duration-200 ${
+          className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 transition-transform duration-200 ${
             isOpen ? "rotate-180" : "rotate-0"
           }`}
         />
@@ -68,13 +68,13 @@ export default function Dropdown({ options, isTurma = false }: OptionsProps) {
           transition-all duration-200 ease-out origin-top ${
             isTurma
               ? "w-full max-h-[150px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              : "min-w-[140px]"
+              : "min-w-[100px] sm:min-w-[140px]"
           }
-          ${
-            isOpen
-              ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
-              : "opacity-0 -translate-y-2 scale-95 pointer-events-none"
-          }`}
+        ${
+          isOpen
+            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+            : "opacity-0 -translate-y-2 scale-95 pointer-events-none"
+        }`}
       >
         <div className="py-1 flex flex-col gap-0.5" role="radiogroup">
           {options.map((option) => {
@@ -90,7 +90,7 @@ export default function Dropdown({ options, isTurma = false }: OptionsProps) {
                   isSelected ? "bg-[#FFFDFA]" : "hover:bg-[#FFFDFA]"
                 }`}
               >
-                <span>{option.label}</span>
+                <span className="whitespace-nowrap">{option.label}</span>
               </label>
             )
           })}

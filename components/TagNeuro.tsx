@@ -14,7 +14,7 @@ export default function TagNeuro({ label }: TagProps) {
   const colorStyles = colorMap[label] || 'bg-[#a77464]'
 
   return (
-    <span className={`inline-block px-4 py-0.5 rounded-full text-xs font-medium text-[#433F3F] ${colorStyles}`}>
+    <span className={`inline-block px-2.5! py-0.5! sm:px-4! rounded-full text-[10px] sm:text-xs! font-medium text-[#433F3F] whitespace-nowrap ${colorStyles}`}>
       {label}
     </span>
   )

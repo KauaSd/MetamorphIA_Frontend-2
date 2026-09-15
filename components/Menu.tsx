@@ -42,19 +42,21 @@ export default function Menu() {
         />
       )}
 
-      <div
-        className={`fixed inset-y-0 left-0 z-50 h-[100dvh] shrink-0 bg-[#433F3F] md:static md:z-auto ${
-          isOpen ? "w-[min(18rem,85vw)] md:w-72" : "w-16 cursor-pointer md:w-20"
-        } flex flex-col transition-all duration-300 ease-in-out`}
-        onClick={() => {
-          if (!isOpen) {
-            setIsOpen(true);
-          }
-        }}
-      >
+<div
+  className={`z-50 h-[100dvh] shrink-0 bg-[#433F3F] flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
+    isOpen
+      ? "fixed inset-y-0 left-0 w-[min(18rem,85vw)] md:sticky md:top-0 md:self-start md:z-auto md:w-72"
+      : "sticky top-0 self-start w-16 cursor-pointer md:w-20 z-auto"
+  }`}
+  onClick={() => {
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+  }}
+>
 
-        <div className="flex h-full w-full flex-col justify-between overflow-y-auto p-4 md:p-5">
-        <div className="c1">
+        <div className="flex h-full w-full min-w-0 flex-col justify-between overflow-y-auto overflow-x-hidden p-4 md:p-5">
+        <div className="c1 min-w-0">
           <div
             className={`flex flex-row items-center ${
               isOpen ? "justify-between" : "justify-center"
@@ -107,9 +109,9 @@ export default function Menu() {
 
           <div className="border-t w-full border-[#FFFDFA] my-5" />
 
-          <div className={`flex flex-col ${isOpen ? "gap-3" : "gap-0"}`}>
+          <div className={`flex flex-col min-w-0 ${isOpen ? "gap-3" : "gap-0"}`}>
             {/* TURMAS */}
-            <div className="flex flex-col w-full">
+            <div className="flex flex-col w-full min-w-0">
               <div
                 className={`h-[35px] flex items-center ${
                   isOpen
@@ -174,9 +176,9 @@ export default function Menu() {
                   onClick={() => {setIsTurmaOpen(!isTurmaOpen)}}
                 />
               </div>
-                <div className={`grid transition-all duration-200 ease-in-out ${isTurmaOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-  <div className="overflow-hidden">
-    <div className="flex flex-col gap-2 mt-3 ml-5">
+                <div className={`grid w-full min-w-0 transition-all duration-200 ease-in-out ${isTurmaOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+  <div className="overflow-hidden w-full min-w-0">
+    <div className="flex flex-col gap-2 mt-3 ml-5 min-w-0">
       <TagAluno label="TDAH" nome="1º Ano N - Período" ismenu={true}/>
     </div>
   </div>
@@ -186,7 +188,7 @@ export default function Menu() {
 
 
             {/* ALUNOS */}
-            <div className="flex flex-col w-full">
+            <div className="flex flex-col w-full min-w-0">
               <div
                 className={`h-[35px] flex items-center ${
                   isOpen
@@ -233,9 +235,9 @@ export default function Menu() {
                   onClick={() => {setIsAlunoOpen(!isAlunoOpen)}}
                 />
               </div>
-<div className={`grid transition-all duration-200 ease-in-out ${isAlunoOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-  <div className="overflow-hidden">
-    <div className="flex flex-col gap-2 mt-3 ml-5">
+<div className={`grid w-full min-w-0 transition-all duration-200 ease-in-out ${isAlunoOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+  <div className="overflow-hidden w-full min-w-0">
+    <div className="flex flex-col gap-2 mt-3 ml-5 min-w-0">
       <TagAluno label="TDAH" nome="Aluno" ismenu={true}/>
     </div>
   </div>
@@ -245,7 +247,7 @@ export default function Menu() {
              {isOpen && <div className="h-px w-full bg-[#FFFDFA] mt-1 mb-1" />}
             {/* RECENTES */}
 
-            <div className="flex flex-col w-full mt-3">
+            <div className="flex flex-col w-full min-w-0 mt-3">
               <div
                 className={`h-[35px] flex items-center ${
                   isOpen
@@ -295,14 +297,14 @@ export default function Menu() {
                   onClick={() => setIsRecentesOpen(!isRecentesOpen)}
                 />
               </div>
-              <div className={`grid transition-all duration-200 ease-in-out ${isRecentesOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-              <div className="overflow-hidden">
-                <div className="flex flex-col gap-2 mt-3 ml-5">
-                  <TagAluno label="TDAH"
-                  nome="Aluno - Chat" 
-                  ismenu={true}/>
-                </div>
-              </div>
+              <div className={`grid w-full min-w-0 transition-all duration-200 ease-in-out ${isRecentesOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+  <div className="overflow-hidden w-full min-w-0">
+    <div className="flex flex-col gap-2 mt-3 ml-5 min-w-0">
+      <TagAluno label="TDAH" nome="Aluno - Chat" ismenu={true}/>
+    </div>
+  </div>
+</div>
+            </div>
             </div>
           </div>
           </div>

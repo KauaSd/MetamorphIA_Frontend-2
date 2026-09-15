@@ -18,29 +18,28 @@ export default function ConteudoAlunos(){
     ]
 
     return(
-            <div className="flex flex-col w-full h-full items-center">
-                <div className="flex flex-col w-full gap-5 mt-20">
-                    <HeaderPag  />
-                    <BarraPesquisa type="search" placeholder="Procurar alunos..." />
-                </div>
-    
-                {temAluno ? (
-                    <div className="grid grid-cols-2 gap-5 mt-10">
-                        {alunos.map((aluno, index) => (
-                            <Aluno
-                                key={aluno.nome}
-                                nome={aluno.nome}
-                                Neuro={aluno.neuro}
-                                Turma={aluno.turma}
-                                index={index}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="flex items-center mt-20">
-                        <BoxSemAluno />
-                    </div>
-                )}
+        <div className="flex flex-col w-full min-h-screen items-center">
+            <div className="flex flex-col w-full gap-4 sm:gap-5 mt-8 sm:mt-12 lg:mt-20">
+                <HeaderPag  />
+                <BarraPesquisa type="search" placeholder="Procurar alunos..." />
             </div>
-        );
+            {temAluno ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 mt-6 sm:mt-10 w-full">
+                    {alunos.map((aluno, index) => (
+                        <Aluno
+                            key={aluno.nome}
+                            nome={aluno.nome}
+                            Neuro={aluno.neuro}
+                            Turma={aluno.turma}
+                            index={index}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className=" w-full h-full flex flex-1 items-center justify-center">
+                    <BoxSemAluno />
+                </div>
+            )}
+        </div>
+    );
 }

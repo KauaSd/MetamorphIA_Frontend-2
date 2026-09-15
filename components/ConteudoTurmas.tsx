@@ -9,62 +9,62 @@ import FormTurma from "@/components/FormTurma";
 import Link from "next/link";
 
 export default function ConteudoTurmas(){
-    const [temTurma, setTemTurma] = useState(false);
-    const [mostrarForm, setMostrarForm] = useState(false);
+  const [temTurma, setTemTurma] = useState(false);
+  const [mostrarForm, setMostrarForm] = useState(false);
 
-    const turmas = [
-        {
-            nomeTurma: "3º Ano A - Manhã",
-            alunos: [
-                {nome: "Junior M.", neuro: "TDAH", turma: "3º Ano A - Manhã"},
-                {nome: "Julia H.", neuro: "TEA", turma: "3º Ano A - Manhã"},
-                {nome: "Lucas O.", neuro: "TDAH", turma: "3º Ano A - Manhã"},
-                {nome: "Rodrigo M.", neuro: "AH/SD", turma: "3º Ano A - Manhã"},
-            ]
-        },
-    ]
+  const turmas = [
+    {
+      nomeTurma: "3º Ano A - Manhã",
+      alunos: [
+        {nome: "Junior M.", neuro: "TDAH", turma: "3º Ano A - Manhã"},
+        {nome: "Julia H.", neuro: "TEA", turma: "3º Ano A - Manhã"},
+        {nome: "Lucas O.", neuro: "TDAH", turma: "3º Ano A - Manhã"},
+        {nome: "Rodrigo M.", neuro: "AH/SD", turma: "3º Ano A - Manhã"},
+      ]
+    },
+  ]
 
-    function abrirForm(){
-        setMostrarForm(true);
-    }
+  function abrirForm(){
+    setMostrarForm(true);
+  }
 
-    function fecharForm(){
-        setMostrarForm(false);
-    }
+  function fecharForm(){
+    setMostrarForm(false);
+  }
 
-    function criarTurma(){
-        setTemTurma(true);
-        setMostrarForm(false);
-    }
+  function criarTurma(){
+    setTemTurma(true);
+    setMostrarForm(false);
+  }
 
-    return(
-        <div className="flex flex-col w-full h-full items-center gap">
-            <div className="flex flex-col w-full gap-5 mt-20">
-                <HeaderPag onCriarTurma={abrirForm} />
-                <BarraPesquisa type="search" placeholder="Procurar turmas..." />
-            </div>
+  return(
+    <div className="flex flex-col w-full min-h-screen items-center">
+      <div className="flex flex-col w-full gap-4 sm:gap-5 mt-8 sm:mt-12 lg:mt-20">
+        <HeaderPag onCriarTurma={abrirForm} />
+        <BarraPesquisa type="search" placeholder="Procurar turmas..." />
+      </div>
 
-            {temTurma ? (
-                <Link href="/dashboardTurma">
-                    <div className="grid grid-cols-2 gap-20 mt-10">
-                        {turmas.map((turma, index) => (
-                            <Turma
-                                key={index}
-                                nomeTurma={turma.nomeTurma}
-                                alunos={turma.alunos}
-                            />
-                        ))}
-                    </div>
-                </Link>
-            ) : (
-                <div className="flex items-center mt-20">
-                    <BoxSemTurma onCriarTurma={abrirForm} />
-                </div>
-            )}
-
-            {mostrarForm && (
-                <FormTurma onClose={fecharForm} onCriar={criarTurma} />
-            )}
+      {temTurma ? (
+        <Link href="/dashboardTurma" className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-10 lg:gap-16 mt-6 sm:mt-10 w-full">
+            {turmas.map((turma, index) => (
+              <Turma
+                key={index}
+                nomeTurma={turma.nomeTurma}
+                alunos={turma.alunos}
+              />
+            ))}
+          </div>
+        </Link>
+      ) : (
+        <div className="flex flex-1 w-full items-center justify-center">
+          <BoxSemTurma onCriarTurma={abrirForm} />
         </div>
-    );
+      )}
+
+      {mostrarForm && (
+        <FormTurma onClose={fecharForm} onCriar={criarTurma} />
+      )}
+    </div>
+  );
 }

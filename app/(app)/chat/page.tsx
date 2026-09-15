@@ -7,7 +7,7 @@ export default function ChatInicial() {
   return (
     <div className="flex w-screen h-screen overflow-hidden">
       <Menu />
-      <div className="relative flex flex-1 h-full p-4 sm:p-6 md:p-11 ml-16 md:ml-0">
+      <div className="relative flex flex-1 h-full p-4 sm:p-6 md:p-11">
         <div className="flex flex-1 h-full">
           <div className="absolute top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-11 sm:top-11">
             <ChatTgAluno />
@@ -20,11 +20,7 @@ export default function ChatInicial() {
                   Bom dia, Prof. {nome}
                 </p>
               </div>
-
-              {/* Div externa: sempre w-full, com padding pra criar a margem */}
               <div className="w-full px-4 sm:px-8 md:px-16 lg:px-24">
-
-                {/* Div interna: trava no tamanho máximo e centraliza */}
                 <div className="w-full max-w-[64rem] mx-auto flex flex-col gap-8">
 
                   <div className="flex items-center w-full h-11 rounded-[70px] bg-[#FFFDFA] px-4 sm:px-5 md:px-6">

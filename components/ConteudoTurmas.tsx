@@ -6,6 +6,7 @@ import BarraPesquisa from "@/components/Input";
 import Turma from "@/components/Turma";
 import BoxSemTurma from "@/components/BoxSemTurma";
 import FormTurma from "@/components/FormTurma";
+import Link from "next/link";
 
 export default function ConteudoTurmas(){
     const [temTurma, setTemTurma] = useState(false);
@@ -44,15 +45,17 @@ export default function ConteudoTurmas(){
             </div>
 
             {temTurma ? (
-                <div className="grid grid-cols-2 gap-20 mt-10">
-                    {turmas.map((turma, index) => (
-                        <Turma
-                            key={index}
-                            nomeTurma={turma.nomeTurma}
-                            alunos={turma.alunos}
-                        />
-                    ))}
-                </div>
+                <Link href="/dashboardTurma">
+                    <div className="grid grid-cols-2 gap-20 mt-10">
+                        {turmas.map((turma, index) => (
+                            <Turma
+                                key={index}
+                                nomeTurma={turma.nomeTurma}
+                                alunos={turma.alunos}
+                            />
+                        ))}
+                    </div>
+                </Link>
             ) : (
                 <div className="flex items-center mt-20">
                     <BoxSemTurma onCriarTurma={abrirForm} />

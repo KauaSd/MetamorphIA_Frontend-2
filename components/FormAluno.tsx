@@ -4,7 +4,6 @@ import { useState } from "react";
 import Input from "./Input";
 import Button from "./Button";
 import { X } from "lucide-react";
-import { Text_Me_One } from "next/font/google";
 import { useRef } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import CheckBoxAluno from "./CheckBoxAl";
@@ -17,8 +16,9 @@ interface turma{
 }
 interface turmasprops{
   turmas: turma[]
+  onClose: () => void
 }
-export default function FormAluno( { turmas } : turmasprops) {
+export default function FormAluno( { turmas, onClose } : turmasprops) {
   const inputRef = useRef<HTMLInputElement>(null);
     const [neuro, setNeuro] = useState<string[]>([])
     const [Nome, setNome] = useState("");
@@ -52,6 +52,7 @@ export default function FormAluno( { turmas } : turmasprops) {
               type="button"
               aria-label="Fechar"
               className="cursor-pointer"
+              onClick={onClose}
             >
               <X className="w-6 h-6" />
             </button>
@@ -138,7 +139,7 @@ export default function FormAluno( { turmas } : turmasprops) {
         </div>
 
         <div className="flex gap-5">
-          <Button type="button" className="bg-[#433F3F] text-[#FFFDFA]">
+          <Button type="button" onClick={onClose} className="bg-[#433F3F] text-[#FFFDFA]">
             Cancelar
           </Button>
           <Button type="button">Salvar</Button>

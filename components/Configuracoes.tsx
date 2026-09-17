@@ -42,7 +42,7 @@ export default function Configuracoes({
 
   return (
     <Blurfundo>
-      <div className="flex h-[590px] w-[890px] overflow-hidden rounded-[40px] bg-[#F0F0F0]">
+      <div className="flex h-[590px] w-[890px] absolute overflow-hidden rounded-[40px] bg-[#F0F0F0]">
         <SidebarEscura
           abaAtiva={abaAtiva}
           setAbaAtiva={setAbaAtiva}

@@ -1,9 +1,9 @@
 interface HistoricoProps {
-  data: Date;
+  data: string;
   chat: string;
 }
 
-function formatarData(data: Date): string {
+function formatarData(data: string): string {
   const [dia, mes, ano] = data.split("/");
 
   const dataFormatada = new Date(

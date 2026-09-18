@@ -1,7 +1,7 @@
 interface TagProps {
   label: string
   nome: string
-  ismenu: boolean
+  ismenu?: boolean
 }
 const colorMap: Record<string, string> = {
   TDAH: 'bg-[#CAF3FF]',        

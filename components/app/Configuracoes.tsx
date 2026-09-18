@@ -18,7 +18,7 @@ interface SidebarProps {
 
 interface PainelProps {
   Preencher: ReactNode;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 interface LinhaConfigProps {
@@ -31,7 +31,7 @@ interface CampoValorProps {
 }
 
 interface ConfiguracoesProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export default function Configuracoes({
@@ -113,7 +113,7 @@ function PainelClaro({ Preencher, onClose }: PainelProps) {
   );
 }
 
-function BotaoFechar({onClose}: { onClose: () => void;}) 
+function BotaoFechar({onClose}: { onClose?: () => void;}) 
 {
   return (
     <button

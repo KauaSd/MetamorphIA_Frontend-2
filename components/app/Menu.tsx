@@ -95,7 +95,7 @@ export default function Menu() {
               }}
             >
               <svg
-                className="w-10 h-7 md:w-9 md:h-6"
+                className="w-8 h-5 md:w-7 md:h-5"
                 viewBox="0 0 30 20"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"

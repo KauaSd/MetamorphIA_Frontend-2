@@ -36,7 +36,7 @@ export default function ConteudoAlunos(){
                     ))}
                 </div>
             ) : (
-                <div className=" w-full h-full flex flex-1 items-center justify-center">
+                <div className="flex w-full flex-1 items-center justify-center">
                     <BoxSemAluno />
                 </div>
             )}

@@ -17,8 +17,8 @@ export default function TagNeuro(props: TagProps) {
 
   return (
     <span className="flex gap-2 items-center w-full min-w-0">
-      <div className={`h-3.5 w-3.5 shrink-0 rounded-full ${colorStyles}`}></div>
-      <p className={`text-[10px] sm:text-sm md:text-sm truncate min-w-0 ${props.ismenu ? "text-[#FFFFFF]" : "text-[#797979]"}`}>
+      <div className={`h-3 w-3 shrink-0 rounded-full ${colorStyles}`}></div>
+      <p className={`text-[10px] sm:text-xs truncate min-w-0 ${props.ismenu ? "text-[#FFFFFF]" : "text-[#797979]"}`}>
         {props.nome}
       </p>
     </span>

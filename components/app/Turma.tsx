@@ -16,13 +16,13 @@ export default function Turma( props: TurmaProps) {
     return(
  <div className="
     relative flex flex-col
-    md:w-[480px] sm:w-[400px]
-    h-38.5 sm:h-34 max-sm:h-30
+    sm:w-[340px] md:w-[400px]
+    min-h-28 sm:min-h-25
     bg-[#FFFDFA]
-    rounded-[80px]
-    px-12 sm:px-9 max-sm:px-6
-    py-6 sm:py-5 max-sm:py-4
-    gap-5 sm:gap-4 max-sm:gap-3
+    rounded-[60px]
+    px-8
+    py-4
+    gap-4 sm:gap-3
 ">
     <img
         src={Encaracolado.src}
@@ -32,7 +32,7 @@ export default function Turma( props: TurmaProps) {
     <div className="flex justify-between items-center cursor-pointer">
         <div className="nome">
             <p className="
-                text-[18px] md:text-[28px] sm:text-[24px]
+                text-xl sm:text-2xl
                 font-(family-name:--font-text-me-one)
             ">
                 {props.nomeTurma}
@@ -46,7 +46,7 @@ export default function Turma( props: TurmaProps) {
         </div>
     </div>
 
-    <div className="grid grid-cols-[auto_auto] justify-start gap-x-3 gap-y-0.5">
+    <div className="grid grid-cols-[auto_auto] justify-start gap-x-3 gap-y-0.5 mb-2">
         {props.alunos.map((aluno, index) =>(
             <TagAluno
                 key={aluno.id || index}

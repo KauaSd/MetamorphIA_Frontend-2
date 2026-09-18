@@ -53,12 +53,12 @@ export default function dashboardTurma(){
                     </div>
                     <Resumo tipo={1} txt="A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA,  Dislexia). A maioria responde bem a atividades visuais e instruções  segmentadas. Recomenda-se uso de recursos multissensoriais e tempos  flexíveis nas avaliações." />
                     <Engajamento tipo={1} />
-                    <div className="flex flex-col gap-4 pb-8">
+                    <div className="flex flex-col gap-3 pb-6">
                         <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
                             <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Alunos</p>
-                            <Button type="button" onClick={abrirForm} className="flex w-full flex-row justify-center gap-3 sm:w-[210px]">
+                            <Button type="button" onClick={abrirForm} className="flex w-full flex-row justify-center gap-2 sm:w-[180px]">
                                 <img src={Add.src}  />
-                                <p className="text-[#433F3F] font-(family-name:--font-text-me-one) text-2xl">Novo Aluno</p>
+                                <p className="text-[#433F3F] font-(family-name:--font-text-me-one) text-xl">Novo Aluno</p>
                             </Button>
                         </div>
                         <Link href="/dashboardAluno">

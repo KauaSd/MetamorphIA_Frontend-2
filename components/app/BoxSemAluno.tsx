@@ -14,8 +14,8 @@ export default function ModalSemAluno(){
                     Adicione um aluno em uma de suas turmas para visualizá-lo nesta tela.
                 </p>
             </div>
-            <Link href="/turmas">
-                <Button type="button" className="w-auto max-w-[180px]">Ir para Turmas</Button>
+            <Link href="/turmas" className="flex w-full max-w-[180px] justify-center">
+                <Button type="button" className="w-full px-3 py-1 sm:px-4 sm:py-1 flex flex-row gap-2 justify-center items-center">Ir para Turmas</Button>
             </Link>
         </div>
     )

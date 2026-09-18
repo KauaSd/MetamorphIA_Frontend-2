@@ -11,7 +11,7 @@ export default function RootLayout({
 }) {
   return (
     <div className="relative isolate font-(family-name:--font-poppins) min-h-full flex flex-col overflow-x-hidden px-5 sm:px-10 md:px-16 lg:px-23 pt-5 sm:pt-7 md:pt-10 bg-[#F0F0F0]">
-      <header className="flex w-full h-14 bg-[#433F3F] rounded-[70px]">
+      <header className="flex w-full min-h-11 sm:min-h-14 bg-[#433F3F] rounded-[70px]">
         <div className="flex justify-between w-full px-5 sm:px-8 md:px-12 lg:px-15 items-center">
           <Link href="/">
             <div className="flex gap-2 items-center justify-center min-w-0 cursor-pointer">
@@ -28,13 +28,13 @@ export default function RootLayout({
           </Link>
           <div className="flex items-center justify-center gap-2 sm:gap-3 shrink-0">
             <Link href="../auth/cadastro">
-              <Button className="font-(family-name:--font-text-me-one) py-1 bg-[#FFFDFA] hover:bg-[#CAC7C2] text-base sm:text-lg lg:text-xl w-auto">
+              <Button className="font-(family-name:--font-text-me-one) py-1! bg-[#FFFDFA] hover:bg-[#CAC7C2] text-base! sm:text-lg lg:text-xl w-auto">
                 Cadastro
               </Button>
             </Link>
 
             <Link href="../auth/login">
-              <Button className="font-(family-name:--font-text-me-one) py-1 text-base sm:text-lg lg:text-xl w-auto">
+              <Button className="font-(family-name:--font-text-me-one) py-1! text-base! sm:text-lg lg:text-xl w-auto">
                 Login
               </Button>
             </Link>

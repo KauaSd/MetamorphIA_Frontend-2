@@ -20,8 +20,8 @@ export default function HeaderPag({ onCriarTurma }: HeaderPagProps){
                     <span className="hidden sm:inline text-sm text-[#797979] whitespace-nowrap">Ordenar por</span>
                     <DropDown options={OpcoesDropDown} small />
 
-                    <button type="button" onClick={onCriarTurma} aria-label="Criar Turma" className="flex w-9 h-9 sm:w-10 sm:h-10 bg-[#D4C7F8] rounded-full justify-center items-center cursor-pointer hover:bg-[#AB97E0] shrink-0">
-                        <img src={GroupAdd.src} className="flex w-6 h-6 sm:w-7 sm:h-7" alt="" />
+                    <button type="button" onClick={onCriarTurma} aria-label="Criar Turma" className="flex w-8 h-8 sm:w-9 sm:h-9 bg-[#D4C7F8] rounded-full justify-center items-center cursor-pointer hover:bg-[#AB97E0] shrink-0">
+                        <img src={GroupAdd.src} className="flex w-5 h-5 sm:w-6 sm:h-6" alt="" />
                     </button>
                 </div>
             </div>

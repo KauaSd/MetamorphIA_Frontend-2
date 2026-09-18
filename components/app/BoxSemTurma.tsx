@@ -23,8 +23,8 @@ export default function ModalSemTurma({
                     Crie uma turma e adicione seus alunos para iniciar uma conversa com o contexto certo.
                 </p>
             </div>
-            <Button type="button" onClick={onCriarTurma} className="w-full max-w-[180px] flex flex-row gap-[10px] justify-center items-center">
-                <img src={GroupAdd.src} className="flex w-5 h-5 sm:w-6 sm:h-6 md:w-[30px] md:h-[30px]" alt="" />
+            <Button type="button" onClick={onCriarTurma} className="w-full max-w-[180px] px-3 py-1 sm:px-4 sm:py-1 flex flex-row gap-2 justify-center items-center">
+                <img src={GroupAdd.src} className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" alt="" />
                 Criar Turma
             </Button>
         </div>

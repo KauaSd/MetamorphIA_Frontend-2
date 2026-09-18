@@ -27,12 +27,12 @@ export default function DashboardAluno(){
                     </div>
                     <Resumo tipo={2} txt="Lucas apresenta atenção fragmentada em tarefas longas, mas excelente desempenho em atividades curtas e gamificadas. Responde  bem a instruções visuais e recompensas imediatas. Sugere-se segmentar  atividades em blocos de no máximo 10 minutos." />
                     <Engajamento tipo={1} />
-                    <div className="flex flex-col gap-4 pb-8">
+                    <div className="flex flex-col gap-3 pb-6">
                         <div className="flex flex-row items-start justify-between gap-1 sm:items-center">
-                            <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Histórico de Conversas</p>
+                            <p className="font-(family-name:--font-text-me-one) text-2xl">Histórico de Conversas</p>
                             <p className="text-sm text-[#797979]">{chats.length} conversas</p>
                         </div>
-                        <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-3">
                             {chats.map((chat, index) => (
                                 <Recentes
                                     key={index}

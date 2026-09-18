@@ -14,21 +14,21 @@ export default function Aluno( props: AlunoProps) {
     const corPerfil = coresPerfil[props.index % coresPerfil.length];
 
   return (
-    <div className="flex min-h-[90px] w-full cursor-pointer justify-between rounded-[45px] bg-[#FFFDFA] sm:rounded-[80px]">
-    <div className="flex min-w-0 items-center gap-3 px-4 sm:gap-5 sm:px-5">
-        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[70%] sm:h-[60px] sm:w-[60px] ${corPerfil}`}>
-            <p className="text-xl font-bold sm:text-2xl">{pegainicial(props.nome)}</p>
+    <div className="flex min-h-[70px] w-full cursor-pointer justify-between rounded-[45px] bg-[#FFFDFA] sm:rounded-[80px]">
+    <div className="flex min-w-0 items-center gap-2.5 px-3 sm:gap-4 sm:px-4">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[70%] sm:h-12 sm:w-12 ${corPerfil}`}>
+            <p className="text-lg font-bold sm:text-xl">{pegainicial(props.nome)}</p>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
             <div className="nome">
-                <p className="font-bold text-md">{props.nome}</p>
+                <p className="font-bold text-sm sm:text-base">{props.nome}</p>
             </div>
             <div className="neuro">
                 <TagNeuro label={props.Neuro}/>
             </div>
         </div>
     </div>
-    <div className="flex items-start justify-between gap-2 px-4 py-5 sm:gap-5 sm:px-6">
+    <div className="flex items-start justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5">
         <div className="flex items-center gap-2 sm:gap-5">
         <div className="turma">
         <p className="hidden text-right text-sm font-thin sm:block">{props.Turma}</p> </div>

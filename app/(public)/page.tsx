@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import ImgRabisco from "@/public/ImgRabisco.svg";
 import ImgHome from "@/public/ImgHome.svg";
 import desenho1 from "@/public/desenho.svg";

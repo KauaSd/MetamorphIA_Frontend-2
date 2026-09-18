@@ -1,4 +1,4 @@
-import Menu from "@/components/Menu";
+import Menu from "@/components/app/Menu";
 import { Poppins, Text_Me_One } from "next/font/google";
 
 const TextMeOne = Text_Me_One({

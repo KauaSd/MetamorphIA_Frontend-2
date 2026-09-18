@@ -1,5 +1,5 @@
-import LogIn from "@/components/LogIn";
-import FormCadastro from "@/components/FormCadastro";
+import LogIn from "@/components/app/LogIn";
+import { FormCadastro } from "@/components/app/forms/FormAuth";
 
 export default function Cadastro() {
   return (

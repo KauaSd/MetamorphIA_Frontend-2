@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import Logo from "@/public/icon.png";
 
 export default function Header(){

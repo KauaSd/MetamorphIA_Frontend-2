@@ -1,9 +1,9 @@
-import Menu from "@/components/Menu";
-import HeaderPag from "@/components/HeaderDashAl";
-import Estatistica from "@/components/CardEstatisticaAluno";
-import Resumo from "@/components/Resumo";
-import Engajamento from "@/components/Engajamento";
-import Recentes from "@/components/HistoricoTags";
+import Menu from "@/components/app/Menu";
+import HeaderPag from "@/components/app/HeaderDashAl";
+import Estatistica from "@/components/app/CardEstatisticaAluno";
+import Resumo from "@/components/app/Resumo";
+import Engajamento from "@/components/app/Engajamento";
+import Recentes from "@/components/app/HistoricoTags";
 
 export default function DashboardAluno(){
 

@@ -1,5 +1,5 @@
 import Seta from "@/public/seta.svg";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import Add from "@/public/add.svg";
 import Download from "@/public/file_download.svg";
 import Link from "next/link";

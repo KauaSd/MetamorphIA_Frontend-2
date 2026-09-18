@@ -2,14 +2,13 @@
 
 import { ReactNode } from "react";
 import { useState } from "react";
-import BarraPesquisa from "./Input";
-import Blurfundo from "./Blurfundo";
+import BarraPesquisa from "@/components/common/Input";
+import Blurfundo from "@/components/common/Blurfundo";
 import { X , Sun, Moon} from 'lucide-react'
-import engrenagem from "../public/engrenagem.svg";
-import circulo_conta from "../public/circulo_conta.svg";
-import cadeado from "../public/cadeado.svg";
-import FormDeletaConta from "./FormDeletaConta";
-import FormDesconecta from "./FormDesconecta";
+import engrenagem from "@/public/engrenagem.svg";
+import circulo_conta from "@/public/circulo_conta.svg";
+import cadeado from "@/public/cadeado.svg";
+import { FormDeletaConta, FormDesconecta } from "@/components/app/forms/FormConta";
 import Link from "next/link";
 
 interface SidebarProps {

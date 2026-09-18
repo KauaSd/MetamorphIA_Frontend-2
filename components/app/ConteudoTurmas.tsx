@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import HeaderPag from "@/components/HeaderPagTurmas";
-import BarraPesquisa from "@/components/Input";
-import Turma from "@/components/Turma";
-import BoxSemTurma from "@/components/BoxSemTurma";
-import FormTurma from "@/components/FormTurma";
+import HeaderPag from "@/components/app/HeaderPagTurmas";
+import BarraPesquisa from "@/components/common/Input";
+import Turma from "@/components/app/Turma";
+import BoxSemTurma from "@/components/app/BoxSemTurma";
+import { FormTurma } from "@/components/app/forms/FormAlunoTurma";
 import Link from "next/link";
 
 export default function ConteudoTurmas(){

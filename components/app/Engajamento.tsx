@@ -1,4 +1,4 @@
-import BarraPorcentagem from "@/components/BarraPorcentagem";
+import BarraPorcentagem from "@/components/common/BarraPorcentagem";
 
 type TipoStat = 1 | 2
 interface EngajamentoProps{

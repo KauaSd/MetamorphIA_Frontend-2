@@ -1,6 +1,6 @@
-import Menu from "@/components/Menu";
-import HeaderPag from "@/components/HeaderRecentes";
-import Historico from "@/components/ConversasRecentes";
+import Menu from "@/components/app/Menu";
+import HeaderPag from "@/components/app/HeaderRecentes";
+import Historico from "@/components/app/ConversasRecentes";
 
 export default function Recentes(){
     const chats = [

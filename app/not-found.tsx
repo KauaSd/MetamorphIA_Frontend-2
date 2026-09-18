@@ -1,6 +1,6 @@
 import Logo from "@/public/icon.png";
 import { Poppins, Text_Me_One } from "next/font/google";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import desenho1 from "@/public/desenho.svg";
 
 const TextMeOne = Text_Me_One({

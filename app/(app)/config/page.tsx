@@ -1,4 +1,4 @@
-import Configuracoes from "@/components/Configuracoes";
+import Configuracoes from "@/components/app/Configuracoes";
 
 export default function ViewConfiguracoes(){
     return (

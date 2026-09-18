@@ -1,4 +1,4 @@
-import FormRecuperaSenha from "@/components/FormRecuperaSenha";
+import { FormRecuperaSenha } from "@/components/app/forms/FormAuth";
 
 export default function recuperaSenha() {
   return (

@@ -1,4 +1,4 @@
-import TagAluno from "@/components/TagAluno"
+import TagAluno from "@/components/common/TagAluno"
 import { EllipsisVertical } from 'lucide-react';
 import Encaracolado from "@/public/EncaracoladoTurma.svg";
 

@@ -1,10 +1,10 @@
 "use client";
 
-import Configuracoes from "./Configuracoes";
+import Configuracoes from "@/components/app/Configuracoes";
 import Icon from "@/public/icon.png";
 import { ChevronDown } from "lucide-react";
 import React from "react";
-import TagAluno from './TagAluno';
+import TagAluno from '@/components/common/TagAluno';
 import Link from "next/link";
 
 export default function Menu() {

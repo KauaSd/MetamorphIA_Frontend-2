@@ -1,5 +1,5 @@
-import Menu from "@/components/Menu";
-import ConteudoAlunos from "@/components/ConteudoAlunos";
+import Menu from "@/components/app/Menu";
+import ConteudoAlunos from "@/components/app/ConteudoAlunos";
 
 export default function ViewAlunos(){
     return (

@@ -1,4 +1,4 @@
-import FormToken from "@/components/FormToken";
+import { FormToken } from "@/components/app/forms/FormAuth";
 
 export default function Token() {
   return (

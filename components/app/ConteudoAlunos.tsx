@@ -1,10 +1,10 @@
 "use client";
 
 import { useState} from "react";
-import HeaderPag from "@/components/HeaderPagAl";
-import BarraPesquisa from "@/components/Input";
-import Aluno from "@/components/Aluno";
-import BoxSemAluno from "@/components/BoxSemAluno";
+import HeaderPag from "@/components/app/HeaderPagAl";
+import BarraPesquisa from "@/components/common/Input";
+import Aluno from "@/components/app/Aluno";
+import BoxSemAluno from "@/components/app/BoxSemAluno";
 
 export default function ConteudoAlunos(){
     const [temAluno, setTemAluno] = useState(false);

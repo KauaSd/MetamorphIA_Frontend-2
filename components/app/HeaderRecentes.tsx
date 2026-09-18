@@ -1,5 +1,5 @@
-import DropDown from "@/components/DropDown";
-import BarraPesquisa from "@/components/Input";
+import DropDown from "@/components/common/DropDown";
+import BarraPesquisa from "@/components/common/Input";
 
 export default function HeaderRecentes(){
     const OpcoesDropDown = [

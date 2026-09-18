@@ -1,5 +1,5 @@
-import LogIn from "@/components/LogIn";
-import FormLogin from "@/components/FormLogin";
+import LogIn from "@/components/app/LogIn";
+import { FormLogin } from "@/components/app/forms/FormAuth";
 
 export default function Login() {
   return (

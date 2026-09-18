@@ -1,4 +1,4 @@
-import DropDown from "@/components/DropDown";
+import DropDown from "@/components/common/DropDown";
 import GroupAdd from "@/public/group_add.svg";
 
 interface HeaderPagProps{

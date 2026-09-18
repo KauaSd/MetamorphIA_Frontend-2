@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import PersonSearch from "@/public/person_search.svg";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import GroupAdd from "@/public/group_add.svg";
 
 interface BoxSemTurmaProps{

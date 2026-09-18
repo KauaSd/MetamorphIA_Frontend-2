@@ -1,7 +1,7 @@
-import Menu from "@/components/Menu";
-import ChatTgAluno from "@/components/ChatTgAluno";
-import EditaPEI from "@/components/EditaPEI";
-import GeraPEI from "@/components/GeraPEI";
+import Menu from "@/components/app/Menu";
+import ChatTgAluno from "@/components/app/ChatTgAluno";
+import EditaPEI from "@/components/app/EditaPEI";
+import GeraPEI from "@/components/app/GeraPEI";
 let nome = "Roberto"
 export default function ChatInicial() {
   return (

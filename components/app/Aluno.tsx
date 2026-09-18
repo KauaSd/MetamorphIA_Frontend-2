@@ -1,4 +1,4 @@
-import TagNeuro  from "./TagNeuro";
+import TagNeuro  from "@/components/common/TagNeuro";
 import { EllipsisVertical } from 'lucide-react';
 import { pegainicial } from '@/utils/pegariniciais'
 interface AlunoProps{

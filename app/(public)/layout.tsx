@@ -1,5 +1,5 @@
 import Logo from "@/public/icon.png";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import elipse1 from "@/public/ElipseHome1.svg";
 import fitacolorida from "@/public/FitaColoridahome.svg";
 import Link from "next/link";

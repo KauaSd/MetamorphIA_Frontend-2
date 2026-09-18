@@ -1,16 +1,16 @@
 "use client"
 
-import Menu from "@/components/Menu";
-import HeaderPag from "@/components/HeaderDashTurma";
-import Estatistica from "@/components/CardEstatisticaTurma";
-import Resumo from "@/components/Resumo";
-import Button from "@/components/Button";
-import Engajamento from "@/components/Engajamento";
+import Menu from "@/components/app/Menu";
+import HeaderPag from "@/components/app/HeaderDashTurma";
+import Estatistica from "@/components/app/CardEstatisticaTurma";
+import Resumo from "@/components/app/Resumo";
+import Button from "@/components/common/Button";
+import Engajamento from "@/components/app/Engajamento";
 import Add from "@/public/add.svg";
-import Aluno from "@/components/Aluno";
+import Aluno from "@/components/app/Aluno";
 import Link from "next/link";
 import { useState } from "react";
-import FormAluno from "@/components/FormAluno";
+import { FormAluno } from "@/components/app/forms/FormAlunoTurma";
 
 export default function dashboardTurma(){
     const [mostrarForm, setMostrarForm] = useState(false);

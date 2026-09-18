@@ -1,4 +1,4 @@
-import DropDown from "@/components/DropDown";
+import DropDown from "@/components/common/DropDown";
 
 export default function HeaderPag(){
     const OpcoesDropDown = [

@@ -1,4 +1,4 @@
-import TagNeuro from "./TagNeuro";
+import TagNeuro from "@/components/common/TagNeuro";
 import { pegainicial } from "@/utils/pegariniciais";
 interface RecentesProps {
     aluno: string;

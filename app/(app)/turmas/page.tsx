@@ -1,5 +1,5 @@
-import Menu from "@/components/Menu";
-import ConteudoTurmas from "@/components/ConteudoTurmas";
+import Menu from "@/components/app/Menu";
+import ConteudoTurmas from "@/components/app/ConteudoTurmas";
 
 export default function ViewTurmas(){
     return (

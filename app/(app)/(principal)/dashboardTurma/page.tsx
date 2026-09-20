@@ -1,6 +1,5 @@
 "use client"
 
-import Menu from "@/components/app/Menu";
 import HeaderPag from "@/components/app/HeaderDashTurma";
 import Estatistica from "@/components/app/CardEstatisticaTurma";
 import Resumo from "@/components/app/Resumo";
@@ -36,10 +35,7 @@ export default function dashboardTurma(){
     }
 
     return(
-        <div className="flex min-h-screen w-full">
-            <Menu />
-    
-                <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
+        <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
                     <div className="flex w-full flex-col">
                         <HeaderPag />
                     </div>
@@ -83,6 +79,5 @@ export default function dashboardTurma(){
                         )}
                     </div>
                 </div>
-        </div>
     )
 }

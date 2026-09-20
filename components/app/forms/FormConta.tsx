@@ -16,7 +16,7 @@ export function FormDeletaConta({onClose}: FormProps){
   };
 
   return (
-    <Blurfundo>
+    <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
@@ -47,7 +47,7 @@ export function FormDesconecta({onClose}: FormProps){
   };
 
   return (
-    <Blurfundo>
+    <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">

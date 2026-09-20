@@ -52,16 +52,11 @@ export default function Menu() {
   className={`z-50 h-[100dvh] shrink-0 bg-[#433F3F] flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
     isOpen
       ? "fixed inset-y-0 left-0 w-[min(18rem,85vw)] md:sticky md:top-0 md:self-start md:z-auto md:w-72"
-      : "sticky top-0 self-start w-16 cursor-pointer md:w-20 z-auto"
+      : "sticky top-0 self-start w-16 md:w-18 z-auto"
   }`}
-  onClick={() => {
-    if (!isOpen) {
-      setIsOpen(true);
-    }
-  }}
 >
 
-        <div className="flex h-full w-full min-w-0 flex-col justify-between overflow-y-auto overflow-x-hidden p-4 md:p-5">
+        <div className="flex h-full w-full min-w-0 flex-col justify-between overflow-y-auto overflow-x-hidden p-4 md:p-4 md:pt-5">
         <div className="c1 min-w-0">
           <div
             className={`flex flex-row items-center ${
@@ -69,11 +64,14 @@ export default function Menu() {
             }`}
           >      
             <div className="flex gap-1 items-center">
-              <img
-                src={Icon.src}
-                alt=""
-                className="h-8 w-8 pointer-events-none select-none md:h-10 md:w-10"
-              />
+ <img
+  src={Icon.src}
+  alt=""
+  className={`h-8 w-8 select-none md:h-9 md:w-9 ${
+    !isOpen && "cursor-pointer"
+  }`}
+  onClick={!isOpen ? () => setIsOpen(true) : undefined}
+/>
 
               <h1
                 className={`text-2xl text-white font-(family-name:--font-text-me-one) select-none md:text-3xl ${

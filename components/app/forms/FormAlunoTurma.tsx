@@ -39,7 +39,7 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
   
 
   return (
-    <Blurfundo>
+    <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-10 rounded-[40px] bg-[#F0F0F0] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
@@ -173,7 +173,7 @@ export function FormTurma({
   };
 
   return (
-    <Blurfundo>
+    <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">

@@ -1,22 +1,19 @@
-import Menu from "@/components/app/Menu";
 import ChatTgAluno from "@/components/app/ChatTgAluno";
 import EditaPEI from "@/components/app/EditaPEI";
 import GeraPEI from "@/components/app/GeraPEI";
 let nome = "Roberto"
 export default function ChatInicial() {
   return (
-    <div className="flex w-screen h-screen overflow-hidden">
-      <Menu />
-      <div className="relative flex flex-1 h-full p-4 sm:p-6 md:p-11">
-        <div className="flex flex-1 h-full">
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-11 sm:top-11">
-            <ChatTgAluno />
-          </div>
+    <div className="relative flex h-screen w-full overflow-hidden p-4 sm:p-6 md:p-11">
+      <div className="flex flex-1 h-full">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-11 sm:top-11">
+          <ChatTgAluno />
+        </div>
 
-          <div className="flex flex-1 h-full items-center justify-center px-2">
-            <div className="flex flex-col gap-10 sm:gap-16 md:gap-27.5 items-center w-full">
+        <div className="flex flex-1 h-full items-center justify-center px-2">
+            <div className="flex flex-col gap-8 sm:gap-16 md:gap-25 items-center w-full">
               <div>
-                <p className="text-3xl sm:text-4xl md:text-6xl text-center">
+                <p className="text-3xl sm:text-4xl md:text-5xl text-center">
                   Bom dia, Prof. {nome}
                 </p>
               </div>
@@ -65,6 +62,5 @@ export default function ChatInicial() {
           </div>
         </div>
       </div>
-    </div>
   );
 }

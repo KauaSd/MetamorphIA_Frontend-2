@@ -6,14 +6,42 @@ import CheckBox from "@/components/common/CheckBox";
 import Button from "@/components/common/Button";
 import Link from "next/link";
 import { OTPInput, SlotProps } from "input-otp";
-
+import Login from "@/app/(app)/auth/login/page";
+import { execPath } from "process";
 export function FormLogin() {
   const [identificador, setIdentificar] = useState("");
   const [senha, setSenha] = useState("");
-
+  const [error, setError] = useState("")
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
   };
+
+  async function login(){
+   
+    try{ 
+      let test = true
+      if (!identificador.trim()) {
+      setError("Digite seu telefone ou e-mail.");
+      return;
+    }
+
+    if (!senha.trim()) {
+      setError("Digite sua senha.");
+      return;
+    }
+      if (test){
+        window.location.href = '../chat';
+      }
+      const body = {
+        identificador: identificador,
+        senha: senha
+      }
+      
+    }
+    catch (error){
+
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md">
@@ -24,10 +52,15 @@ export function FormLogin() {
         </div>
 
         <div className="flex flex-col items-center gap-3">
-          <Input type="text" placeholder="Digite seu telefone ou e-mail" />
-          <Input type="password" placeholder="Digite sua senha" />
+          <Input type="text" placeholder="Digite seu telefone ou e-mail" onChange={(e) => setIdentificar(e.target.value)}/>
+          <Input type="password" placeholder="Digite sua senha" onChange={(e) => setSenha(e.target.value)} />
+          
         </div>
-
+          {error && (
+          <p className="text-[#FF9999] -mt-4.5 -mb-6 ml-2">
+            {error}
+          </p>
+        )}
         <div className="flex flex-col items-end">
           <Link href="/auth/recuperaSenha">
             <p className="text-right text-sm text-[#797979]">
@@ -37,9 +70,7 @@ export function FormLogin() {
             </p>
           </Link>
         </div>
-        <Link href="/chat">
-          <Button type="submit">Entrar</Button>
-        </Link>
+          <Button type="submit" onClick={login}>Entrar</Button>
         <div className="text-sm text-[#797979] flex flex-row items-center justify-center gap-1">
           <p> Não tem uma conta? </p>
           <Link href="/auth/cadastro">

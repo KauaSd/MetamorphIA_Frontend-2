@@ -40,7 +40,7 @@ export default function Configuracoes({
   const [abaAtiva, setAbaAtiva] = useState("geral");
 
   return (
-    <Blurfundo>
+    <Blurfundo onClose={onClose}>
       <div className="flex h-[590px] w-[890px] absolute overflow-hidden rounded-[40px] bg-[#F0F0F0]">
         <SidebarEscura
           abaAtiva={abaAtiva}

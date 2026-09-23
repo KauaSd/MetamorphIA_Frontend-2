@@ -166,7 +166,7 @@ export function FormTurma({
   onClose,
   onCriar,
 }: FormTurmaProps) {
-  const [email, setEmail] = useState("");
+  const [nomeTurma, setNomeTurma] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,10 +192,10 @@ export function FormTurma({
         </div>
 
         <div className="flex flex-col items-center">
-          <Input type="text" placeholder="ex.: 3º Ano A - Manhã" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input type="text" placeholder="ex.: 3º Ano A - Manhã" value={nomeTurma} onChange={(e) => setNomeTurma(e.target.value)} />
         </div>
 
-        <div className="flex gap-5">
+        <div className="flex +gap-5">
         <Button type="button" onClick={onClose} className="bg-[#433F3F] text-[#FFFDFA]">Cancelar</Button>
         <Button type="button" onClick={onCriar}>Salvar</Button>
       </div>

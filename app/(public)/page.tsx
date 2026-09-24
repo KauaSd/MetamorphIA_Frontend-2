@@ -87,7 +87,7 @@ export default function Home() {
               feita sob medida para crianças neurodivergentes — em segundos, sem
               precisar de formação especializada.
             </p>
-
+            
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 lg:gap-20 px-2 sm:px-8 justify-center w-auto">
               <Link href="../auth/cadastro">
                 <Button className=" py-1 font-(family-name:--font-text-me-one) text-base w-full">
@@ -95,7 +95,7 @@ export default function Home() {
                 </Button>
               </Link>
 
-              <Button className="py-1 bg-[#FFFDFA] border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-base w-auto">
+              <Button className="py-1 bg-[#FFFDFA]/10 border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-base w-auto">
                 Como funciona?
               </Button>
             </div>
@@ -111,6 +111,7 @@ export default function Home() {
           </div>
         </div>
 
+        <section id = "ComoFunciona">
         <div className="flex flex-col items-start">
           <div className="relative inline-block">
             <p className="relative text-2xl z-10">Como Funciona</p>
@@ -210,7 +211,9 @@ export default function Home() {
             </Button>
           </Link>
         </div>
+        </section>
 
+        <section id = "FAQ">
         <div className="relative flex flex-col mt-10 text-2xl gap-6">
           <img
             src={fitacolorida.src}
@@ -310,6 +313,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        </section>
 
         <div className="flex flex-col items-start gap-10 -mt-10 lg:-mt-20">
           <div className="relative inline-block">

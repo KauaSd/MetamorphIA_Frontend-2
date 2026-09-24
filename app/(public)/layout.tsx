@@ -96,18 +96,22 @@ export default function RootLayout({
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-[#FFFDFA] text-2xl font-(family-name:--font-text-me-one)">
+          <p className="text-[#FFFDFA] text-2xl font-(family-name:--font-text-me-one)" >
             Página
           </p>
 
           <div>
+            <Link href="#ComoFunciona">
             <p className="text-[#797979] text-sm underline cursor-pointer">
               Como funciona?
             </p>
+            </Link>
 
+            <Link href="#FAQ">
             <p className="text-[#797979] text-sm underline cursor-pointer">
               FAQ
             </p>
+            </Link>
           </div>
         </div>
 

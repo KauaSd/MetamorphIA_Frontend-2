@@ -91,6 +91,8 @@ export function FormCadastro() {
   const [tel, setTel] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [nome, setNome] = useState("");
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +107,12 @@ export function FormCadastro() {
         </div>
 
         <div className="flex flex-col items-center gap-3">
+          <Input
+            type="text"
+            placeholder="Digite seu nome completo"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+          />
           <Input
             type="text"
             placeholder="Digite seu telefone"

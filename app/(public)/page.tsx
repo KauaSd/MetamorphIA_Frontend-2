@@ -10,7 +10,7 @@ import desenho3 from "@/public/desenho3.svg";
 import fitacolorida from "@/public/FitaColoridahome.svg";
 import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import * as React from "react";
-import Link from "next/link";
+import Planos from "@/components/public/Planos"
 
 type Testimonial = {
   name: string;
@@ -226,7 +226,25 @@ export default function Home() {
             aria-hidden="true"
             className="absolute left-0 md:-top-30 sm:-top-10 -z-10 w-[20000px] scale-143 pointer-events-none select-none rotate-180"
           />
+          <div className="flex flex-col mt-50 mb-40">
+                   <div className="flex flex-col items-start">
+          <div className="relative inline-block min-w-[191px]">
+            <p className="relative text-2xl z-10">Planos</p>
 
+            <Image
+              src={ImgRabisco}
+              alt=""
+              aria-hidden="true"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] max-w-none pointer-events-none select-none z-0"
+            />
+          </div>
+          </div>
+          <div className="flex gap-10 mt-10 self-center">
+                      <Planos tipo="basico"/>
+                      <Planos tipo="pro"/>
+                      <Planos tipo="institucional"/>
+                      </div>
+          </div>
           <h1>FAQ</h1>
 
           <div className="flex flex-col gap-2">

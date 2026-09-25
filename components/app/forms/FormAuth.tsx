@@ -4,23 +4,22 @@ import { useState } from "react";
 import Input from "@/components/common/Input";
 import CheckBox from "@/components/common/CheckBox";
 import Button from "@/components/common/Button";
+import ButtonLink from "@/components/common/ButtonLink";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { OTPInput, SlotProps } from "input-otp";
-import Login from "@/app/(app)/auth/login/page";
-import { execPath } from "process";
+
 export function FormLogin() {
+  const router = useRouter();
   const [identificador, setIdentificar] = useState("");
   const [senha, setSenha] = useState("");
-  const [error, setError] = useState("")
+  const [error, setError] = useState("");
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
   };
 
-  async function login(){
-   
-    try{ 
-      let test = true
-      if (!identificador.trim()) {
+  function login() {
+    if (!identificador.trim()) {
       setError("Digite seu telefone ou e-mail.");
       return;
     }
@@ -29,18 +28,8 @@ export function FormLogin() {
       setError("Digite sua senha.");
       return;
     }
-      if (test){
-        window.location.href = '../chat';
-      }
-      const body = {
-        identificador: identificador,
-        senha: senha
-      }
-      
-    }
-    catch (error){
 
-    }
+    router.push("/chat");
   }
 
   return (
@@ -88,14 +77,26 @@ export function FormLogin() {
 }
 
 export function FormCadastro() {
+  const router = useRouter();
   const [tel, setTel] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
-
+  const [aceitaTermos, setAceitaTermos] = useState(false);
+  const [erroTermos, setErroTermos] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!aceitaTermos) {
+      setErroTermos(
+        "Você precisa aceitar os Termos de Uso e a Política de Privacidade para continuar.",
+      );
+      return;
+    }
+
+    setErroTermos("");
+    router.push("/auth/login");
   };
 
   return (
@@ -133,12 +134,19 @@ export function FormCadastro() {
           />
         </div>
 
-        <div className="flex items-center">
-          <CheckBox />
+        <div className="flex flex-col items-center gap-2">
+          <CheckBox
+            checked={aceitaTermos}
+            onChange={(checked) => {
+              setAceitaTermos(checked);
+              if (checked) setErroTermos("");
+            }}
+          />
+          {erroTermos && (
+            <p className="text-[#FF9999] text-sm">{erroTermos}</p>
+          )}
         </div>
-        <Link href="/auth/login">
-          <Button type="button">Cadastrar</Button>
-        </Link>
+        <Button type="submit">Cadastrar</Button>
         <div className="text-sm text-[#797979] flex flex-row items-center justify-center gap-1">
           <p>Já tem uma conta?</p>
           <Link href="/auth/login">
@@ -175,12 +183,13 @@ export function FormRecuperaSenha() {
         </div>
 
         <div className="flex gap-5">
-          <Link href="/auth/login" className="w-full">
-            <Button type="button" className="bg-[#433F3F] text-[#FFFDFA]">Voltar</Button>
-          </Link>
-          <Link href="/auth/token" className="w-full">
-            <Button type="button">Próximo</Button>
-          </Link>
+          <ButtonLink
+            href="/auth/login"
+            className="bg-[#433F3F] text-[#FFFDFA]"
+          >
+            Voltar
+          </ButtonLink>
+          <ButtonLink href="/auth/token">Próximo</ButtonLink>
       </div>
       </div>
     </form>
@@ -219,9 +228,12 @@ export function FormToken() {
         </div>
 
         <div className="flex gap-5">
-          <Link href="/auth/recuperaSenha" className="w-full">
-            <Button type="button" className="bg-[#433F3F] text-[#FFFDFA]">Voltar</Button>
-          </Link>
+          <ButtonLink
+            href="/auth/recuperaSenha"
+            className="bg-[#433F3F] text-[#FFFDFA]"
+          >
+            Voltar
+          </ButtonLink>
           <Button type="button">Verificar</Button>
         </div>
         </div>

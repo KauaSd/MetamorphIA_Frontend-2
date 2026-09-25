@@ -4,7 +4,7 @@ import Add from "@/public/add.svg";
 import Download from "@/public/file_download.svg";
 import Link from "next/link";
 
-export default function HeaderPag(){
+export default function HeaderDashAl(){
     return(
         <div className="flex w-full flex-col gap-4">
             <Link href="/dashboardTurma">

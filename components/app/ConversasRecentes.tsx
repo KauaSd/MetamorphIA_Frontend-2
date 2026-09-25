@@ -1,29 +1,12 @@
 import TagNeuro from "@/components/common/TagNeuro";
 import { pegainicial } from "@/utils/pegariniciais";
+import { formatarData } from "@/utils/datas";
 interface RecentesProps {
     aluno: string;
     neuro: string;
     data: string;
     turma: string;
     chat: string;
-}
-
-function formatarData(data: string): string {
-    const [dia, mes, ano] = data.split("/");
-
-    const dataFormatada = new Date(
-        Number(ano),
-        Number(mes) - 1,
-        Number(dia)
-    );
-
-    return new Intl.DateTimeFormat("pt-BR", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-    })
-        .format(dataFormatada)
-        .replace(/ de /g, " ");
 }
 
 export default function ConversasRecentes(props: RecentesProps) {
@@ -35,16 +18,16 @@ export default function ConversasRecentes(props: RecentesProps) {
                 </div>
                 <div className="flex flex-col gap-1.5 sm:gap-2 w-full min-w-0">
                     <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-3 w-full">
-                        <a className="text-sm font-bold sm:truncate sm:min-w-0">
+                        <p className="text-sm font-bold sm:truncate sm:min-w-0">
                             {props.aluno} - {props.chat}
-                        </a>
-                        <a className="text-xs sm:text-sm text-[#797979] sm:text-[#433F3F] shrink-0 mr-10">
+                        </p>
+                        <p className="text-xs sm:text-sm text-[#797979] sm:text-[#433F3F] shrink-0 mr-10">
                             {formatarData(props.data)}
-                        </a>
+                        </p>
                     </div>
                     <div className="flex flex-wrap gap-2 items-center">
                         <TagNeuro label={props.neuro} />
-                        <a className="text-xs sm:text-sm">{props.turma}</a>
+                        <p className="text-xs sm:text-sm">{props.turma}</p>
                     </div>
                 </div>
             </div>

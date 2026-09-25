@@ -1,7 +1,7 @@
 import Seta from "@/public/seta.svg";
 import Link from "next/link";
 
-export default function HeaderPag(){
+export default function HeaderDashTurma(){
     return(
         <div className="flex w-full flex-col gap-4">
 

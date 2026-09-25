@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatTgAluno from "@/components/app/ChatTgAluno";
 import EditaPEI from "@/components/app/EditaPEI";
@@ -13,118 +13,147 @@ type Message = {
   text: string;
   sender: "user" | "bot";
 };
+
+function Dots() {
+  return (
+    <span className="inline-flex gap-0.5">
+      <span className="animate-[dot_1.4s_ease-in-out_infinite] text-3xl">
+        .
+      </span>
+      <span className="animate-[dot_1.4s_0.2s_ease-in-out_infinite] text-3xl">
+        .
+      </span>
+      <span className="animate-[dot_1.4s_0.4s_ease-in-out_infinite] text-3xl">
+        .
+      </span>
+    </span>
+  );
+}
 export default function ChatInicial() {
   const [hasStarted, setHasStarted] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  
+  const [isThinking, setIsThinking] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
-  const handleSendMessage = async (e: React.SubmitEvent<HTMLFormElement>) => {
-  e.preventDefault();
+  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const text = inputValue.trim();
+    const text = inputValue.trim();
 
-  if (!text) return;
+    if (!text) return;
 
-  if (!hasStarted) {
-    setHasStarted(true);
-  }
-
-  const userMessageId = Date.now();
-  const botMessageId = userMessageId + 1;
-
-  setMessages((prev) => [
-    ...prev,
-    {
-      id: userMessageId,
-      text,
-      sender: "user",
-    },
-    {
-      id: botMessageId,
-      text: "",
-      sender: "bot",
-    },
-  ]);
-
-  setInputValue("");
-
-  try {
-    const response = await fetch("http://localhost:8000/mock/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        mensagem: text,
-      }),
-    });
-
-    if (!response.body) {
-      throw new Error("A resposta não possui stream.");
+    if (!hasStarted) {
+      setHasStarted(true);
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+    const userMessageId = Date.now();
+    const botMessageId = userMessageId + 1;
 
-    let buffer = "";
-    let respostaCompleta = "";
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: userMessageId,
+        text,
+        sender: "user",
+      },
+      {
+        id: botMessageId,
+        text: "",
+        sender: "bot",
+      },
+    ]);
 
-    while (true) {
-      const { value, done } = await reader.read();
+    setInputValue("");
 
-      if (done) break;
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-      buffer += decoder.decode(value, { stream: true });
+    try {
+      setIsThinking(true);
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+      const response = await fetch(`${apiUrl}/mock/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mensagem: text,
+        }),
+        signal: controller.signal,
+      });
+      if (!response.body) {
+        throw new Error("A resposta não possui stream.");
+      }
 
-      const linhas = buffer.split("\n");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
 
-      buffer = linhas.pop() ?? "";
+      let buffer = "";
+      let respostaCompleta = "";
 
-      for (const linha of linhas) {
-        if (!linha.startsWith("data: ")) continue;
+      while (true) {
+        const { value, done } = await reader.read();
 
-        const payload = linha.slice(6).trim();
+        if (done) break;
 
-        if (payload === "[DONE]") {
-          continue;
-        }
+        buffer += decoder.decode(value, { stream: true });
 
-        try {
-          const data = JSON.parse(payload);
+        const linhas = buffer.split("\n");
 
-          respostaCompleta += data.resposta;
+        buffer = linhas.pop() ?? "";
 
-          setMessages((prev) =>
-            prev.map((message) =>
-              message.id === botMessageId
-                ? {
-                    ...message,
-                    text: respostaCompleta,
-                  }
-                : message
-            )
-          );
-        } catch {
+        for (const linha of linhas) {
+          if (!linha.startsWith("data: ")) continue;
+
+          const payload = linha.slice(6).trim();
+
+          if (payload === "[DONE]") {
+            continue;
+          }
+
+          try {
+            const data = JSON.parse(payload);
+
+            respostaCompleta += data.resposta;
+
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === botMessageId
+                  ? {
+                      ...message,
+                      text: respostaCompleta,
+                    }
+                  : message,
+              ),
+            );
+          } catch {}
         }
       }
-    }
-  } catch (error) {
-    console.error("Erro ao receber resposta:", error);
+    } catch (error) {
+      if (controller.signal.aborted) return;
 
-    setMessages((prev) =>
-      prev.map((message) =>
-        message.id === botMessageId
-          ? {
-              ...message,
-              text: "Não foi possível obter uma resposta da IA.",
-            }
-          : message
-      )
-    );
-  }
-};
+      console.error("Erro ao receber resposta:", error);
+
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === botMessageId
+            ? {
+                ...message,
+                text: "Não foi possível obter uma resposta da IA.",
+              }
+            : message,
+        ),
+      );
+    } finally {
+      setIsThinking(false);
+    }
+  };
 
   return (
     <div className="relative flex h-screen w-full overflow-hidden p-4 sm:p-6 md:p-11">
@@ -158,19 +187,13 @@ export default function ChatInicial() {
               px-4 sm:px-8 md:px-16 lg:px-24
               transition-all duration-700
               ease-[cubic-bezier(0.16,1,0.3,1)]
-              ${
-                hasStarted
-                  ? "bottom-0"
-                  : "top-[52%] -translate-y-1/2"
-              }
+              ${hasStarted ? "bottom-0" : "top-[52%] -translate-y-1/2"}
             `}
           >
             <div className="w-full max-w-[64rem] mx-auto flex flex-col gap-8">
-
               {hasStarted && messages.length > 0 && (
                 <div className="w-full flex flex-col gap-4 max-h-[55vh] overflow-y-auto">
-
-                  {messages.map((message) => (
+                  {messages.map((message, index) => (
                     <div
                       key={message.id}
                       className={`flex w-full ${
@@ -192,21 +215,22 @@ export default function ChatInicial() {
                           }
                         `}
                       >
+                        {isThinking &&
+                          message.sender !== "user" &&
+                          index === messages.length - 1 &&
+                          !message.text && <Dots />}
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {message.text}
+                          {message.text}
                         </ReactMarkdown>
                       </div>
                     </div>
                   ))}
-
                 </div>
               )}
 
               <form onSubmit={handleSendMessage}>
                 <div className="flex items-center w-full h-11 rounded-[70px] bg-[#FFFDFA] px-4 sm:px-5 md:px-6">
-
                   <div className="flex w-full justify-between items-center">
-
                     <div className="flex gap-3 items-center shrink-0">
                       <div className="cursor-pointer">
                         <svg
@@ -228,11 +252,7 @@ export default function ChatInicial() {
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={
-                          hasStarted
-                            ? ""
-                            : "Digite uma mensagem..."
-                        }
+                        placeholder={hasStarted ? "" : "Digite uma mensagem..."}
                         className="w-full h-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 ml-4 caret-[#433F3F] text-sm sm:text-base md:text-lg"
                       />
                     </div>
@@ -262,7 +282,6 @@ export default function ChatInicial() {
                         </defs>
                       </svg>
                     </button>
-
                   </div>
                 </div>
               </form>
@@ -271,10 +290,8 @@ export default function ChatInicial() {
                 <EditaPEI ativado={true} />
                 <GeraPEI ativado={true} />
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
     </div>

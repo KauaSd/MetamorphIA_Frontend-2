@@ -1,6 +1,5 @@
 import PersonSearch from "@/public/person_search.svg";
-import Button from "@/components/common/Button";
-import Link from 'next/link';
+import ButtonLink from "@/components/common/ButtonLink";
 
 export default function ModalSemAluno(){
     return (
@@ -14,9 +13,9 @@ export default function ModalSemAluno(){
                     Adicione um aluno em uma de suas turmas para visualizá-lo nesta tela.
                 </p>
             </div>
-            <Link href="/turmas" className="flex w-full max-w-[180px] justify-center">
-                <Button type="button" className="w-full px-3 py-1 sm:px-4 sm:py-1 flex flex-row gap-2 justify-center items-center">Ir para Turmas</Button>
-            </Link>
+            <ButtonLink href="/turmas" className="w-full max-w-[180px] px-3 py-1 sm:px-4 sm:py-1">
+                Ir para Turmas
+            </ButtonLink>
         </div>
     )
 }

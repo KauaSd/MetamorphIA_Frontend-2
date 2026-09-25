@@ -1,11 +1,11 @@
 import DropDown from "@/components/common/DropDown";
 import GroupAdd from "@/public/group_add.svg";
 
-interface HeaderPagProps{
+interface HeaderPagTurmasProps {
     onCriarTurma: () => void;
 }
 
-export default function HeaderPag({ onCriarTurma }: HeaderPagProps){
+export default function HeaderPagTurmas({ onCriarTurma }: HeaderPagTurmasProps){
     const OpcoesDropDown = [
         {value: "az", label: "A-Z"},
         {value: "recente", label: "Atividade"}

@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      lang="pt-BR"
       className={`${TextMeOne.variable} ${poppins.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-[#FFFDFA]">{children}</body>

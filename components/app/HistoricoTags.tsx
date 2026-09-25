@@ -1,27 +1,11 @@
+import { formatarData } from "@/utils/datas";
+
 interface HistoricoProps {
   data: string;
   chat: string;
 }
 
-function formatarData(data: string): string {
-  const [dia, mes, ano] = data.split("/");
-
-  const dataFormatada = new Date(
-    Number(ano),
-    Number(mes) - 1,
-    Number(dia)
-  );
-
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
-    .format(dataFormatada)
-    .replace(/ de /g, " ");
-}
-
-export default function ConversasRecentes(props: HistoricoProps) {
+export default function HistoricoTags(props: HistoricoProps) {
   return (
     <div className="flex px-5 py-2.5 sm:px-6 sm:py-2.5 items-center gap-3 w-full bg-[#FFFDFA] rounded-[70px]">
     <div className="flex shrink-0 items-center justify-center h-9! w-9! sm:h-10! sm:w-10!  md:w-11! md:h-11! rounded-full bg-[#433F3F] font-extrabold">
@@ -38,8 +22,8 @@ export default function ConversasRecentes(props: HistoricoProps) {
 
     </div>
     <div className="flex flex-col ">
-        <a className=" text-[11px]! md:text-[15px]! sm:text-[12px]! text-[#433F3F]">{props.chat}</a>
-          <a className="text-[9px]! mr-0! md:text-xs! sm:mr-10! md:mr-14! text-[#797979]"> {formatarData(props.data)} </a>
+        <p className=" text-[11px]! md:text-[15px]! sm:text-[12px]! text-[#433F3F]">{props.chat}</p>
+          <p className="text-[9px]! mr-0! md:text-xs! sm:mr-10! md:mr-14! text-[#797979]"> {formatarData(props.data)} </p>
           </div>
     </div>
   );

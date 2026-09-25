@@ -1,5 +1,5 @@
 import Logo from "@/public/icon.png";
-import Button from "@/components/common/Button";
+import ButtonLink from "@/components/common/ButtonLink";
 import elipse1 from "@/public/ElipseHome1.svg";
 import fitacolorida from "@/public/FitaColoridahome.svg";
 import Link from "next/link";
@@ -27,17 +27,19 @@ export default function RootLayout({
             </div>
           </Link>
           <div className="flex items-center justify-center gap-2 sm:gap-3 shrink-0">
-            <Link href="../auth/cadastro">
-              <Button className="font-(family-name:--font-text-me-one) py-1! bg-[#FFFDFA] hover:bg-[#CAC7C2] text-base! sm:text-lg lg:text-xl w-auto">
-                Cadastro
-              </Button>
-            </Link>
+            <ButtonLink
+              href="../auth/cadastro"
+              className="font-(family-name:--font-text-me-one) py-1! bg-[#FFFDFA] hover:bg-[#CAC7C2] text-base! sm:text-lg lg:text-xl w-auto"
+            >
+              Cadastro
+            </ButtonLink>
 
-            <Link href="../auth/login">
-              <Button className="font-(family-name:--font-text-me-one) py-1! text-base! sm:text-lg lg:text-xl w-auto">
-                Login
-              </Button>
-            </Link>
+            <ButtonLink
+              href="../auth/login"
+              className="font-(family-name:--font-text-me-one) py-1! text-base! sm:text-lg lg:text-xl w-auto"
+            >
+              Login
+            </ButtonLink>
           </div>
         </div>
       </header>

@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image";
-import Button from "@/components/common/Button";
+import ButtonLink from "@/components/common/ButtonLink";
 import ImgRabisco from "@/public/ImgRabisco.svg";
 import ImgHome from "@/public/ImgHome.svg";
 import desenho1 from "@/public/desenho.svg";
@@ -89,15 +89,19 @@ export default function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 lg:gap-20 px-2 sm:px-8 justify-center w-auto">
-              <Link href="../auth/cadastro">
-                <Button className=" py-1 font-(family-name:--font-text-me-one) text-base w-full">
-                  Adaptar uma atividade
-                </Button>
-              </Link>
+              <ButtonLink
+                href="../auth/cadastro"
+                className="py-1 font-(family-name:--font-text-me-one) text-base w-auto"
+              >
+                Adaptar uma atividade
+              </ButtonLink>
 
-              <Button className="py-1 bg-[#FFFDFA]/10 border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-base w-auto">
+              <ButtonLink
+                href="#ComoFunciona"
+                className="py-1 bg-[#FFFDFA]/10 border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-base w-auto"
+              >
                 Como funciona?
-              </Button>
+              </ButtonLink>
             </div>
           </div>
 
@@ -205,11 +209,12 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <Link href="../auth/cadastro" className="self-center mt-5">
-            <Button className="w-auto py-1 self-center text-xl font-(family-name:--font-text-me-one)">
-              Adaptar uma Atividade
-            </Button>
-          </Link>
+          <ButtonLink
+            href="../auth/cadastro"
+            className="self-center mt-5 w-auto py-1 text-xl font-(family-name:--font-text-me-one)"
+          >
+            Adaptar uma Atividade
+          </ButtonLink>
         </div>
         </section>
 

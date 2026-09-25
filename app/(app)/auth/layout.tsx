@@ -1,17 +1,4 @@
 import Logo from "@/public/icon.png";
-import { Poppins, Text_Me_One } from "next/font/google";
-
-const TextMeOne = Text_Me_One({
-  variable: "--font-text-me-one",
-  weight: "400",
-  subsets: ["latin"],
-});
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  weight: "400",
-  subsets: ["latin"],
-});
 
 export default function Auth({ children }: { children: React.ReactNode }) {
   return (
@@ -38,13 +25,13 @@ export default function Auth({ children }: { children: React.ReactNode }) {
         <div className="w-full px-5 sm:px-10 md:px-16 lg:px-23 pt-5 sm:pt-7 md:pt-10">
           <header className="mx-auto flex min-h-11 w-full lg:max-w-[110rem] items-center justify-center gap-2 rounded-[70px] bg-[#433F3F] px-5 sm:px-8 md:px-12 lg:px-15 text-[#FFFDFA] sm:min-h-14">
             <img src={Logo.src} alt="" className="w-7 sm:w-11" />
-            <p className={`${TextMeOne.variable} text-xl sm:text-[2rem] font-(family-name:--font-text-me-one)`}>
+            <p className="text-xl sm:text-[2rem] font-(family-name:--font-text-me-one)">
                 MetamorphIA
             </p>
             </header>
         </div>
 
-        <main className={`flex flex-1 flex-col ${poppins.variable} font-(family-name:--font-poppins) overflow-hidden`}>
+        <main className="flex flex-1 flex-col font-(family-name:--font-poppins) overflow-hidden">
           {children}
         </main>
       </div>

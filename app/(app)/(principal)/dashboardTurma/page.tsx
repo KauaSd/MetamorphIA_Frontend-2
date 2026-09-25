@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FormAluno } from "@/components/app/forms/FormAlunoTurma";
 
-export default function dashboardTurma(){
+export default function DashboardTurma(){
     const [mostrarForm, setMostrarForm] = useState(false);
 
     const alunos = [

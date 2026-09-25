@@ -1,6 +1,6 @@
 import DropDown from "@/components/common/DropDown";
 
-export default function HeaderPag(){
+export default function HeaderPagAl(){
     const OpcoesDropDown = [
         {value: "az", label: "A-Z"},
         {value: "recente", label: "Atividade"}

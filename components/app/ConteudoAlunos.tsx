@@ -1,13 +1,13 @@
 "use client";
 
-import { useState} from "react";
+import { useState } from "react";
 import HeaderPag from "@/components/app/HeaderPagAl";
 import BarraPesquisa from "@/components/common/Input";
 import Aluno from "@/components/app/Aluno";
 import BoxSemAluno from "@/components/app/BoxSemAluno";
 
 export default function ConteudoAlunos(){
-    const [temAluno, setTemAluno] = useState(false);
+    const [temAluno] = useState(false);
 
     const alunos = [
         {nome: "Junior Marcos", neuro: "TDAH", turma: "3º Ano A - Manhã"},

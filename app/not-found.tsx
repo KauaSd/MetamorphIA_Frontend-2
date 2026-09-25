@@ -1,19 +1,6 @@
 import Logo from "@/public/icon.png";
-import { Poppins, Text_Me_One } from "next/font/google";
 import Button from "@/components/common/Button";
 import desenho1 from "@/public/desenho.svg";
-
-const TextMeOne = Text_Me_One({
-  variable: "--font-text-me-one",
-  weight: "400",
-  subsets: ["latin"],
-});
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  weight: "400",
-  subsets: ["latin"],
-});
 
 export default function NotFound() {
   return (
@@ -31,7 +18,7 @@ export default function NotFound() {
           <header className="mx-auto flex min-h-11 w-full lg:max-w-[110rem] items-center justify-center gap-2 rounded-[70px] bg-[#433F3F] px-4 py-1.5 text-[#FFFDFA] sm:min-h-14 sm:py-2">
             <img src={Logo.src} alt="" className="w-7 sm:w-11" />
             <p
-              className={`${TextMeOne.variable} text-xl sm:text-[2rem] font-(family-name:--font-text-me-one)`}
+              className="text-xl sm:text-[2rem] font-(family-name:--font-text-me-one)"
             >
               MetamorphIA
             </p>
@@ -39,7 +26,7 @@ export default function NotFound() {
         </div>
 
         <main
-          className={`flex flex-1 items-center justify-center px-4 ${poppins.variable} font-(family-name:--font-poppins)`}
+          className="flex flex-1 items-center justify-center px-4 font-(family-name:--font-poppins)"
         >
           <div className="flex h-auto w-full max-w-[985px] flex-col items-center justify-between gap-10 rounded-[40px] bg-[#FFFDFA] p-8 sm:h-[598px] sm:flex-row sm:gap-8 sm:rounded-[70px] sm:p-14">
             <div className="flex flex-col items-center text-center sm:items-start sm:text-left">

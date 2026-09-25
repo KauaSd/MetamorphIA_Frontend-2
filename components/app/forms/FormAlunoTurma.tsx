@@ -4,12 +4,10 @@ import { useState } from "react";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
 import { X } from "lucide-react";
-import { useRef } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import CheckBoxAluno from "@/components/common/CheckBoxAl";
 import  DropDown  from "@/components/common/DropDown";
 import Blurfundo from "@/components/common/Blurfundo";
-import { Text_Me_One } from "next/font/google";
 
 interface turma{
   value : string
@@ -20,11 +18,9 @@ interface turmasprops{
   onClose: () => void
 }
 export function FormAluno( { turmas, onClose } : turmasprops) {
-  const inputRef = useRef<HTMLInputElement>(null);
     const [neuro, setNeuro] = useState<string[]>([])
     const [Nome, setNome] = useState("");
-    const [ _ , setIdade] = useState("");
-
+    const [idade, setIdade] = useState("");
 
     const handleToggleNeuro = (item: string) => {
         setNeuro((prev) =>
@@ -33,6 +29,14 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
             : [...prev, item]                
         )
     }
+
+    const handleIdadeStep = (direcao: 1 | -1) => {
+        setIdade((prev) => {
+            const atual = Number(prev);
+            const novo = Number.isNaN(atual) ? 0 : atual + direcao;
+            return String(Math.max(0, novo));
+        });
+    };
       const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     };
@@ -69,11 +73,11 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
           />
           <div className="relative flex items-center justify-between w-1/4 rounded-[70px] bg-[#D9D9D9] px-[0.7rem] py-[0.55rem]">
             <input
-              ref={inputRef}
               type="number"
               placeholder="Idade"
               min="0"
               step="1"
+              value={idade}
               onChange={(e) => setIdade(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key.length === 1 && !/[0-9]/.test(e.key)) {
@@ -85,14 +89,14 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
             <div className="flex flex-col justify-center -mr-1 -space-y-1.5">
               <button
                 type="button"
-                onClick={() => inputRef.current?.stepUp()}
+                onClick={() => handleIdadeStep(1)}
                 className="cursor-pointer text-[#797979]"
               >
                 <ChevronUp className="w-4 h-4" />
               </button>
               <button
                 type="button"
-                onClick={() => inputRef.current?.stepDown()}
+                onClick={() => handleIdadeStep(-1)}
                 className="cursor-pointer text-[#797979]"
               >
                 <ChevronDown className="w-4 h-4" />
@@ -156,12 +160,6 @@ interface FormTurmaProps{
   onCriar: () => void;
 }
 
-const TextMeOne = Text_Me_One({
-  variable: "--font-text-me-one",
-  weight: "400",
-  subsets: ["latin"],
-});
-
 export function FormTurma({
   onClose,
   onCriar,
@@ -178,7 +176,7 @@ export function FormTurma({
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
-          <p className={`${TextMeOne.variable} text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)`}>Dados da Turma</p>
+          <p className="text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)">Dados da Turma</p>
           <button
           type="button"
           aria-label="Fechar"
@@ -195,7 +193,7 @@ export function FormTurma({
           <Input type="text" placeholder="ex.: 3º Ano A - Manhã" value={nomeTurma} onChange={(e) => setNomeTurma(e.target.value)} />
         </div>
 
-        <div className="flex +gap-5">
+        <div className="flex gap-5">
         <Button type="button" onClick={onClose} className="bg-[#433F3F] text-[#FFFDFA]">Cancelar</Button>
         <Button type="button" onClick={onCriar}>Salvar</Button>
       </div>

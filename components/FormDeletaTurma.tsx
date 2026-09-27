@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import Button from "./Button";
 import { X } from 'lucide-react'
 import Blurfundo from "./Blurfundo";
 
-export default function FormDeletaTurma() {
+interface FormDeletaTurmaProps {
+  onClose: () => void;
+}
+
+export default function FormDeletaTurma({ onClose }: FormDeletaTurmaProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +25,7 @@ export default function FormDeletaTurma() {
           type="button"
           aria-label="Fechar"
           className="cursor-pointer"
+          onClick={onClose}
           >
             <X className="w-6 h-6"/>
           </button>
@@ -33,7 +37,7 @@ export default function FormDeletaTurma() {
         </div>
 
         <div className="flex gap-5 self-end">
-          <Button type="button" className="bg-[#433F3F] text-[#FFFDFA] w-32">Cancelar</Button>
+          <Button type="button" className="bg-[#433F3F] text-[#FFFDFA] w-32" onClick={onClose}>Cancelar</Button>
           <Button type="button" className="bg-[#FF9999] text-[#433F3F] w-32">Excluir</Button>
       </div>
       </div>

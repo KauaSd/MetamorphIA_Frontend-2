@@ -17,11 +17,13 @@ interface turma{
 interface turmasprops{
   turmas: turma[]
   onClose: () => void
+  modo?: "criar" | "editar"
+  nomeInicial?: string
 }
-export default function FormAluno( { turmas, onClose } : turmasprops) {
+export default function FormAluno( { turmas, onClose, modo = "criar", nomeInicial = "" } : turmasprops) {
   const inputRef = useRef<HTMLInputElement>(null);
     const [neuro, setNeuro] = useState<string[]>([])
-    const [Nome, setNome] = useState("");
+    const [Nome, setNome] = useState(nomeInicial);
     const [ _ , setIdade] = useState("");
 
 
@@ -46,7 +48,7 @@ export default function FormAluno( { turmas, onClose } : turmasprops) {
             <p
               className={`text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)`}
             >
-              Dados do Aluno
+              {modo === "editar" ? "Editar Aluno" : "Dados do Aluno"}
             </p>
             <button
               type="button"

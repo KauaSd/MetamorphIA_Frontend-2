@@ -6,11 +6,15 @@ import BarraPesquisa from "@/components/Input";
 import Turma from "@/components/Turma";
 import BoxSemTurma from "@/components/BoxSemTurma";
 import FormTurma from "@/components/FormTurma";
+import FormDeletaTurma from "@/components/FormDeletaTurma";
 import Link from "next/link";
 
 export default function ConteudoTurmas(){
     const [temTurma, setTemTurma] = useState(false);
     const [mostrarForm, setMostrarForm] = useState(false);
+    const [mostrarEditar, setMostrarEditar] = useState(false);
+    const [mostrarExcluir, setMostrarExcluir] = useState(false);
+    const [turmaSelecionada, setTurmaSelecionada] = useState<number | null>(null);
 
     const turmas = [
         {
@@ -37,6 +41,26 @@ export default function ConteudoTurmas(){
         setMostrarForm(false);
     }
 
+    function abrirEditar(index: number){
+        setTurmaSelecionada(index);
+        setMostrarEditar(true);
+    }
+
+    function fecharEditar(){
+        setMostrarEditar(false);
+        setTurmaSelecionada(null);
+    }
+
+    function abrirExcluir(index: number){
+        setTurmaSelecionada(index);
+        setMostrarExcluir(true);
+    }
+
+    function fecharExcluir(){
+        setMostrarExcluir(false);
+        setTurmaSelecionada(null);
+    }
+
     return(
         <div className="flex flex-col w-full h-full items-center gap">
             <div className="flex flex-col w-full gap-5 mt-20">
@@ -52,6 +76,8 @@ export default function ConteudoTurmas(){
                                 key={index}
                                 nomeTurma={turma.nomeTurma}
                                 alunos={turma.alunos}
+                                onEditar={() => abrirEditar(index)}
+                                onExcluir={() => abrirExcluir(index)}
                             />
                         ))}
                     </div>
@@ -64,6 +90,19 @@ export default function ConteudoTurmas(){
 
             {mostrarForm && (
                 <FormTurma onClose={fecharForm} onCriar={criarTurma} />
+            )}
+
+            {mostrarEditar && turmaSelecionada !== null && (
+                <FormTurma
+                    modo="editar"
+                    nomeInicial={turmas[turmaSelecionada]?.nomeTurma}
+                    onClose={fecharEditar}
+                    onCriar={fecharEditar}
+                />
+            )}
+
+            {mostrarExcluir && turmaSelecionada !== null && (
+                <FormDeletaTurma onClose={fecharExcluir} />
             )}
         </div>
     );

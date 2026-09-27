@@ -10,6 +10,8 @@ import { Text_Me_One } from "next/font/google";
 interface FormTurmaProps{
   onClose: () => void;
   onCriar: () => void;
+  modo?: "criar" | "editar";
+  nomeInicial?: string;
 }
 
 const TextMeOne = Text_Me_One({
@@ -21,8 +23,10 @@ const TextMeOne = Text_Me_One({
 export default function FormRecuperaSenha({
   onClose,
   onCriar,
+  modo = "criar",
+  nomeInicial = "",
 }: FormTurmaProps) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(nomeInicial);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +38,7 @@ export default function FormRecuperaSenha({
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
-          <p className={`${TextMeOne.variable} text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)`}>Dados da Turma</p>
+          <p className={`${TextMeOne.variable} text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)`}>{modo === "editar" ? "Editar Turma" : "Dados da Turma"}</p>
           <button
           type="button"
           aria-label="Fechar"

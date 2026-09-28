@@ -1,4 +1,4 @@
-import Titulo from "@/components/TituloTermos";
+import Titulo from "@/components/public/TituloTermos";
 
 export default function Uso(){
     return(

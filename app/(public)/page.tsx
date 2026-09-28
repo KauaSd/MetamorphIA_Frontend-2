@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
 import Image from "next/image";
-import Button from "@/components/Button";
+import ButtonLink from "@/components/common/ButtonLink";
 import ImgRabisco from "@/public/ImgRabisco.svg";
 import ImgHome from "@/public/ImgHome.svg";
 import desenho1 from "@/public/desenho.svg";
@@ -10,6 +10,7 @@ import desenho3 from "@/public/desenho3.svg";
 import fitacolorida from "@/public/FitaColoridahome.svg";
 import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import * as React from "react";
+import Planos from "@/components/public/Planos"
 
 type Testimonial = {
   name: string;
@@ -86,15 +87,21 @@ export default function Home() {
               feita sob medida para crianças neurodivergentes — em segundos, sem
               precisar de formação especializada.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 lg:gap-20 px-2 sm:px-8 justify-center">
-              <Button className="py-1 font-(family-name:--font-text-me-one) text-xl w-auto">
+            
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 lg:gap-20 px-2 sm:px-8 justify-center w-auto">
+              <ButtonLink
+                href="../auth/cadastro"
+                className="py-1 font-(family-name:--font-text-me-one) text-base w-auto"
+              >
                 Adaptar uma atividade
-              </Button>
+              </ButtonLink>
 
-              <Button className="py-1 bg-[#FFFDFA] border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-xl w-auto">
+              <ButtonLink
+                href="#ComoFunciona"
+                className="py-1 bg-[#FFFDFA]/10 border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-base w-auto"
+              >
                 Como funciona?
-              </Button>
+              </ButtonLink>
             </div>
           </div>
 
@@ -108,6 +115,7 @@ export default function Home() {
           </div>
         </div>
 
+        <section id = "ComoFunciona">
         <div className="flex flex-col items-start">
           <div className="relative inline-block">
             <p className="relative text-2xl z-10">Como Funciona</p>
@@ -201,12 +209,16 @@ export default function Home() {
               </p>
             </div>
           </div>
-
-          <Button className="w-auto mt-3 py-1 self-center text-xl font-(family-name:--font-text-me-one)">
+          <ButtonLink
+            href="../auth/cadastro"
+            className="self-center mt-5 w-auto py-1 text-xl font-(family-name:--font-text-me-one)"
+          >
             Adaptar uma Atividade
-          </Button>
+          </ButtonLink>
         </div>
+        </section>
 
+        <section id = "FAQ">
         <div className="relative flex flex-col mt-10 text-2xl gap-6">
           <img
             src={fitacolorida.src}
@@ -214,7 +226,25 @@ export default function Home() {
             aria-hidden="true"
             className="absolute left-0 md:-top-30 sm:-top-10 -z-10 w-[20000px] scale-143 pointer-events-none select-none rotate-180"
           />
+          <div className="flex flex-col mt-15 mb-30">
+                   <div className="flex flex-col items-start">
+          <div className="relative inline-block min-w-[191px]">
+            <p className="relative text-2xl z-10">Planos</p>
 
+            <Image
+              src={ImgRabisco}
+              alt=""
+              aria-hidden="true"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] max-w-none pointer-events-none select-none z-0"
+            />
+          </div>
+          </div>
+          <div className="flex gap-10 mt-15 self-center">
+                      <Planos tipo="basico"/>
+                      <Planos tipo="pro"/>
+                      <Planos tipo="institucional"/>
+                      </div>
+          </div>
           <h1>FAQ</h1>
 
           <div className="flex flex-col gap-2">
@@ -306,75 +336,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        <div className="flex flex-col items-start gap-10 -mt-10 lg:-mt-20">
-          <div className="relative inline-block">
-            <p className="relative text-2xl z-10">Eles aprovam</p>
-
-            <Image
-              src={ImgRabisco}
-              alt=""
-              aria-hidden="true"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[130%] h-[75%] max-w-none pointer-events-none select-none z-0"
-            />
-          </div>
-
-          <div className="relative w-full">
-            <button
-              onClick={goPrev}
-              aria-label="Anterior"
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#FFFDFA]/50 hover:bg-[#D9D9D9]/50 transition-colors"
-            >
-              <ChevronLeft className="w-8 h-8 sm:w-10 sm:h-10 text-[#433F3F]" />
-            </button>
-
-            <div className="flex gap-3 sm:gap-6 w-full">
-              {visible.map((t, i) => (
-                <div
-                  key={`${page}-${i}`}
-                  className="flex-1 bg-[#D9D9D9] rounded-[70px] px-5 sm:px-8 py-5 sm:py-6 min-w-0"
-                >
-                  <p className="text-xs text-[#5c5c5c] truncate">
-                    {t.name} – {t.role}
-                  </p>
-
-                  <p className="text-sm text-[#433F3F] truncate">{t.text}</p>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={goNext}
-              aria-label="Próximo"
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#FFFDFA]/50 hover:bg-[#D9D9D9]/50 transition-colors"
-            >
-              <ChevronRight className="w-8 h-8 sm:w-10 sm:h-10 text-[#433F3F]" />
-            </button>
-          </div>
-
-          <div
-            className="flex self-center mt-10 w-12 h-12 rounded-full bg-[#433F3F] items-center justify-center cursor-pointer"
-            onClick={() => {
-              window.scrollTo({
-                top: 0,
-                behavior: "smooth",
-              });
-            }}
-          >
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 28 28"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M11.8906 25.8684C11.8906 26.9003 12.7271 27.7368 13.759 27.7368C14.7909 27.7368 15.6275 26.9003 15.6275 25.8684L13.759 25.8684L11.8906 25.8684ZM15.0802 0.547235C14.3505 -0.182428 13.1675 -0.182428 12.4379 0.547236L0.5473 12.4378C-0.182363 13.1675 -0.182363 14.3505 0.547301 15.0801C1.27696 15.8098 2.45998 15.8098 3.18965 15.0801L13.759 4.51076L24.3284 15.0801C25.0581 15.8098 26.2411 15.8098 26.9708 15.0801C27.7004 15.0801 27.7004 13.1675 26.9708 12.4378L15.0802 0.547235ZM13.759 25.8684L15.6275 25.8684L15.6275 1.86841L13.759 1.86841L11.8906 1.86841L11.8906 25.8684L13.759 25.8684Z"
-                fill="#FFFDFA"
-              />
-            </svg>
-          </div>
-        </div>
+        </section>
       </div>
     </main>
   );

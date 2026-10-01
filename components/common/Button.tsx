@@ -2,6 +2,8 @@ import { twMerge } from 'tailwind-merge';
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children: React.ReactNode;
+  className?: string,
+  type?: "button" | "submit";
 };
 
 export default function Button({ 

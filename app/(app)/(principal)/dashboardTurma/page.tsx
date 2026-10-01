@@ -9,10 +9,13 @@ import Add from "@/public/add.svg";
 import Aluno from "@/components/app/Aluno";
 import Link from "next/link";
 import { useState } from "react";
-import { FormAluno } from "@/components/app/forms/FormAlunoTurma";
+import { FormAluno, FormDeletaAluno } from "@/components/app/forms/FormAlunoTurma";
 
 export default function DashboardTurma(){
     const [mostrarForm, setMostrarForm] = useState(false);
+    const [mostrarEditarAluno, setMostrarEditarAluno] = useState(false);
+    const [mostrarExcluirAluno, setMostrarExcluirAluno] = useState(false);
+    const [alunoSelecionado, setAlunoSelecionado] = useState<number | null>(null);
 
     const alunos = [
         {nome: "Junior Marcos", neuro: "TDAH", turma: "3º Ano A - Manhã"},
@@ -32,6 +35,26 @@ export default function DashboardTurma(){
 
     function fecharForm(){
         setMostrarForm(false);
+    }
+
+    function abrirEditarAluno(index: number){
+        setAlunoSelecionado(index);
+        setMostrarEditarAluno(true);
+    }
+
+    function fecharEditarAluno(){
+        setMostrarEditarAluno(false);
+        setAlunoSelecionado(null);
+    }
+
+    function abrirExcluirAluno(index: number){
+        setAlunoSelecionado(index);
+        setMostrarExcluirAluno(true);
+    }
+
+    function fecharExcluirAluno(){
+        setMostrarExcluirAluno(false);
+        setAlunoSelecionado(null);
     }
 
     return(
@@ -66,6 +89,8 @@ export default function DashboardTurma(){
                                     Neuro={aluno.neuro}
                                     Turma={aluno.turma}
                                     index={index}
+                                    onEditar={() => abrirEditarAluno(index)}
+                                    onExcluir={() => abrirExcluirAluno(index)}
                                 />
                             ))}
                             </div>
@@ -76,6 +101,19 @@ export default function DashboardTurma(){
                                 turmas={turmas}
                                 onClose={fecharForm}
                             />
+                        )}
+
+                        {mostrarEditarAluno && alunoSelecionado !== null && (
+                            <FormAluno
+                                turmas={turmas}
+                                modo="editar"
+                                nomeInicial={alunos[alunoSelecionado]?.nome}
+                                onClose={fecharEditarAluno}
+                            />
+                        )}
+
+                        {mostrarExcluirAluno && alunoSelecionado !== null && (
+                            <FormDeletaAluno onClose={fecharExcluirAluno} />
                         )}
                     </div>
                 </div>

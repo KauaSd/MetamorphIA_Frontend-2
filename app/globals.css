@@ -13,7 +13,6 @@
   /* fundo da pagina / cards */
   --surface-base: #fffdfa;
   --surface-base-hover: #cac7c2;
-  --surface-raised: #faf8f5;
   /* chips, popovers */
   --surface-overlay: #ffffff;
   --surface-overlay-hover: #ebebeb;
@@ -64,7 +63,6 @@
   /* fundo da página / cards */
   --surface-base: #4c4c4c;
   --surface-base-hover: #555555;
-  --surface-raised: #433f3f;
   /* chips, popovers */
   --surface-overlay: #433f3f;
   --surface-overlay-hover: #4c4c4c;
@@ -127,7 +125,6 @@
 @theme inline {
   --color-surface-base: var(--surface-base);
   --color-surface-base-hover: var(--surface-base-hover);
-  --color-surface-raised: var(--surface-raised);
   --color-surface-overlay: var(--surface-overlay);
   --color-surface-overlay-hover: var(--surface-overlay-hover);
   --color-surface-muted: var(--surface-muted);

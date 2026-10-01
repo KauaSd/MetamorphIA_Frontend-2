@@ -8,7 +8,7 @@ interface CheckBoxAlunoprops {
 
 export default function CheckBoxAluno({ label, checked, onChange }: CheckBoxAlunoprops) {
   return (
-    <label className="inline-flex items-center gap-2.5 rounded-full bg-surface-overlay px-4 py-2 cursor-pointer select-none hover:bg-surface-overlay-hover transition-colors w-42">
+    <label className="inline-flex items-center gap-2.5 rounded-full bg-surface-base px-4 py-2 cursor-pointer select-none hover:bg-surface-base-hover transition-colors w-42">
       <input
         type="checkbox"
         checked={checked}

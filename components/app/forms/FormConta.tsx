@@ -32,7 +32,7 @@ export function FormDeletaConta({onClose}: FormProps){
 
         <div className="flex gap-5 self-end">
             <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse w-32">Cancelar</Button>
-            <Button type="button" className="bg-surface-danger text-ink w-32">Excluir</Button>
+            <Button type="button" className="bg-surface-danger text-ink w-32 whitespace-nowrap">Excluir</Button>
         </div>
       </div>
     </form>
@@ -62,8 +62,8 @@ export function FormDesconecta({onClose}: FormProps){
         </div>
 
         <div className="flex gap-5 self-end">
-            <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse w-32">Cancelar</Button>
-            <Button type="button" className="bg-surface-danger text-ink w-32">Desconectar</Button>
+            <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">Cancelar</Button>
+            <Button type="button" className="bg-surface-danger text-ink">Desconectar</Button>
         </div>
       </div>
     </form>

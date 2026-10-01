@@ -42,7 +42,7 @@ export default function Aluno( props: AlunoProps) {
 
     function handleEditar(){
         setIsOpen(false);
-        props.onExcluir?.();
+        props.onEditar?.();
     }
 
     function handleExcluir(){

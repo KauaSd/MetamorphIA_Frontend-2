@@ -10,7 +10,7 @@ export default function VerMais({
     onEditar, onExcluir
 }: VerMaisProps){
     return(
-        <div className="w-30 h-auto rounded-[15px] bg-[#FFFDFA] shadow-md p-2">
+        <div className="w-25 h-auto rounded-[15px] bg-[#FFFDFA] shadow-md p-2">
             <button type="button" onClick={onEditar} className="flex items-center gap-2 w-full p-2 rounded-[15px] hover:bg-[#F0F0F0] cursor-pointer">
                 <img src={Editar.src} />
                 <p>Editar</p>

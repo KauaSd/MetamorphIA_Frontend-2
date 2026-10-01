@@ -34,10 +34,10 @@ export function FormLogin() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-5 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-5 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-sm text-[#797979]">Já tem uma conta?</h1>
-          <p className="text-2xl text-[#433F3F] sm:text-3xl">Entre</p>
+          <h1 className="text-sm text-secondary">Já tem uma conta?</h1>
+          <p className="text-2xl text-primary sm:text-3xl">Entre</p>
         </div>
 
         <div className="flex flex-col items-center gap-3">
@@ -46,13 +46,13 @@ export function FormLogin() {
           
         </div>
           {error && (
-          <p className="text-[#FF9999] -mt-4.5 -mb-6 ml-2">
+          <p className="text-danger -mt-4.5 -mb-6 ml-2">
             {error}
           </p>
         )}
         <div className="flex flex-col items-end">
           <Link href="/auth/recuperaSenha">
-            <p className="text-right text-sm text-[#797979]">
+            <p className="text-right text-sm text-secondary">
               <u>
                 <b>Esqueci a senha</b>
               </u>
@@ -60,7 +60,7 @@ export function FormLogin() {
           </Link>
         </div>
           <Button type="submit" onClick={login}>Entrar</Button>
-        <div className="text-sm text-[#797979] flex flex-row items-center justify-center gap-1">
+        <div className="text-sm text-secondary flex flex-row items-center justify-center gap-1">
           <p> Não tem uma conta? </p>
           <Link href="/auth/cadastro">
             <p className="cursor-pointer">
@@ -101,10 +101,10 @@ export function FormCadastro() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-5 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-5 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col items-center gap-2">
-          <h1 className="text-sm text-[#797979]">Não tem uma conta?</h1>
-          <p className="text-2xl text-[#433F3F] sm:text-3xl">Cadastre-se</p>
+          <h1 className="text-sm text-secondary">Não tem uma conta?</h1>
+          <p className="text-2xl text-primary sm:text-3xl">Cadastre-se</p>
         </div>
 
         <div className="flex flex-col items-center gap-3">
@@ -143,11 +143,11 @@ export function FormCadastro() {
             }}
           />
           {erroTermos && (
-            <p className="text-[#FF9999] text-sm">{erroTermos}</p>
+            <p className="text-danger text-sm">{erroTermos}</p>
           )}
         </div>
         <Button type="submit">Cadastrar</Button>
-        <div className="text-sm text-[#797979] flex flex-row items-center justify-center gap-1">
+        <div className="text-sm text-secondary flex flex-row items-center justify-center gap-1">
           <p>Já tem uma conta?</p>
           <Link href="/auth/login">
             <p className="cursor-pointer">
@@ -172,10 +172,10 @@ export function FormRecuperaSenha() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col items-center gap-6">
-          <p className="text-2xl text-[#433F3F] sm:text-3xl">Recuperar senha</p>
-          <p className="text-sm text-[#797979] text-justify">Para redefinir sua senha, informe seu número de telefone ou e-mail cadastrado na sua conta e lhe enviaremos um link  com as instruções.</p>
+          <p className="text-2xl text-primary sm:text-3xl">Recuperar senha</p>
+          <p className="text-sm text-secondary text-justify">Para redefinir sua senha, informe seu número de telefone ou e-mail cadastrado na sua conta e lhe enviaremos um link  com as instruções.</p>
         </div>
 
         <div className="flex flex-col items-center">
@@ -185,7 +185,7 @@ export function FormRecuperaSenha() {
         <div className="flex gap-5">
           <ButtonLink
             href="/auth/login"
-            className="bg-[#433F3F] text-[#FFFDFA]"
+            className="bg-surface-inverse text-inverse"
           >
             Voltar
           </ButtonLink>
@@ -205,10 +205,10 @@ export function FormToken() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col items-center gap-6">
-          <p className="text-2xl text-[#433F3F] sm:text-3xl text-center">Digite o código de verificação</p>
-          <p className="text-sm text-[#797979] text-justify">Enviamos um código de 6 dígitos para seu e-mail/telefone. Por favor, insira-o abaixo.</p>
+          <p className="text-2xl text-primary sm:text-3xl text-center">Digite o código de verificação</p>
+          <p className="text-sm text-secondary text-justify">Enviamos um código de 6 dígitos para seu e-mail/telefone. Por favor, insira-o abaixo.</p>
         </div>
 
         <div className="flex flex-col items-center">
@@ -230,7 +230,7 @@ export function FormToken() {
         <div className="flex gap-5">
           <ButtonLink
             href="/auth/recuperaSenha"
-            className="bg-[#433F3F] text-[#FFFDFA]"
+            className="bg-surface-inverse text-inverse"
           >
             Voltar
           </ButtonLink>
@@ -243,12 +243,12 @@ export function FormToken() {
 function Slot( props: SlotProps){
     return(
     <div
-      className={`w-10 h-14 flex items-center justify-center text-xl font-semibold bg-[#D9D9D9] rounded-full
+      className={`w-10 h-14 flex items-center justify-center text-xl font-semibold bg-sunken rounded-full
       }`}
     >
       {props.char}
       {props.hasFakeCaret &&(
-        <div className="absolute w-0.5 h-5 bg-[#433F3F] animate-caret-blink" />
+        <div className="absolute w-0.5 h-5 bg-surface-inverse animate-caret-blink" />
       )}
     </div>
     )

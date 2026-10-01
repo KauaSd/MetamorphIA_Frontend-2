@@ -63,7 +63,7 @@ export default function DashboardTurma(){
                         <HeaderPag />
                     </div>
                     <div className="flex flex-col gap-4">
-                        <p className="text-lg text-[#797979] font-semibold">Contextualização geral da turma</p>
+                        <p className="text-lg text-secondary font-semibold">Contextualização geral da turma</p>
                         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                             <Estatistica tipo={1} valor={18} subtexto={3} />
                             <Estatistica tipo={2} valor={5} subtexto={28} />
@@ -77,7 +77,7 @@ export default function DashboardTurma(){
                             <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Alunos</p>
                             <Button type="button" onClick={abrirForm} className="flex w-auto flex-row justify-center gap-2">
                                 <img src={Add.src}  />
-                                <p className="text-[#433F3F] font-(family-name:--font-text-me-one) text-base">Novo Aluno</p>
+                                <p className="text-ink font-(family-name:--font-text-me-one) text-base">Novo Aluno</p>
                             </Button>
                         </div>
                         <Link href="/dashboardAluno">

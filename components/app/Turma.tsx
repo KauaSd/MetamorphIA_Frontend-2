@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import TagAluno from "@/components/common/TagAluno"
 import { EllipsisVertical } from 'lucide-react';
-import Encaracolado from "@/public/EncaracoladoTurma.svg";
+import Encaracolado from "@/components/common/Encaracolado";
+import EncaracoladoSvg from "@/public/EncaracoladoTurma.svg";
 import VerMais from "@/components/common/VerMais";
 
 export interface Aluno{
@@ -51,15 +52,15 @@ export default function Turma( props: TurmaProps) {
             relative flex flex-col
             sm:w-[340px] md:w-[400px]
             min-h-28 sm:min-h-25
-            bg-[#FFFDFA]
+            bg-surface-base
             rounded-[60px]
             px-8
             py-4
             gap-4 sm:gap-3
         ">
-            <img
-                src={Encaracolado.src}
-                className="absolute left-[-10px] top-1/2 -translate-y-1/2"
+            <Encaracolado
+                src={EncaracoladoSvg.src}
+                className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-[36px] aspect-[36/118]"
             />
 
             <div className="flex justify-between items-center cursor-pointer">

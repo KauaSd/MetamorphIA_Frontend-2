@@ -9,7 +9,7 @@ export default function Titulo({ titulo }: TituloTermoProps){
     return(
         <div className="inline-flex items-center">
             <img src={Inicio.src} className="h-10 w-auto pointer-none select-none" />
-            <div className="font-(family-name:--font-text-me-one) text-2xl bg-[#D4C7F8]">
+            <div className="font-(family-name:--font-text-me-one) text-2xl bg-surface-accent text-ink">
                 <p>{titulo}</p>
             </div>
             <div>

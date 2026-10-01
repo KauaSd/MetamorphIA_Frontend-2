@@ -1,4 +1,5 @@
-import Encaracolado from "@/public/EncaracoladoEstatistica.svg";
+import Encaracolado from "@/components/common/Encaracolado";
+import EncaracoladoSvg from "@/public/EncaracoladoEstatistica.svg";
 
 type TipoStat = 1 | 2 | 3;
 
@@ -10,15 +11,15 @@ interface CardEstatisticaProps {
 const CONFIG_TIPOS = {
   1: {
     titulo: "Atividades adaptadas",
-    corValor: "text-[#FF8A8A]",
+    corValor: "text-danger",
   },
   2: {
     titulo: "Engajamento",
-    corValor: "text-[#D4C7F8]",
+    corValor: "text-accent",
   },
   3: {
     titulo: "PEI gerado",
-    corValor: "text-[#FFD279]",
+    corValor: "text-warning",
   },
 };
 
@@ -26,11 +27,11 @@ export default function CardEstatistica({ tipo, valor }: CardEstatisticaProps) {
   const config = CONFIG_TIPOS[tipo] || CONFIG_TIPOS[1];
 
   return (
-    <div className="font-(family-name:--font-poppins) relative flex min-h-24 w-full items-center rounded-[40px] bg-[#FAF8F5] p-4">
-      <img src={Encaracolado.src} className="absolute left-[-5] top-1/2 -translate-y-1/2 w-[24px] h-auto pointer-events-none select-none" />
+    <div className="font-(family-name:--font-poppins) relative flex min-h-24 w-full items-center rounded-[40px] bg-surface-raised p-4">
+      <Encaracolado src={EncaracoladoSvg.src} className="absolute left-[-5] top-1/2 -translate-y-1/2 w-[24px] aspect-[31/96]" />
 
       <div className="flex flex-col justify-between h-full ml-4">
-        <span className="text-xs sm:text-sm text-[#797979]">
+        <span className="text-xs sm:text-sm text-secondary">
           {config.titulo}
         </span>
 

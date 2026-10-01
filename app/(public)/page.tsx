@@ -64,7 +64,7 @@ export default function Home() {
       <div className="flex flex-col w-full px-5 sm:px-8 md:px-12 lg:px-20 gap-30 lg:gap-50">
         <div className="flex flex-col lg:flex-row w-full justify-between items-center mt-8 lg:mt-14 px-2 sm:px-5 gap-12 lg:gap-0">
           <div className="w-full max-w-xl flex flex-col gap-8 lg:gap-10">
-            <h1 className="text-3xl sm:text-4xl text-center leading-normal self-center text-[#433F3F]">
+            <h1 className="text-3xl sm:text-4xl text-center leading-normal self-center text-primary">
               Cada criança aprende
               <br />
               <span className="relative inline-block">
@@ -82,7 +82,7 @@ export default function Home() {
               </span>
             </h1>
 
-            <p className="text-[#797979] text-sm text-center px-2">
+            <p className="text-secondary text-sm text-center px-2">
               Nossa IA transforma qualquer atividade pedagógica em uma versão
               feita sob medida para crianças neurodivergentes — em segundos, sem
               precisar de formação especializada.
@@ -98,7 +98,7 @@ export default function Home() {
 
               <ButtonLink
                 href="#ComoFunciona"
-                className="py-1 bg-[#FFFDFA]/10 border border-[#D4C7F8] hover:bg-[#D4C7F8] font-(family-name:--font-text-me-one) text-base w-auto"
+                className="py-1 text-primary hover:text-ink bg-surface-base/10 border border-surface-accent hover:bg-surface-accent font-(family-name:--font-text-me-one) text-base w-auto"
               >
                 Como funciona?
               </ButtonLink>
@@ -137,7 +137,7 @@ export default function Home() {
 
             <div className="flex flex-col self-center gap-8 lg:gap-10 w-full lg:w-auto">
               <div className="flex gap-4 sm:gap-8 items-center">
-                <div className="flex items-center justify-center w-10 h-10 shrink-0 bg-[#FF9999]/50 rounded-full font-(family-name:--font-text-me-one) text-3xl select-none">
+                <div className="flex items-center justify-center w-10 h-10 shrink-0 bg-surface-danger/50 rounded-full font-(family-name:--font-text-me-one) text-3xl select-none">
                   1
                 </div>
 
@@ -146,7 +146,7 @@ export default function Home() {
                 </h1>
               </div>
 
-              <p className="text-sm max-w-160 ml-2 text-[#797979] text-justify">
+              <p className="text-sm max-w-160 ml-2 text-secondary text-justify">
                 O cadastro é rápido e gratuito. Com ele, você terá um espaço só
                 seu para organizar suas turmas e acompanhar o progresso de cada
                 aluno com autonomia.
@@ -157,7 +157,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row w-full justify-between items-center gap-8 lg:gap-0">
             <div className="flex flex-col self-center gap-8 lg:gap-10 w-full lg:w-auto order-2 lg:order-1">
               <div className="flex gap-4 sm:gap-8 items-center">
-                <div className="flex items-center justify-center w-10 h-10 shrink-0 bg-[#FFD279]/50 rounded-full font-(family-name:--font-text-me-one) text-3xl select-none">
+                <div className="flex items-center justify-center w-10 h-10 shrink-0 bg-surface-warning/50 rounded-full font-(family-name:--font-text-me-one) text-3xl select-none">
                   2
                 </div>
 
@@ -166,7 +166,7 @@ export default function Home() {
                 </h1>
               </div>
 
-              <p className="text-sm max-w-160 ml-2 text-[#797979] text-justify">
+              <p className="text-sm max-w-160 ml-2 text-secondary text-justify">
                 Organize suas turmas da forma que preferir e cadastre cada aluno
                 individualmente. No perfil de cada um, você pode registrar
                 informações importantes como a neurodiivergência presente,
@@ -191,7 +191,7 @@ export default function Home() {
 
             <div className="flex flex-col self-center gap-8 lg:gap-10 w-full lg:w-auto">
               <div className="flex gap-4 sm:gap-8 items-center">
-                <div className="flex items-center justify-center w-10 h-10 shrink-0 bg-[#CEFFCA]/50 rounded-full font-(family-name:--font-text-me-one) text-3xl">
+                <div className="flex items-center justify-center w-10 h-10 shrink-0 bg-surface-success/50 rounded-full font-(family-name:--font-text-me-one) text-3xl">
                   3
                 </div>
 
@@ -200,7 +200,7 @@ export default function Home() {
                 </h1>
               </div>
 
-              <p className="text-sm max-w-160 ml-2 text-[#797979] text-justify">
+              <p className="text-sm max-w-160 ml-2 text-secondary text-justify">
                 Com o perfil do aluno em mãos, nosso Agente de Inteligência
                 Artificial sugere e adapta atividades pedagógicas de acordo com
                 as especificidades de cada neurodiivergência. Chega de
@@ -249,28 +249,28 @@ export default function Home() {
 
           <div className="flex flex-col gap-2">
             <div
-              className="flex w-full py-2 sm:py-0.5 bg-[#797979] rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
+              className="flex w-full py-2 sm:py-0.5 bg-surface-secondary rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
               onClick={() => setIsOpenf1(!isOpenf1)}
             >
-              <p className="font-(family-name:--font-text-me-one) text-[#FFFDFA] text-base sm:text-xl">
+              <p className="font-(family-name:--font-text-me-one) text-inverse text-base sm:text-xl">
                 Quem pode usar a plataforma?
               </p>
 
               <ChevronDown
-                className={`w-7 h-7 sm:w-9 sm:h-9 shrink-0 transition-transform duration-200 text-[#FFFDFA] ${
+                className={`w-7 h-7 sm:w-9 sm:h-9 shrink-0 transition-transform duration-200 text-inverse ${
                   isOpenf1 ? "rotate-180" : "rotate-0"
                 }`}
               />
             </div>
 
             <div
-              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-[#D9D9D9] rounded-t-[25px] rounded-b-[70px] ${
+              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-t-[25px] rounded-b-[70px] ${
                 isOpenf1
                   ? "grid-rows-[1fr] opacity-100 px-3 py-4"
                   : "grid-rows-[0fr] opacity-0 py-0"
               }`}
             >
-              <p className="text-sm text-[#797979] overflow-hidden text-justify">
+              <p className="text-sm text-secondary overflow-hidden text-justify">
                 Sim! Totalmente gratuito. É só criar sua conta e já começar a
                 adaptar atividades, configurar o perfil da criança e explorar
                 todos os formatos.
@@ -278,28 +278,28 @@ export default function Home() {
             </div>
 
             <div
-              className="flex w-full py-2 sm:py-0.5 bg-[#797979] rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
+              className="flex w-full py-2 sm:py-0.5 bg-surface-secondary rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
               onClick={() => setIsOpenf2(!isOpenf2)}
             >
-              <p className="font-(family-name:--font-text-me-one) text-[#FFFDFA] text-base sm:text-xl">
+              <p className="font-(family-name:--font-text-me-one) text-inverse text-base sm:text-xl">
                 Funciona para qualquer diagnóstico?
               </p>
 
               <ChevronDown
-                className={`w-7 h-7 sm:w-9 sm:h-9 shrink-0 transition-transform duration-200 text-[#FFFDFA] ${
+                className={`w-7 h-7 sm:w-9 sm:h-9 shrink-0 transition-transform duration-200 text-inverse ${
                   isOpenf2 ? "rotate-180" : "rotate-0"
                 }`}
               />
             </div>
 
             <div
-              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-[#D9D9D9] rounded-t-[25px] rounded-b-[70px] ${
+              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-t-[25px] rounded-b-[70px] ${
                 isOpenf2
                   ? "grid-rows-[1fr] opacity-100 px-3 py-4"
                   : "grid-rows-[0fr] opacity-0 py-0"
               }`}
             >
-              <p className="text-sm text-[#797979] overflow-hidden text-justify">
+              <p className="text-sm text-secondary overflow-hidden text-justify">
                 Sim! Totalmente gratuito. É só criar sua conta e já começar a
                 adaptar atividades, configurar o perfil da criança e explorar
                 todos os formatos.
@@ -307,28 +307,28 @@ export default function Home() {
             </div>
 
             <div
-              className="flex w-full py-2 sm:py-0.5 bg-[#797979] rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
+              className="flex w-full py-2 sm:py-0.5 bg-surface-secondary rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
               onClick={() => setIsOpenf3(!isOpenf3)}
             >
-              <p className="font-(family-name:--font-text-me-one) text-[#FFFDFA] text-base sm:text-xl">
+              <p className="font-(family-name:--font-text-me-one) text-inverse text-base sm:text-xl">
                 O uso é gratuito?
               </p>
 
               <ChevronDown
-                className={`w-7 h-7 sm:w-9 sm:h-9 shrink-0 transition-transform duration-200 text-[#FFFDFA] ${
+                className={`w-7 h-7 sm:w-9 sm:h-9 shrink-0 transition-transform duration-200 text-inverse ${
                   isOpenf3 ? "rotate-180" : "rotate-0"
                 }`}
               />
             </div>
 
             <div
-              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-[#D9D9D9] rounded-t-[25px] rounded-b-[70px] ${
+              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-t-[25px] rounded-b-[70px] ${
                 isOpenf3
                   ? "grid-rows-[1fr] opacity-100 px-3 py-4"
                   : "grid-rows-[0fr] opacity-0 py-0"
               }`}
             >
-              <p className="text-sm text-[#797979] text-justify">
+              <p className="text-sm text-secondary text-justify">
                 Sim! Totalmente gratuito. É só criar sua conta e já começar a
                 adaptar atividades, configurar o perfil da criança e explorar
                 todos os formatos.

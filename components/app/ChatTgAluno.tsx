@@ -13,7 +13,7 @@ export default function ChatTgAluno() {
         sm:h-20
         px-3
         sm:px-4
-        bg-[#FFFDFA]
+        bg-surface-base
         rounded-[70px]
       "
     >
@@ -28,11 +28,11 @@ export default function ChatTgAluno() {
           sm:w-17.5
           sm:h-17.5
           shrink-0
-          bg-[#D4C7F8]
+          bg-surface-accent
           rounded-full
         "
       >
-        <p className="font-bold text-xl sm:text-3xl text-[#433F3F]">
+        <p className="font-bold text-xl sm:text-3xl text-ink">
           LO
         </p>
       </div>
@@ -40,12 +40,12 @@ export default function ChatTgAluno() {
       {/* Informações */}
       <div className="flex flex-col flex-1 min-w-0 gap-1">
 
-        <p className="font-bold text-sm sm:text-base text-[#433F3F] truncate">
+        <p className="font-bold text-sm sm:text-base text-primary truncate">
           Lucas Olioti
         </p>
 
         <div className="flex items-center gap-5 min-w-0">
-          <p className="font-bold text-sm text-[#797979] shrink-0">
+          <p className="font-bold text-sm text-secondary shrink-0">
             TDAH
           </p>
 
@@ -59,10 +59,10 @@ export default function ChatTgAluno() {
                 max-w-27
                 h-6
                 rounded-full
-                bg-[#FFD279]
+                bg-surface-warning
               "
             >
-              <p className="font-bold text-sm text-[#433F3F] whitespace-nowrap">
+              <p className="font-bold text-sm text-ink whitespace-nowrap">
                 PEI ativo
               </p>
             </div>

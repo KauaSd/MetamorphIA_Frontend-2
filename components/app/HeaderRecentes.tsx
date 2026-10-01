@@ -15,7 +15,7 @@ export default function HeaderRecentes(){
                 <p className="text-2xl sm:text-3xl font-(family-name:--font-text-me-one)">Histórico de Conversas</p>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-[13px] sm:items-center w-full lg:w-auto">
                     <div className="flex flex-row gap-2 items-center shrink-0">
-                        <span className="hidden sm:inline text-sm text-[#797979] whitespace-nowrap">Ordenar por</span>
+                        <span className="hidden sm:inline text-sm text-secondary whitespace-nowrap">Ordenar por</span>
                         <DropDown options={OpcoesDropDown} small />
                     </div>
                     <BarraPesquisa type="search" placeholder="Procurar mês, ano..." className="w-full sm:w-[220px] lg:w-[305px]" />

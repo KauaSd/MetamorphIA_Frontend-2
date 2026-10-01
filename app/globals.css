@@ -1,20 +1,108 @@
 @import "tailwindcss";
 
-:root {
-  --background: #fffdfa;
-  --foreground: #433f3f;
+/* ------------------------------------------------------------------
+   Tokens
+   O bloco [data-theme="dark"] e, de proposito, identico ao light.
+   A paleta escura real e trabalho futuro: para desenha-la, basta
+   editar os valores do bloco dark. Nenhum componente precisa mudar.
+   ------------------------------------------------------------------ */
 
-  --surface: #fffdfa;
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* fundo da pagina / cards */
+  --surface-base: #fffdfa;
+  --surface-base-hover: #cac7c2;
+  --surface-raised: #faf8f5;
+  /* chips, popovers */
+  --surface-overlay: #ffffff;
+  --surface-overlay-hover: #ebebeb;
+  /* superficies cinza: fundo de pagina, modais, tags, divisores */
   --surface-muted: #f0f0f0;
-  --surface-input: #d9d9d9;
+  /* pilulas escuras: accordion, checkbox */
+  --surface-secondary: #797979;
 
-  --text-primary: #433f3f;
-  --text-secondary: #797979;
+  /* chrome escuro: header, footer, sidebar, botoes neutros.
+     E escuro nos DOIS temas, por isso --inverse/--inverse-muted
+     tambem sao claros nos dois. */
+  --surface-inverse: #433f3f;
+  --surface-inverse-hover: #4c4c4c;
+  --inverse: #fffdfa;
+  --inverse-muted: #f0f0f0;
 
-  --accent: #d4c7f8;
-  --accent-hover: #ab97e0;
+  /* pastéis de marca: constantes nos dois temas, sempre com texto --ink */
+  --surface-accent: #d4c7f8;
+  --surface-accent-strong: #ab97e0;
+  --surface-danger: #ff9999;
+  --surface-danger-strong: #ff5154;
+  --surface-warning: #ffd279;
+  --surface-success: #ceffca;
+  --surface-info: #caf3ff;
+  --surface-positive: #c9f9fe;
+  --surface-tag-other: #948f9e;
 
-  --danger: #ff9999;
+  /* texto: estes SIM invertem entre os temas */
+  --primary: #433f3f;
+  --secondary: #797979;
+  --tertiary: #555555;
+  /* detalhe claro fixo: icones (fill) sobre o chrome */
+  --muted: #f0f0f0;
+  /* texto escuro fixo sobre superficies pastel */
+  --ink: #433f3f;
+
+  /* hover, borda padrao */
+  --sunken: #d9d9d9;
+  --sunken-hover: #c0c0c0;
+  --accent: #c5b4ff;
+  --danger: #ff8a8a;
+  --warning: #ffc164;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* fundo da página / cards */
+  --surface-base: #4c4c4c;
+  --surface-base-hover: #555555;
+  --surface-raised: #433f3f;
+  /* chips, popovers */
+  --surface-overlay: #433f3f;
+  --surface-overlay-hover: #4c4c4c;
+  /* superficies cinza mais escuras que os cards */
+  --surface-muted: #383838;
+  /* pilulas escuras: accordion, checkbox */
+  --surface-secondary: #555555;
+
+  /* chrome: continua escuro no tema escuro */
+  --surface-inverse: #2f2f2f;
+  --surface-inverse-hover: #4c4c4c;
+  --inverse: #fffdfa;
+  --inverse-muted: #f0f0f0;
+
+  /* pastéis de marca: constantes */
+  --surface-accent: #d4c7f8;
+  --surface-accent-strong: #ab97e0;
+  --surface-danger: #ff9999;
+  --surface-danger-strong: #ff5154;
+  --surface-warning: #ffd279;
+  --surface-success: #ceffca;
+  --surface-info: #caf3ff;
+  --surface-positive: #c9f9fe;
+  --surface-tag-other: #948f9e;
+
+  /* texto: invertido em relacao ao light */
+  --primary: #fffdfa;
+  --secondary: #d9d9d9;
+  --tertiary: #c0c0c0;
+  --muted: #f0f0f0;
+  --ink: #433f3f;
+
+  /* hover, borda padrão */
+  --sunken: #797979;
+  --sunken-hover: #948f9e;
+  --accent: #c5b4ff;
+  --danger: #ff8a8a;
+  --warning: #ffc164;
 }
 
 @keyframes caret-blink {
@@ -37,26 +125,42 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-
-  --color-surface: var(--surface);
+  --color-surface-base: var(--surface-base);
+  --color-surface-base-hover: var(--surface-base-hover);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-surface-overlay-hover: var(--surface-overlay-hover);
   --color-surface-muted: var(--surface-muted);
-  --color-surface-input: var(--surface-input);
-
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-inverse-hover: var(--surface-inverse-hover);
+  --color-surface-accent: var(--surface-accent);
+  --color-surface-accent-strong: var(--surface-accent-strong);
+  --color-surface-danger: var(--surface-danger);
+  --color-surface-danger-strong: var(--surface-danger-strong);
+  --color-surface-warning: var(--surface-warning);
+  --color-surface-success: var(--surface-success);
+  --color-surface-info: var(--surface-info);
+  --color-surface-positive: var(--surface-positive);
+  --color-surface-tag-other: var(--surface-tag-other);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-ink: var(--ink);
+  --color-sunken: var(--sunken);
+  --color-sunken-hover: var(--sunken-hover);
+  --color-tertiary: var(--tertiary);
   --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-
   --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-inverse: var(--inverse);
+  --color-inverse-muted: var(--inverse-muted);
 
   --font-sans: var(--font-text-me-one);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--surface-base);
+  color: var(--primary);
   font-family: Arial, Helvetica, sans-serif;
 }

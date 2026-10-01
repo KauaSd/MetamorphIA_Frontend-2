@@ -2,11 +2,11 @@ import Titulo from "@/components/public/TituloTermos";
 
 export default function Privacidade(){
     return(
-        <div className="flex justify-center items-center text-[#433F3F] mt-20">
-            <div className="bg-[#FFFDFA] w-800 h-auto p-10 rounded-[70px] flex flex-col gap-10">
+        <div className="flex justify-center items-center text-primary mt-20">
+            <div className="bg-surface-base w-800 h-auto p-10 rounded-[70px] flex flex-col gap-10">
                 <div className="flex flex-col gap-1">
                     <p className="font-(family-name:--font-text-me-one) text-3xl">Política de Privacidade</p>
-                    <div className="flex flex-row gap-1 text-[#797979] text-sm items-center">
+                    <div className="flex flex-row gap-1 text-secondary text-sm items-center">
                         <p className="font-bold">Última atualização:</p>
                         <p>maio de 2026</p>
                     </div>
@@ -32,7 +32,7 @@ export default function Privacidade(){
                             - Diagnóstico de neurodivergência (se houver e se o professor optar por informar.
                             <br></br><br></br>
                         </p>
-                        <p className="italic text-[#797979] ml-20"><span className="font-bold">Nota:</span> A MetamorphIA adota uma abordagem de <span className="font-bold">minimização de dados</span>. Intencionalmente, a plataforma <span className="font-bold">não solicita</span> dados de responsáveis legais (como nome dos pais/responsáveis e contatos telefônicos), reduzindo a exposição de informações sensíveis sem comprometer a utilidade pedagógica da ferramenta.</p>
+                        <p className="italic text-secondary ml-20"><span className="font-bold">Nota:</span> A MetamorphIA adota uma abordagem de <span className="font-bold">minimização de dados</span>. Intencionalmente, a plataforma <span className="font-bold">não solicita</span> dados de responsáveis legais (como nome dos pais/responsáveis e contatos telefônicos), reduzindo a exposição de informações sensíveis sem comprometer a utilidade pedagógica da ferramenta.</p>
                     </div>
                     <div>
                         <Titulo titulo="3. Dados Sensíveis" />

@@ -2,11 +2,11 @@ import Titulo from "@/components/public/TituloTermos";
 
 export default function Uso(){
     return(
-        <div className="flex justify-center items-center text-[#433F3F] mt-20">
-            <div className="bg-[#FFFDFA] w-800 h-auto p-10 rounded-[70px] flex flex-col gap-10">
+        <div className="flex justify-center items-center text-primary mt-20">
+            <div className="bg-surface-base w-800 h-auto p-10 rounded-[70px] flex flex-col gap-10">
                 <div className="flex flex-col gap-1">
                     <p className="font-(family-name:--font-text-me-one) text-3xl">Termos de Serviço</p>
-                    <div className="flex flex-row gap-1 text-[#797979] text-sm items-center">
+                    <div className="flex flex-row gap-1 text-secondary text-sm items-center">
                         <p className="font-bold">Última atualização:</p>
                         <p>maio de 2026</p>
                     </div>
@@ -29,7 +29,7 @@ export default function Uso(){
                             - <span className="font-bold">Perfil do estudante:</span> o professor pode cadastrar informações relevantes sobre cada aluno para personalizar as sugestões geradas pela IA.
                             <br></br><br></br>
                         </p>
-                        <p className="italic text-[#797979] ml-20"><span className="font-bold">Importante:</span> A MetamorphIA é uma ferramenta de <span className="font-bold">apoio pedagógico</span>, não substituindo o julgamento profissional do professor, de psicopedagogos, psicólogos ou demais especialistas envolvidos no  acompanhamento do estudante. Os documentos gerados pela plataforma devem ser revisados pelo   profissional responsável antes de qualquer uso formal.</p>
+                        <p className="italic text-secondary ml-20"><span className="font-bold">Importante:</span> A MetamorphIA é uma ferramenta de <span className="font-bold">apoio pedagógico</span>, não substituindo o julgamento profissional do professor, de psicopedagogos, psicólogos ou demais especialistas envolvidos no  acompanhamento do estudante. Os documentos gerados pela plataforma devem ser revisados pelo   profissional responsável antes de qualquer uso formal.</p>
                     </div>
                     <div>
                         <Titulo titulo="4. Responsabilidades do Usuário" />

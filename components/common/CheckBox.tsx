@@ -14,7 +14,7 @@ export default function CheckBox({ checked, onChange }: CheckBoxProps) {
         checked={checked}
         className="mt-0.5 h-5 w-5 shrink-0"
       />
-      <span className="text-xs text-[#797979]">
+      <span className="text-xs text-secondary">
         Declaro que li os{" "}
         <Link href="/uso">
           <u>

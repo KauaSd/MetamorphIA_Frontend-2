@@ -11,9 +11,9 @@ interface RecentesProps {
 
 export default function ConversasRecentes(props: RecentesProps) {
     return (
-        <div className="flex flex-col sm:flex-row px-4 sm:px-5 py-4 sm:py-0 sm:items-center gap-3 sm:gap-0 justify-between w-full min-h-[68px] sm:h-20 md:h-24 bg-[#FFFDFA] rounded-[32px] sm:rounded-[70px] text-[#433F3F]">
+        <div className="flex flex-col sm:flex-row px-4 sm:px-5 py-4 sm:py-0 sm:items-center gap-3 sm:gap-0 justify-between w-full min-h-[68px] sm:h-20 md:h-24 bg-surface-base rounded-[32px] sm:rounded-[70px] text-primary">
             <div className="flex gap-3 w-full min-w-0">
-                <div className="flex shrink-0 items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#FF9999] text-base sm:text-lg font-extrabold">
+                <div className="flex shrink-0 items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-surface-danger text-base sm:text-lg font-extrabold text-ink">
                     {pegainicial(props.aluno)}
                 </div>
                 <div className="flex flex-col gap-1.5 sm:gap-2 w-full min-w-0">
@@ -21,7 +21,7 @@ export default function ConversasRecentes(props: RecentesProps) {
                         <p className="text-sm font-bold sm:truncate sm:min-w-0">
                             {props.aluno} - {props.chat}
                         </p>
-                        <p className="text-xs sm:text-sm text-[#797979] sm:text-[#433F3F] shrink-0 mr-10">
+                        <p className="text-xs sm:text-sm text-secondary sm:text-primary shrink-0 mr-10">
                             {formatarData(props.data)}
                         </p>
                     </div>

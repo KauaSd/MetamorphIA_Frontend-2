@@ -9,14 +9,14 @@ interface AlunoProps{
 }
 export default function Aluno( props: AlunoProps) {
     const coresPerfil = [
-        "bg-[#CEFFCA]", "bg-[#FF9999]", "bg-[#D4C7F8]", "bg-[#CAF3FF]", "bg-[#FFD279]"
+        "bg-surface-success", "bg-surface-danger", "bg-surface-accent", "bg-surface-info", "bg-surface-warning"
     ]
     const corPerfil = coresPerfil[props.index % coresPerfil.length];
 
     return (
-        <div className="flex min-h-[70px] w-full cursor-pointer justify-between rounded-[45px] bg-[#FFFDFA] sm:rounded-[80px]">
+        <div className="flex min-h-[70px] w-full cursor-pointer justify-between rounded-[45px] bg-surface-base sm:rounded-[80px]">
             <div className="flex min-w-0 items-center gap-2.5 px-3 sm:gap-4 sm:px-4">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[70%] sm:h-12 sm:w-12 ${corPerfil}`}>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[70%] text-ink sm:h-12 sm:w-12 ${corPerfil}`}>
                     <p className="text-lg font-bold sm:text-xl">{pegainicial(props.nome)}</p>
                 </div>
                 <div className="flex flex-col gap-1.5">

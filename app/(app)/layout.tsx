@@ -4,7 +4,7 @@ export default function Logged({
     children: React.ReactNode;
 }) {
     return (
-        <div className={`relative min-h-screen flex flex-row bg-[#F0F0F0]`}>
+        <div className={`relative min-h-screen flex flex-row bg-surface-muted`}>
             <main className="flex-1 min-w-0 font-(family-name:--font-poppins)">
                 {children}
             </main>

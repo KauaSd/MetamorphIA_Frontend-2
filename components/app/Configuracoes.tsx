@@ -1,15 +1,21 @@
 "use client";
 
-import { ReactNode } from "react";
-import { useState } from "react";
+import { ReactNode, useLayoutEffect, useState } from "react";
 import BarraPesquisa from "@/components/common/Input";
 import Blurfundo from "@/components/common/Blurfundo";
-import { X , Sun, Moon} from 'lucide-react'
+import { X, Sun, Moon } from "lucide-react";
 import engrenagem from "@/public/engrenagem.svg";
 import circulo_conta from "@/public/circulo_conta.svg";
 import cadeado from "@/public/cadeado.svg";
 import { FormDeletaConta, FormDesconecta } from "@/components/app/forms/FormConta";
 import Link from "next/link";
+import {
+  DEFAULT_THEME,
+  THEME_ATTRIBUTE,
+  THEME_STORAGE_KEY,
+  lerTemaSalvo,
+  type Theme,
+} from "@/utils/theme";
 
 interface SidebarProps {
   abaAtiva: string;
@@ -41,7 +47,7 @@ export default function Configuracoes({
 
   return (
     <Blurfundo onClose={onClose}>
-      <div className="flex h-[590px] w-[890px] absolute overflow-hidden rounded-[40px] bg-[#F0F0F0]">
+      <div className="flex h-[590px] w-[890px] absolute overflow-hidden rounded-[40px] bg-surface-muted">
         <SidebarEscura
           abaAtiva={abaAtiva}
           setAbaAtiva={setAbaAtiva}
@@ -64,16 +70,16 @@ function renderizarAba(aba : string) {
 
 function SidebarEscura({ abaAtiva, setAbaAtiva } : SidebarProps) {
   return (
-    <div className="flex w-[210px] shrink-0 flex-col gap-2 bg-[#433F3F] px-5 py-5 text-[#EDEBE8]">
-      <h1 className="text-[28px] text-[#F0F0F0] font-(family-name:--font-text-me-one)">Configurações</h1>
+    <div className="flex w-[210px] shrink-0 flex-col gap-2 bg-surface-inverse px-5 py-5 text-inverse-muted">
+      <h1 className="text-[28px] text-inverse-muted font-(family-name:--font-text-me-one)">Configurações</h1>
     
       <BarraPesquisa type="search" placeholder="Procurar" className="w-full"/>
 
       <nav className="flex flex-col gap-1">
         <div
           className={`flex items-center gap-2 rounded-full px-3 py-2 text-[14px] cursor-pointer ${
-            abaAtiva === "geral" ? "bg-[#4C4C4C]" : "hover:bg-[#4C4C4C]"
-          } text-[#F0F0F0]`}
+            abaAtiva === "geral" ? "bg-surface-inverse-hover" : "hover:bg-surface-inverse-hover"
+          } text-inverse-muted`}
           onClick={() => setAbaAtiva("geral")}
         >
           <img src={engrenagem.src} />
@@ -82,8 +88,8 @@ function SidebarEscura({ abaAtiva, setAbaAtiva } : SidebarProps) {
 
         <div
           className={`flex items-center gap-2 rounded-full px-3 py-2 text-left text-[14px] cursor-pointer ${
-            abaAtiva === "conta" ? "bg-[#4C4C4C]" : "hover:bg-[#4C4C4C]"
-          } text-[#F0F0F0]`}
+            abaAtiva === "conta" ? "bg-surface-inverse-hover" : "hover:bg-surface-inverse-hover"
+          } text-inverse-muted`}
           onClick={() => setAbaAtiva("conta")}
         >
           <img src={circulo_conta.src} />
@@ -92,8 +98,8 @@ function SidebarEscura({ abaAtiva, setAbaAtiva } : SidebarProps) {
 
         <div
           className={`flex items-center gap-2 rounded-full px-3 py-2 text-left text-[14px] cursor-pointer ${
-            abaAtiva === "privacidade" ? "bg-[#4C4C4C]" : "hover:bg-[#4C4C4C]"
-          } text-[#F0F0F0]`}
+            abaAtiva === "privacidade" ? "bg-surface-inverse-hover" : "hover:bg-surface-inverse-hover"
+          } text-inverse-muted`}
           onClick={() => setAbaAtiva("privacidade")}
         >
           <img src={cadeado.src} />
@@ -106,7 +112,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva } : SidebarProps) {
 
 function PainelClaro({ Preencher, onClose }: PainelProps) {
   return (
-    <section className="relative flex-1 overflow-y-auto px-8 py-6 text-[#3D3838]">
+    <section className="relative flex-1 overflow-y-auto px-8 py-6 text-primary">
       <BotaoFechar onClose={onClose} />
       {Preencher}
     </section>
@@ -120,7 +126,7 @@ function BotaoFechar({onClose}: { onClose?: () => void;})
       type="button"
       aria-label="Fechar"
       onClick={onClose}
-      className="absolute top-6 right-6 cursor-pointer hover:text-[#797979]"
+      className="absolute top-6 right-6 cursor-pointer hover:text-secondary"
     >
       <X className="h-6 w-6" />
     </button>
@@ -132,9 +138,9 @@ export function GeralConfig() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Perfil</h2>
-        <div className="divide-y-2 divide-[#D9D9D9]">
+        <div className="divide-y-2 divide-sunken">
           <LinhaConfig label="Avatar">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full text-[18px] bg-[#D4C7F8] text-[#433F3F]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full text-[18px] bg-surface-accent text-ink">
               RS
             </div>
           </LinhaConfig>
@@ -149,12 +155,12 @@ export function GeralConfig() {
 
           <div className="py-3">
           <h3 className="text-[18px]">Instruções para o MetamorphIA</h3>
-          <p className="text-[14px] text-[#797979]">
+          <p className="text-[14px] text-secondary">
             O MetamorphIA terá isso em mente durante as conversas
           </p>
           <textarea
             placeholder="ex: faça perguntas de esclarecimento antes de dar respostas detalhadas"
-            className="mt-3 h-20 w-full resize-none rounded-[30px] bg-[#D9D9D9] px-4 py-3 text-[14px] text-[#797979] placeholder:text-[#797979] focus:outline-none overflow-auto scrollbar-none"
+            className="mt-3 h-20 w-full resize-none rounded-[30px] bg-sunken px-4 py-3 text-[14px] text-secondary placeholder:text-secondary focus:outline-none overflow-auto scrollbar-none"
           />
           </div>
         </div>  
@@ -163,7 +169,7 @@ export function GeralConfig() {
       
       <div>
         <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Preferências</h2>
-        <div className="divide-y-2 divide-[#D9D9D9]">
+        <div className="divide-y-2 divide-sunken">
           <LinhaConfig label="Aparência">
             <Mode />
           </LinhaConfig>
@@ -181,16 +187,16 @@ export function ContaConfig() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Conta</h2>
-        <div className="divide-y-2 divide-[#D9D9D9]">
+        <div className="divide-y-2 divide-sunken">
 
           <LinhaConfig label="Desconectar de todos os dispositivos">
-            <button className="rounded-[70px] bg-[#D9D9D9] px-8 py-1 text-[18px] hover:bg-[#C0C0C0]" onClick={() => setMostrarFormDesconecta(true)}>
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormDesconecta(true)}>
               Sair
             </button>
           </LinhaConfig>
 
           <LinhaConfig label="Apagar sua conta">
-            <button className="rounded-[70px] bg-[#FF9999] px-8 py-1 text-[18px] hover:bg-[#FF9999]/80" onClick={() => setMostrarFormDeleta(true)}>
+            <button className="rounded-[70px] bg-surface-danger px-8 py-1 text-[18px] text-ink hover:bg-surface-danger/80" onClick={() => setMostrarFormDeleta(true)}>
               Apagar conta
             </button>
           </LinhaConfig>
@@ -214,17 +220,17 @@ export function PrivacidadeConfig() {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Privacidade</h2>
-        <div className="divide-y-2 divide-[#D9D9D9]">
-          <div className="py-3 pl-6 w-full resize-none rounded-[30px] bg-[#D9D9D9] px-4 py-3">
-          <p className="px-3 text-[14px] text-[#797979]">A MetamorphIA acredita em práticas transparentes de dados. Saiba como suas informações são protegidas ao usar os produtos da MetamorphIA e visite nossos Termos de Privacidade e Termos de Uso para mais detalhes.</p>
+        <div className="divide-y-2 divide-sunken">
+          <div className="py-3 pl-6 w-full resize-none rounded-[30px] bg-sunken px-4 py-3">
+          <p className="px-3 text-[14px] text-secondary">A MetamorphIA acredita em práticas transparentes de dados. Saiba como suas informações são protegidas ao usar os produtos da MetamorphIA e visite nossos Termos de Privacidade e Termos de Uso para mais detalhes.</p>
           <div className="flex space-x-20 gap-4 mt-3">
           <Link href="./privacidade">
-          <div className="px-3 text-[14px] text-[#797979] font-bold underline hover:cursor-pointer">
+          <div className="px-3 text-[14px] text-secondary font-bold underline hover:cursor-pointer">
               Termos de Privacidade
           </div>
           </Link>
           <Link href="./uso">
-          <div className="text-[14px] text-[#797979] font-bold underline hover:cursor-pointer">
+          <div className="text-[14px] text-secondary font-bold underline hover:cursor-pointer">
               Termos de Uso
           </div>
           </Link>
@@ -233,10 +239,10 @@ export function PrivacidadeConfig() {
         </div>
 
       <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Seus dados</h2>
-        <div className="divide-y-2 divide-[#D9D9D9]">
+        <div className="divide-y-2 divide-sunken">
           
           <LinhaConfig label="Exportar dados">
-            <button className="rounded-[70px] bg-[#D9D9D9] px-8 py-1 text-[18px] hover:bg-[#C0C0C0]">
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover">
               Exportar dados
             </button>
           </LinhaConfig>
@@ -256,19 +262,34 @@ function LinhaConfig({ label, children } : LinhaConfigProps) {
 
 function CampoValor({ value } : CampoValorProps) {
   return (
-    <div className="rounded-[70px] bg-[#D9D9D9] px-8 py-1 text-[18px]">
+    <div className="rounded-[70px] bg-sunken px-8 py-1 text-[18px]">
       {value}
     </div>
   );
 }
 
 function Mode() {
-  const [modeAtivo, setModeAtivo] = useState<"light" | "dark">("light");
+  // O inicializador le o mesmo localStorage que o script inline do <head>,
+  // entao o primeiro render do React bate com o DOM e nao ha hydration
+  // mismatch. No servidor cai no tema padrao.
+  const [theme, setTheme] = useState<Theme>(() =>
+    typeof window === "undefined" ? DEFAULT_THEME : lerTemaSalvo()
+  );
 
-  const handleModeChange = (mode: "light" | "dark") => {
-    setModeAtivo(mode);
-    // PLACEHOLDER: if (mode === "dark") {} ...
-  };
+  // Reaplica o atributo depois do remount do StrictMode em dev, que limpa os
+  // atributos de <html> e apaga o que o script gravou. No-op em producao.
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
+  }, [theme]);
+
+  function trocar(proximo: Theme) {
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, proximo);
+    } catch {
+      // Sem storage o tema ainda funciona na sessao corrente.
+    }
+    setTheme(proximo);
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -276,28 +297,30 @@ function Mode() {
       <button
         type="button"
         aria-label="Modo claro"
-        onClick={() => handleModeChange("light")}
+        aria-pressed={theme === "light"}
+        onClick={() => trocar("light")}
         className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-          modeAtivo === "light"
-            ? "bg-[#FFD279]"
-            : "hover:bg-[#D9D9D9]"
+          theme === "light"
+            ? "bg-surface-warning text-ink"
+            : "text-primary hover:bg-sunken"
         }`}
       >
-        <Sun className="h-5 w-5 text-[#433F3F]" />
+        <Sun className="h-5 w-5" />
       </button>
 
       {/* MODO ESCURO */}
       <button
         type="button"
         aria-label="Modo escuro"
-        onClick={() => handleModeChange("dark")}
+        aria-pressed={theme === "dark"}
+        onClick={() => trocar("dark")}
         className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-          modeAtivo === "dark"
-            ? "bg-[#D4C7F8]"
-            : "hover:bg-[#D9D9D9]"
+          theme === "dark"
+            ? "bg-surface-accent text-ink"
+            : "text-primary hover:bg-sunken"
         }`}
       >
-        <Moon className="h-5 w-5 text-[#433F3F]" />
+        <Moon className="h-5 w-5" />
       </button>
     </div>
   );

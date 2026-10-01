@@ -13,7 +13,7 @@ export default function DashboardAluno(){
     ]
 
     return(
-        <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px] text-[#433F3F]">
+        <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px] text-primary">
                     <div className="flex w-full flex-col">
                         <HeaderPag />
                     </div>
@@ -27,7 +27,7 @@ export default function DashboardAluno(){
                     <div className="flex flex-col gap-3 pb-6">
                         <div className="flex flex-row items-start justify-between gap-1 sm:items-center">
                             <p className="font-(family-name:--font-text-me-one) text-2xl">Histórico de Conversas</p>
-                            <p className="text-sm text-[#797979]">{chats.length} conversas</p>
+                            <p className="text-sm text-secondary">{chats.length} conversas</p>
                         </div>
                         <div className="flex flex-col gap-3">
                             {chats.map((chat, index) => (

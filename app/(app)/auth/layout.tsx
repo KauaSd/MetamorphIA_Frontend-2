@@ -2,7 +2,7 @@ import Logo from "@/public/icon.png";
 
 export default function Auth({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#F0F0F0]">
+    <div data-theme="light" className="relative min-h-screen overflow-hidden bg-surface-muted text-primary">
       <div className="absolute inset-0 z-0 h-full w-full pointer-events-none select-none">
         <img
           src="/Elipse1.svg"
@@ -23,7 +23,7 @@ export default function Auth({ children }: { children: React.ReactNode }) {
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <div className="w-full px-5 sm:px-10 md:px-16 lg:px-23 pt-5 sm:pt-7 md:pt-10">
-          <header className="mx-auto flex min-h-11 w-full lg:max-w-[110rem] items-center justify-center gap-2 rounded-[70px] bg-[#433F3F] px-5 sm:px-8 md:px-12 lg:px-15 text-[#FFFDFA] sm:min-h-14">
+          <header className="mx-auto flex min-h-11 w-full lg:max-w-[110rem] items-center justify-center gap-2 rounded-[70px] bg-surface-inverse px-5 sm:px-8 md:px-12 lg:px-15 text-inverse sm:min-h-14">
             <img src={Logo.src} alt="" className="w-7 sm:w-11" />
             <p className="text-xl sm:text-[2rem] font-(family-name:--font-text-me-one)">
                 MetamorphIA

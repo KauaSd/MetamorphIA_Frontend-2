@@ -7,7 +7,7 @@ import EditaPEI from "@/components/app/EditaPEI";
 import GeraPEI from "@/components/app/GeraPEI";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-const nome = "Roberto";
+const nome = "Rafaela";
 type Message = {
   id: number;
   text: string;
@@ -210,8 +210,8 @@ export default function ChatInicial() {
                           rounded-t-[70px]
                           ${
                             message.sender === "user"
-                              ? "bg-[#D9D9D9] rounded-bl-[70px]"
-                              : "bg-[#FFFDFA] rounded-br-[70px]"
+                              ? "bg-sunken rounded-bl-[70px]"
+                              : "bg-surface-base rounded-br-[70px]"
                           }
                         `}
                       >
@@ -229,7 +229,7 @@ export default function ChatInicial() {
               )}
 
               <form onSubmit={handleSendMessage}>
-                <div className="flex items-center w-full h-11 rounded-[70px] bg-[#FFFDFA] px-4 sm:px-5 md:px-6">
+                <div className="flex items-center w-full h-11 rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6">
                   <div className="flex w-full justify-between items-center">
                     <div className="flex gap-3 items-center shrink-0">
                       <div className="cursor-pointer">
@@ -242,7 +242,7 @@ export default function ChatInicial() {
                         >
                           <path
                             d="M0.999898 9.54997H9.5499V0.949973C9.5499 0.31664 9.86657 -2.64645e-05 10.4999 -2.64645e-05H10.8999C11.5332 0.0666413 11.8832 0.383308 11.9499 0.949973V9.54997H20.4999C21.1332 9.54997 21.4499 9.86664 21.4499 10.5V10.95C21.4499 11.2166 21.3499 11.45 21.1499 11.65C20.9832 11.85 20.7666 11.95 20.4999 11.95H11.9499V20.5C11.8832 21.1666 11.5499 21.5 10.9499 21.5H10.4499C9.8499 21.4333 9.5499 21.1 9.5499 20.5V11.95H0.999898C0.699898 11.95 0.449898 11.85 0.249898 11.65C0.0832313 11.45 -0.000102025 11.2166 -0.000102025 10.95V10.5C-0.000102025 9.86664 0.333231 9.54997 0.999898 9.54997Z"
-                            fill="#433F3F"
+                            fill="var(--primary)"
                           />
                         </svg>
                       </div>
@@ -253,13 +253,13 @@ export default function ChatInicial() {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder={hasStarted ? "" : "Digite uma mensagem..."}
-                        className="w-full h-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 ml-4 caret-[#433F3F] text-sm sm:text-base md:text-lg"
+                        className="w-full h-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 ml-4 caret-[var(--primary)] text-sm sm:text-base md:text-lg"
                       />
                     </div>
 
                     <button
                       type="submit"
-                      className="w-10 h-10 rounded-[70px] bg-[#433F3F] flex items-center justify-center cursor-pointer shrink-0"
+                      className="w-10 h-10 rounded-[70px] bg-surface-inverse flex items-center justify-center cursor-pointer shrink-0"
                     >
                       <svg
                         width="20"
@@ -271,7 +271,7 @@ export default function ChatInicial() {
                         <g clipPath="url(#clip0_924_1025)">
                           <path
                             d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM9 11H7V9H9V11ZM13 11H11V9H13V11ZM17 11H15V9H17V11Z"
-                            fill="#FFFDFA"
+                            fill="var(--inverse)"
                           />
                         </g>
 

@@ -20,21 +20,21 @@ export default function Engajamento(props : EngajamentoProps){
         <div className="flex flex-col gap-[16px]">
             <p className="font-(family-name:--font-text-me-one) text-xl sm:text-2xl"> {config.titulo} </p>
             <div>
-                <div className="flex flex-row justify-between w-full text-[#797979]">
+                <div className="flex flex-row justify-between w-full text-secondary">
                     <p>Leitura e Escrita</p>
                     <p>62%</p>
                 </div>
                 <BarraPorcentagem value={62} materia="leitura" />
             </div>
             <div>
-                <div className="flex flex-row justify-between w-full text-[#797979]">
+                <div className="flex flex-row justify-between w-full text-secondary">
                     <p>Matemática</p>
                     <p>78%</p>
                 </div>
                 <BarraPorcentagem value={78} materia="matematica" />
             </div>
             <div>
-                <div className="flex flex-row justify-between w-full text-[#797979]">
+                <div className="flex flex-row justify-between w-full text-secondary">
                     <p>Ciências</p>
                     <p>85%</p>
                 </div>

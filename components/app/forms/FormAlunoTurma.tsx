@@ -45,11 +45,11 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
   return (
     <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-10 rounded-[40px] bg-[#F0F0F0] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-10 rounded-[40px] bg-surface-muted p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
             <p
-              className={`text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)`}
+              className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}
             >
               Dados do Aluno
             </p>
@@ -71,7 +71,7 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
             value={Nome}
             onChange={(e) => setNome(e.target.value)}
           />
-          <div className="relative flex items-center justify-between w-1/4 rounded-[70px] bg-[#D9D9D9] px-[0.7rem] py-[0.55rem]">
+          <div className="relative flex items-center justify-between w-1/4 rounded-[70px] bg-sunken px-[0.7rem] py-[0.55rem]">
             <input
               type="number"
               placeholder="Idade"
@@ -84,26 +84,26 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
                   e.preventDefault();
                 }
               }}
-              className="w-full bg-transparent text-sm text-[#797979] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-full bg-transparent text-sm text-secondary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <div className="flex flex-col justify-center -mr-1 -space-y-1.5">
               <button
                 type="button"
                 onClick={() => handleIdadeStep(1)}
-                className="cursor-pointer text-[#797979]"
+                className="cursor-pointer text-secondary"
               >
                 <ChevronUp className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => handleIdadeStep(-1)}
-                className="cursor-pointer text-[#797979]"
+                className="cursor-pointer text-secondary"
               >
                 <ChevronDown className="w-4 h-4" />
               </button>
             </div>
           </div>
-            <p className="text-sm text-[#433F3F] text-justify">Neurodivergência</p>
+            <p className="text-sm text-primary text-justify">Neurodivergência</p>
             <div className="flex justify-center items-center gap-10">
               <div className="flex flex-col gap-1">
                 <CheckBoxAluno 
@@ -144,7 +144,7 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
         </div>
 
         <div className="flex gap-5">
-          <Button type="button" onClick={onClose} className="bg-[#433F3F] text-[#FFFDFA]">
+          <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">
             Cancelar
           </Button>
           <Button type="button">Salvar</Button>
@@ -173,10 +173,10 @@ export function FormTurma({
   return (
     <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
-          <p className="text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)">Dados da Turma</p>
+          <p className="text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)">Dados da Turma</p>
           <button
           type="button"
           aria-label="Fechar"
@@ -186,7 +186,7 @@ export function FormTurma({
             <X className="w-6 h-6"/>
           </button>
           </div>
-          <p className="text-md text-[#433F3F] text-justify">Nome da turma</p>
+          <p className="text-md text-primary text-justify">Nome da turma</p>
         </div>
 
         <div className="flex flex-col items-center">
@@ -194,7 +194,7 @@ export function FormTurma({
         </div>
 
         <div className="flex gap-5">
-        <Button type="button" onClick={onClose} className="bg-[#433F3F] text-[#FFFDFA]">Cancelar</Button>
+        <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">Cancelar</Button>
         <Button type="button" onClick={onCriar}>Salvar</Button>
       </div>
       </div>
@@ -213,10 +213,10 @@ export function FormIdentificacao() {
   return (
     <Blurfundo>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
-          <p className={`text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)`}>Identificação</p>
+          <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>Identificação</p>
           <button
           type="button"
           aria-label="Fechar"
@@ -225,7 +225,7 @@ export function FormIdentificacao() {
             <X className="w-6 h-6"/>
           </button>
           </div>
-          <p className="text-md text-[#433F3F] text-justify">Como devemos de te chamar?</p>
+          <p className="text-md text-primary text-justify">Como devemos de te chamar?</p>
         </div>
 
         <div className="flex flex-col items-center">
@@ -233,7 +233,7 @@ export function FormIdentificacao() {
         </div>
 
         <div className="flex gap-5">
-        <Button type="button" className="bg-[#433F3F] text-[#FFFDFA]">Cancelar</Button>
+        <Button type="button" className="bg-surface-inverse text-inverse">Cancelar</Button>
         <Button type="button">Salvar</Button>
       </div>
       </div>
@@ -251,10 +251,10 @@ export function FormDeletaAluno() {
   return (
     <Blurfundo>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
-          <p className={`text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)`}>Excluir</p>
+          <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>Excluir</p>
           <button
           type="button"
           aria-label="Fechar"
@@ -264,14 +264,14 @@ export function FormDeletaAluno() {
           </button>
           </div>
           <div className="flex flex-col gap-3">
-            <p className="text-md text-[#433F3F] text-justify">Tem certeza de que deseja excluir o aluno?</p>
-            <p className="text-xs text-[#797979]">Esta ação será permanente e não poderá ser revertida.</p>
+            <p className="text-md text-primary text-justify">Tem certeza de que deseja excluir o aluno?</p>
+            <p className="text-xs text-secondary">Esta ação será permanente e não poderá ser revertida.</p>
           </div>
         </div>
 
         <div className="flex gap-5 self-end">
-            <Button type="button" className="bg-[#433F3F] text-[#FFFDFA] w-32">Cancelar</Button>
-            <Button type="button" className="bg-[#FF9999] text-[#433F3F] w-32">Excluir</Button>
+            <Button type="button" className="bg-surface-inverse text-inverse w-32">Cancelar</Button>
+            <Button type="button" className="bg-surface-danger text-ink w-32">Excluir</Button>
         </div>
       </div>
     </form>
@@ -288,10 +288,10 @@ export function FormDeletaTurma() {
   return (
     <Blurfundo>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-[#FFFDFA] p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
-          <p className={`text-3xl text-[#433F3F] sm:text-4xl font-(family-name:--font-text-me-one)`}>Excluir</p>
+          <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>Excluir</p>
           <button
           type="button"
           aria-label="Fechar"
@@ -301,14 +301,14 @@ export function FormDeletaTurma() {
           </button>
           </div>
           <div className="flex flex-col gap-3">
-            <p className="text-md text-[#433F3F] text-justify">Tem certeza de que deseja excluir a turma?</p>
-            <p className="text-xs text-[#797979]">Esta ação será permanente e não poderá ser revertida.</p>
+            <p className="text-md text-primary text-justify">Tem certeza de que deseja excluir a turma?</p>
+            <p className="text-xs text-secondary">Esta ação será permanente e não poderá ser revertida.</p>
           </div>
         </div>
 
         <div className="flex gap-5 self-end">
-          <Button type="button" className="bg-[#433F3F] text-[#FFFDFA] w-32">Cancelar</Button>
-          <Button type="button" className="bg-[#FF9999] text-[#433F3F] w-32">Excluir</Button>
+          <Button type="button" className="bg-surface-inverse text-inverse w-32">Cancelar</Button>
+          <Button type="button" className="bg-surface-danger text-ink w-32">Excluir</Button>
       </div>
       </div>
     </form>

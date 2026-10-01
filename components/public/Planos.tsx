@@ -33,10 +33,10 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         descricao: "Para conhecer e experimentar a tecnologia em sala de aula.",
         valor: "R$ 0",
         periodo: "/mês",
-        borda: "border-[#F0F0F0]",
-        tagBg: "bg-[#F0F0F0]",
-        tagTexto: "text-[#797979]",
-        bolinha: "bg-[#CEFFCA]/50",
+        borda: "border-surface-muted",
+        tagBg: "bg-surface-muted",
+        tagTexto: "text-secondary",
+        bolinha: "bg-surface-success/50",
         features: [
             <>Até <b>2 turmas</b> cadastradas</>,
             <>Até <b>5 alunos</b> com perfil individual</>,
@@ -51,10 +51,10 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         descricao: "Para quem quer economizar horas de trabalho e incluir de verdade.",
         valor: "R$ 39",
         periodo: "/mês",
-        borda: "border-[#D4C7F8]",
-        tagBg: "bg-[#D4C7F8]",
-        tagTexto: "text-[#433F3F]",
-        bolinha: "bg-[#D4C7F8]/50",
+        borda: "border-surface-accent",
+        tagBg: "bg-surface-accent/50",
+        tagTexto: "text-ink",
+        bolinha: "bg-surface-accent",
         features: [
             <><b>Turmas ilimitadas</b></>,
             <>Até 40 alunos com perfil individualizado</>,
@@ -66,7 +66,7 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         temBotao: true,
         botao: {
             texto: "Comprar",
-            className: "bg-[#D4C7F8] hover:bg-[#AB97E0]",
+            className: "bg-surface-accent hover:bg-surface-accent-strong",
         },
     },
     institucional: {
@@ -75,10 +75,10 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         descricao: "Para coordenação pedagógica, escolas completas e redes de ensino.",
         valor: "Personalizado",
         periodo: "",
-        borda: "border-[#FFD279]/50",
-        tagBg: "bg-[#FFD279]",
-        tagTexto: "text-[#433F3F]",
-        bolinha: "bg-[#FFD279]/25",
+        borda: "border-surface-warning/50",
+        tagBg: "bg-surface-warning/25",
+        tagTexto: "text-ink",
+        bolinha: "bg-surface-warning",
         features: [
             <><b>Todos os recursos do plano</b> <br/> Professor para todos os docentes</>,
             <><b>Painel de coordenação e métricas institucionais</b></>,
@@ -88,7 +88,7 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         temBotao: true,
         botao: {
             texto: "Sou escola",
-            className: "bg-[#FFD279] hover:bg-[#FFC164]",
+            className: "bg-surface-warning hover:bg-warning",
         },
     },
 };
@@ -97,7 +97,7 @@ export default function Planos({ tipo }: { tipo: PlanoId }) {
     const c = CONFIG_PLANOS[tipo] ?? CONFIG_PLANOS.basico;
 
     return (
-        <div className={`font-(family-name:--font-poppins) flex flex-col w-100 min-h-150 border-5 ${c.borda} bg-[#FFFDFA] rounded-3xl px-7 py-7`}>
+        <div className={`font-(family-name:--font-poppins) flex flex-col w-100 min-h-150 border-5 ${c.borda} bg-surface-base rounded-3xl px-7 py-7`}>
             <div className="flex flex-col gap-5">
                 <div className={`w-fit h-fit text-xs px-3 py-1 rounded-3xl ${c.tagBg}`}>
                     <span className={`font-bold ${c.tagTexto}`}>
@@ -105,10 +105,10 @@ export default function Planos({ tipo }: { tipo: PlanoId }) {
                     </span>
                 </div>
                 <div className="flex flex-col gap-1">
-                    <span className="font-(family-name:--font-text-me-one) text-2xl text-[#433F3F]">
+                    <span className="font-(family-name:--font-text-me-one) text-2xl text-primary">
                         {c.titulo}
                     </span>
-                    <span className="text-[#433F3F] w-66 text-[14px]">
+                    <span className="text-primary w-66 text-[14px]">
                         {c.descricao}
                     </span>
                 </div>
@@ -118,7 +118,7 @@ export default function Planos({ tipo }: { tipo: PlanoId }) {
                         <span className="font-medium text-base"> {c.periodo}</span>
                     )}
                 </span>
-                <div className="bg-[#F0F0F0] w-full h-0.5" />
+                <div className="bg-surface-muted w-full h-0.5" />
                 <div className="flex flex-col gap-3">
                     {c.features.map((feature, i) => (
                         <div key={i} className="flex items-start gap-2">

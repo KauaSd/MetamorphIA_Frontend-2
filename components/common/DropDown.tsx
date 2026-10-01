@@ -54,7 +54,7 @@ export default function Dropdown({ options, isTurma = false, small = false }: Op
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between gap-2 bg-[#D9D9D9] rounded-[30px] text-[#433F3F] hover:bg-[#FFFDFA] focus:outline-none transition-colors ${
+        className={`flex items-center justify-between gap-2 bg-sunken rounded-[30px] text-primary hover:bg-surface-base focus:outline-none transition-colors ${
           small ? "px-2 py-0.5 sm:px-2.5 sm:py-1" : "px-3 py-1 sm:px-4 sm:py-1.5"
         } ${
           isTurma
@@ -75,7 +75,7 @@ export default function Dropdown({ options, isTurma = false, small = false }: Op
       </button>
 
       <div
-        className={`absolute left-1/2 -translate-x-1/2 mt-2 rounded-[30px] text-[#433F3F] bg-[#D9D9D9] shadow-lg focus:outline-none z-10 ${
+        className={`absolute left-1/2 -translate-x-1/2 mt-2 rounded-[30px] text-primary bg-sunken shadow-lg focus:outline-none z-10 ${
           small ? "p-1" : "p-1.5"
         } 
           transition-all duration-200 ease-out origin-top ${
@@ -101,8 +101,8 @@ export default function Dropdown({ options, isTurma = false, small = false }: Op
                   setPosition(option.value)
                   setIsOpen(false)
                 }}
-                className={`flex items-center px-2.5 py-0.5 cursor-pointer rounded-[70px] text-[#433F3F] transition-colors ${
-                  isSelected ? "bg-[#FFFDFA]" : "hover:bg-[#FFFDFA]"
+                className={`flex items-center px-2.5 py-0.5 cursor-pointer rounded-[70px] text-primary transition-colors ${
+                  isSelected ? "bg-surface-base" : "hover:bg-surface-base"
                 }`}
               >
                 <span className="whitespace-nowrap">{option.label}</span>

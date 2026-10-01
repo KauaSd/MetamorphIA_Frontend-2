@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Text_Me_One, Poppins } from "next/font/google";
 import "./globals.css";
+import { THEME_INIT_SCRIPT } from "@/utils/theme";
 
 const TextMeOne = Text_Me_One({
   variable: "--font-text-me-one",
@@ -27,9 +28,14 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      data-theme="light"
+      suppressHydrationWarning
       className={`${TextMeOne.variable} ${poppins.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#FFFDFA]">{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body className="min-h-full bg-surface-base">{children}</body>
     </html>
   );
 }

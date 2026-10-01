@@ -11,6 +11,14 @@ interface MenuSectionItem {
   href: string;
 }
 
+// Evita que um toque em telas sensíveis ao toque "grude" o dropdown aberto
+function canHover() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(hover: hover)").matches
+  );
+}
+
 interface MenuSectionProps {
   id: string;
   label: string;
@@ -32,13 +40,16 @@ export default function MenuSection({
   isSidebarOpen,
   onToggle,
 }: MenuSectionProps) {
-  const expanded = isOpen && isSidebarOpen;
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  // O hover só abre; a seção clicada continua aberta quando o mouse sai
+  const expanded = (isOpen || isHovered) && isSidebarOpen;
 
   const rowClass = `relative h-[35px] flex items-center cursor-pointer select-none ${
     isSidebarOpen
       ? "w-full justify-between"
       : "w-[30px] justify-center mx-auto"
-  } before:absolute before:inset-y-0 before:-inset-x-2.5 before:rounded-[70px] before:transition-colors before:duration-200 ${
+  } before:absolute before:inset-y-0 before:-inset-x-2.5 before:rounded-[70px] before:transition-colors before:duration-200 hover:before:bg-surface-inverse-hover ${
     expanded ? "before:bg-surface-inverse-hover" : "before:bg-transparent"
   }`;
 
@@ -65,7 +76,13 @@ export default function MenuSection({
   );
 
   return (
-    <div className="flex flex-col w-full min-w-0">
+    <div
+      className="flex flex-col w-full min-w-0"
+      onMouseEnter={() => {
+        if (canHover()) setIsHovered(true);
+      }}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {isSidebarOpen ? (
         <button
           type="button"

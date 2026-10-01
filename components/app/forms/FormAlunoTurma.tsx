@@ -284,7 +284,7 @@ export function FormDeletaAluno({onClose}: FormDeletaAlunoProps) {
 
         <div className="flex gap-5 self-end">
             <Button type="button" className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
-            <Button type="button" className="bg-surface-danger text-ink w-32">Excluir</Button>
+            <Button type="button" className="bg-surface-danger text-ink w-32 whitespace-nowrap">Excluir</Button>
         </div>
       </div>
     </form>
@@ -327,7 +327,7 @@ export function FormDeletaTurma({onClose, onExcluir}:FormDeletaTurmaProps) {
 
         <div className="flex gap-5 self-end">
           <Button type="button" className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
-          <Button type="button" className="bg-surface-danger text-ink w-32" onClick={onExcluir}>Excluir</Button>
+          <Button type="button" className="bg-surface-danger text-ink w-32 whitespace-nowrap" onClick={onExcluir}>Excluir</Button>
       </div>
       </div>
     </form>

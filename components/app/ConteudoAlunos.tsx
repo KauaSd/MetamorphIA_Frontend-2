@@ -5,9 +5,13 @@ import HeaderPag from "@/components/app/HeaderPagAl";
 import BarraPesquisa from "@/components/common/Input";
 import Aluno from "@/components/app/Aluno";
 import BoxSemAluno from "@/components/app/BoxSemAluno";
+import { FormAluno, FormDeletaAluno } from "@/components/app/forms/FormAlunoTurma"
 
 export default function ConteudoAlunos(){
     const [temAluno] = useState(false);
+    const [mostrarEditar, setMostrarEditar] = useState(false);
+    const [mostrarExcluir, setMostrarExcluir] = useState(false);
+    const [alunoSelecionado, setAlunoSelecionado] = useState<number | null>(null)
 
     const alunos = [
         {nome: "Junior Marcos", neuro: "TDAH", turma: "3º Ano A - Manhã"},
@@ -16,6 +20,30 @@ export default function ConteudoAlunos(){
         {nome: "Rodrigo Mauro", neuro: "AH/SD", turma: "3º Ano A - Manhã"},
         {nome: "Sofia Gabriele", neuro: "Dislexia", turma: "3º Ano A - Manhã"},
     ]
+
+    const turmas = [
+        {value:"3ano-a-manha", label:"3º Ano A - Manhã"}
+    ]
+
+    function abrirEditar(index: number){
+        setAlunoSelecionado(index);
+        setMostrarEditar(true);
+    }
+
+    function fecharEditar(){
+        setMostrarEditar(false);
+        setAlunoSelecionado(null);
+    }
+
+    function abrirExcluir(index: number){
+        setAlunoSelecionado(index);
+        setMostrarExcluir(true);
+    }
+
+    function fecharExcluir(){
+        setMostrarExcluir(false);
+        setAlunoSelecionado(null);
+    }
 
     return(
         <div className="flex flex-col w-full min-h-screen items-center">
@@ -32,6 +60,8 @@ export default function ConteudoAlunos(){
                             Neuro={aluno.neuro}
                             Turma={aluno.turma}
                             index={index}
+                            onEditar={() => abrirEditar(index)}
+                            onExcluir={() => abrirExcluir(index)}
                         />
                     ))}
                 </div>
@@ -39,6 +69,19 @@ export default function ConteudoAlunos(){
                 <div className="flex w-full flex-1 items-center justify-center">
                     <BoxSemAluno />
                 </div>
+            )}
+
+            {mostrarEditar && alunoSelecionado !== null && (
+                <FormAluno
+                    turmas={turmas}
+                    modo="editar"
+                    nomeInicial={alunos[alunoSelecionado]?.nome}
+                    onClose={fecharEditar}
+                />
+            )}
+
+            {mostrarExcluir && alunoSelecionado !== null && (
+                <FormDeletaAluno onClose={fecharExcluir} />
             )}
         </div>
     );

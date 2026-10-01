@@ -13,11 +13,15 @@ interface turma{
   value : string
   label: string
 }
+
 interface turmasprops{
   turmas: turma[]
   onClose: () => void
+  modo?: "criar" | "editar"
+  nomeInicial?: string
 }
-export function FormAluno( { turmas, onClose } : turmasprops) {
+
+export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } : turmasprops) {
     const [neuro, setNeuro] = useState<string[]>([])
     const [Nome, setNome] = useState("");
     const [idade, setIdade] = useState("");
@@ -51,7 +55,7 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
             <p
               className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}
             >
-              Dados do Aluno
+              {modo === "editar" ? "Editar Aluno" : "Dados do Aluno"}
             </p>
             <button
               type="button"
@@ -158,11 +162,15 @@ export function FormAluno( { turmas, onClose } : turmasprops) {
 interface FormTurmaProps{
   onClose: () => void;
   onCriar: () => void;
+  modo?: "criar" | "editar";
+  nomeInicial?: string;
 }
 
 export function FormTurma({
   onClose,
   onCriar,
+  modo = "criar",
+  nomeInicial = "",
 }: FormTurmaProps) {
   const [nomeTurma, setNomeTurma] = useState("");
 
@@ -242,14 +250,18 @@ export function FormIdentificacao() {
   );
 }
 
-export function FormDeletaAluno() {
+interface FormDeletaAlunoProps{
+  onClose: () => void;
+}
+
+export function FormDeletaAluno({onClose}: FormDeletaAlunoProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
   };
 
   return (
-    <Blurfundo>
+    <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
@@ -259,6 +271,7 @@ export function FormDeletaAluno() {
           type="button"
           aria-label="Fechar"
           className="cursor-pointer"
+          onClick={onClose}
           >
             <X className="w-6 h-6"/>
           </button>
@@ -270,7 +283,7 @@ export function FormDeletaAluno() {
         </div>
 
         <div className="flex gap-5 self-end">
-            <Button type="button" className="bg-surface-inverse text-inverse w-32">Cancelar</Button>
+            <Button type="button" className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
             <Button type="button" className="bg-surface-danger text-ink w-32">Excluir</Button>
         </div>
       </div>
@@ -279,14 +292,19 @@ export function FormDeletaAluno() {
   );
 }
 
-export function FormDeletaTurma() {
+interface FormDeletaTurmaProps{
+  onClose: () => void;
+  onExcluir?: () => void;
+}
+
+export function FormDeletaTurma({onClose, onExcluir}:FormDeletaTurmaProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
   };
 
   return (
-    <Blurfundo>
+    <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
@@ -296,6 +314,7 @@ export function FormDeletaTurma() {
           type="button"
           aria-label="Fechar"
           className="cursor-pointer"
+          onClick={onClose}
           >
             <X className="w-6 h-6"/>
           </button>
@@ -307,8 +326,8 @@ export function FormDeletaTurma() {
         </div>
 
         <div className="flex gap-5 self-end">
-          <Button type="button" className="bg-surface-inverse text-inverse w-32">Cancelar</Button>
-          <Button type="button" className="bg-surface-danger text-ink w-32">Excluir</Button>
+          <Button type="button" className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
+          <Button type="button" className="bg-surface-danger text-ink w-32" onClick={onExcluir}>Excluir</Button>
       </div>
       </div>
     </form>

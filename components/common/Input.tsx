@@ -1,6 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { twMerge } from "tailwind-merge";
 
 type InputProps = {
   type?: string;
@@ -29,11 +30,11 @@ export default function Input({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full rounded-[70px] py-[0.55rem] text-sm text-secondary outline-none transition-colors ${
-          isSearch 
-            ? "bg-surface-base pl-12 pr-[0.7rem]" 
-            : "bg-sunken px-[0.7rem]"
-        }`}
+        className={twMerge(
+          "w-full rounded-[70px] py-[0.55rem] text-sm text-secondary outline-none transition-colors",
+          isSearch ? "bg-surface-base pl-12 pr-[0.7rem]" : "bg-sunken px-[0.7rem]",
+          className,
+        )}
       />
     </div>
   );

@@ -19,9 +19,7 @@ export function lerTemaSalvo(): Theme {
   }
 }
 
-// Roda durante o parsing do HTML, antes do primeiro paint, para nao haver
-// flash do tema errado. O try/catch cobre localStorage bloqueado.
-// A chave e interpolada na build para o script e o componente nunca divergirem.
+// script que aplica o tema salvo, injetado no head pelo app/layout
 export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
   THEME_STORAGE_KEY
 )});if(t==="dark"||t==="light"){document.documentElement.setAttribute(${JSON.stringify(

@@ -48,21 +48,12 @@ export default function Home() {
   const [isOpenf2, setIsOpenf2] = React.useState(false);
   const [isOpenf3, setIsOpenf3] = React.useState(false);
 
-  const [page, setPage] = React.useState(0);
-  const totalPages = Math.ceil(testimonials.length / ITEMS_PER_PAGE);
-
-  const goPrev = () => setPage((p) => (p === 0 ? totalPages - 1 : p - 1));
-  const goNext = () => setPage((p) => (p === totalPages - 1 ? 0 : p + 1));
-
-  const visible = testimonials.slice(
-    page * ITEMS_PER_PAGE,
-    page * ITEMS_PER_PAGE + ITEMS_PER_PAGE,
-  );
-
   return (
+    // pagina inicial da landing
     <main className="flex flex-1 mt-10 font-(family-name:--font-poppins)">
       <div className="flex flex-col w-full px-5 sm:px-8 md:px-12 lg:px-20 gap-30 lg:gap-50">
         <div className="flex flex-col lg:flex-row w-full justify-between items-center mt-8 lg:mt-14 px-2 sm:px-5 gap-12 lg:gap-0">
+          {/* texto principal */}
           <div className="w-full max-w-xl flex flex-col gap-8 lg:gap-10">
             <h1 className="text-3xl sm:text-4xl text-center leading-normal self-center text-primary">
               Cada criança aprende
@@ -88,6 +79,7 @@ export default function Home() {
               precisar de formação especializada.
             </p>
             
+            {/* botoes de adaptacao e como funciona */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 lg:gap-20 px-2 sm:px-8 justify-center w-auto">
               <ButtonLink
                 href="../auth/cadastro"
@@ -115,6 +107,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* secao como funciona */}
         <section id = "ComoFunciona">
         <div className="flex flex-col items-start">
           <div className="relative inline-block">
@@ -128,6 +121,7 @@ export default function Home() {
             />
           </div>
 
+          {/* passo 1 */}
           <div className="flex flex-col lg:flex-row w-full justify-between mt-2 items-center gap-8 lg:gap-0">
             <img
               src={desenho1.src}
@@ -154,6 +148,7 @@ export default function Home() {
             </div>
           </div>
 
+          {/* passo 2 */}
           <div className="flex flex-col lg:flex-row w-full justify-between items-center gap-8 lg:gap-0">
             <div className="flex flex-col self-center gap-8 lg:gap-10 w-full lg:w-auto order-2 lg:order-1">
               <div className="flex gap-4 sm:gap-8 items-center">
@@ -182,6 +177,7 @@ export default function Home() {
             />
           </div>
 
+          {/* passo 3 */}
           <div className="flex flex-col lg:flex-row w-full justify-between items-center gap-8 lg:gap-0">
             <img
               src={desenho3.src}
@@ -218,6 +214,7 @@ export default function Home() {
         </div>
         </section>
 
+        {/* secao de planos e faq */}
         <section id = "FAQ">
         <div className="relative flex flex-col mt-10 text-2xl gap-6">
           <img
@@ -245,8 +242,10 @@ export default function Home() {
                       <Planos tipo="institucional"/>
                       </div>
           </div>
+          {/* titulo do faq */}
           <h1>FAQ</h1>
 
+          {/* perguntas que abrem e fecham */}
           <div className="flex flex-col gap-2">
             <div
               className="flex w-full py-2 sm:py-0.5 bg-surface-secondary rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"

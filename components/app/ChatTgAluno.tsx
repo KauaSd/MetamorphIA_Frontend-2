@@ -17,7 +17,7 @@ export default function ChatTgAluno() {
         rounded-[70px]
       "
     >
-      {/* Avatar */}
+      {/* avatar do aluno */}
       <div
         className="
           flex
@@ -37,7 +37,7 @@ export default function ChatTgAluno() {
         </p>
       </div>
 
-      {/* Informações */}
+      {/* nome e neurodivergencia */}
       <div className="flex flex-col flex-1 min-w-0 gap-1">
 
         <p className="font-bold text-sm sm:text-base text-primary truncate">

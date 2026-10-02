@@ -11,6 +11,7 @@ export default function RootLayout({
 }) {
   return (
     <div data-theme="light" className="relative isolate font-(family-name:--font-poppins) min-h-screen flex flex-col overflow-x-hidden px-5 sm:px-10 md:px-16 lg:px-23 pt-5 sm:pt-7 md:pt-10 bg-surface-base text-primary">
+      {/* header com logo e botoes de cadastro e login */}
       <header className="flex w-full min-h-11 sm:min-h-14 bg-surface-inverse rounded-[70px]">
         <div className="flex justify-between w-full px-5 sm:px-8 md:px-12 lg:px-15 items-center">
           <Link href="/">
@@ -44,6 +45,7 @@ export default function RootLayout({
         </div>
       </header>
 
+      {/* elipses decorativas do fundo */}
       <img
         src={elipse1.src}
         alt=""
@@ -67,6 +69,7 @@ export default function RootLayout({
 
       {children}
 
+      {/* footer com logo, contato e links */}
       <footer className="relative left-1/2 right-1/2 mt-15 -mx-[50vw] w-screen min-h-60 bg-surface-inverse px-8 sm:px-12 md:px-24 lg:px-50 py-8 flex flex-col md:flex-row items-start justify-between gap-10 md:gap-8">
         <div className="flex flex-col max-w-full md:max-w-[50%]">
           <div className="flex items-center justify-center w-auto h-auto gap-2 self-start">

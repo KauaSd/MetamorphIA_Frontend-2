@@ -36,6 +36,7 @@ export default function ChatInicial() {
   const [isThinking, setIsThinking] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
+  // cancela o stream ao sair da pagina
   useEffect(() => {
     return () => abortRef.current?.abort();
   }, []);
@@ -97,6 +98,7 @@ export default function ChatInicial() {
       let buffer = "";
       let respostaCompleta = "";
 
+      // le o stream linha a linha e mostra cada pedaco da resposta
       while (true) {
         const { value, done } = await reader.read();
 
@@ -108,6 +110,7 @@ export default function ChatInicial() {
 
         buffer = linhas.pop() ?? "";
 
+        // cada linha vem no formato "data: {...}", e [DONE] fecha o stream
         for (const linha of linhas) {
           if (!linha.startsWith("data: ")) continue;
 
@@ -156,6 +159,7 @@ export default function ChatInicial() {
   };
 
   return (
+    // tela do chat
     <div className="relative flex h-screen w-full overflow-hidden p-4 sm:p-6 md:p-11">
       <div className="flex flex-1 h-full">
         <div className="absolute top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-11 sm:top-11">
@@ -181,6 +185,7 @@ export default function ChatInicial() {
             </p>
           </div>
 
+          {/* campo de mensagem e lista de conversa */}
           <div
             className={`
               absolute left-0 w-full
@@ -191,6 +196,7 @@ export default function ChatInicial() {
             `}
           >
             <div className="w-full max-w-[64rem] mx-auto flex flex-col gap-8">
+              {/* bolhas da conversa */}
               {hasStarted && messages.length > 0 && (
                 <div className="w-full flex flex-col gap-4 max-h-[55vh] overflow-y-auto">
                   {messages.map((message, index) => (
@@ -228,6 +234,7 @@ export default function ChatInicial() {
                 </div>
               )}
 
+              {/* campo de escrita da mensagem */}
               <form onSubmit={handleSendMessage}>
                 <div className="flex items-center w-full h-11 rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6">
                   <div className="flex w-full justify-between items-center">
@@ -286,6 +293,7 @@ export default function ChatInicial() {
                 </div>
               </form>
 
+              {/* botoes de editar e gerar pei */}
               <div className="flex flex-col sm:flex-row justify-center md:justify-end gap-3 sm:gap-7 w-full sm:w-auto">
                 <EditaPEI ativado={true} />
                 <GeraPEI ativado={true} />

@@ -34,6 +34,7 @@ export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } :
         )
     }
 
+    // soma ou subtrai um ano, chamado pelas setas do campo idade
     const handleIdadeStep = (direcao: 1 | -1) => {
         setIdade((prev) => {
             const atual = Number(prev);
@@ -68,6 +69,7 @@ export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } :
           </div>
         </div>
 
+        {/* campos nome, idade e neurodivergencias */}
         <div className="flex flex-col gap-3.5">
           <Input
             type="text"
@@ -147,6 +149,7 @@ export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } :
             <DropDown isTurma options={turmas}/>
         </div>
 
+        {/* botoes cancelar e salvar */}
         <div className="flex gap-5">
           <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">
             Cancelar

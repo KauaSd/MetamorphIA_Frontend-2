@@ -26,6 +26,7 @@ type PlanoConfig = PlanoBase & (
     | { temBotao: true; botao: BotaoPlano }
 );
 
+// texto, cores e features de cada plano, usado pelo Planos
 const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
     basico: {
         tag: "básico",
@@ -94,6 +95,7 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
 };
 
 export default function Planos({ tipo }: { tipo: PlanoId }) {
+    // dados do plano pedido, cai no basico se o tipo nao existir
     const c = CONFIG_PLANOS[tipo] ?? CONFIG_PLANOS.basico;
 
     return (
@@ -119,6 +121,7 @@ export default function Planos({ tipo }: { tipo: PlanoId }) {
                     )}
                 </span>
                 <div className="bg-surface-muted w-full h-0.5" />
+                {/* lista de recursos do plano */}
                 <div className="flex flex-col gap-3">
                     {c.features.map((feature, i) => (
                         <div key={i} className="flex items-start gap-2">

@@ -11,7 +11,7 @@ interface MenuSectionItem {
   href: string;
 }
 
-// Evita que um toque em telas sensíveis ao toque "grude" o dropdown aberto
+// evita que o hover abra o dropdown em telas de toque
 function canHover() {
   return (
     typeof window !== "undefined" &&
@@ -42,7 +42,7 @@ export default function MenuSection({
 }: MenuSectionProps) {
   const [isHovered, setIsHovered] = React.useState(false);
 
-  // O hover só abre; a seção clicada continua aberta quando o mouse sai
+  // abre pelo clique ou pelo hover, usado pelo Menu
   const expanded = (isOpen || isHovered) && isSidebarOpen;
 
   const rowClass = `relative h-[35px] flex items-center cursor-pointer select-none ${
@@ -100,6 +100,7 @@ export default function MenuSection({
         </Link>
       )}
 
+      {/* lista que abre e fecha */}
       <div
         id={`${id}-dropdown`}
         className={`grid w-full min-w-0 transition-all duration-200 ease-in-out ${

@@ -17,6 +17,7 @@ export default function DashboardTurma(){
     const [mostrarExcluirAluno, setMostrarExcluirAluno] = useState(false);
     const [alunoSelecionado, setAlunoSelecionado] = useState<number | null>(null);
 
+    // dados de exemplo dos alunos
     const alunos = [
         {nome: "Junior Marcos", neuro: "TDAH", turma: "3º Ano A - Manhã"},
         {nome: "Julia Holanda", neuro: "TEA", turma: "3º Ano A - Manhã"},
@@ -25,6 +26,7 @@ export default function DashboardTurma(){
         {nome: "Sofia Gabriele", neuro: "Dislexia", turma: "3º Ano A - Manhã"},
     ]
 
+    // turmas disponiveis no form de aluno
     const turmas = [
         {value: "3ano-a-manha", label: "3º Ano A - Manhã"}
     ]
@@ -58,10 +60,13 @@ export default function DashboardTurma(){
     }
 
     return(
-        <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
+        // dashboard da turma
+    <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
+                    {/* header */}
                     <div className="flex w-full flex-col">
                         <HeaderPag />
                     </div>
+                    {/* cards de estatistica */}
                     <div className="flex flex-col gap-4">
                         <p className="text-lg text-secondary font-semibold">Contextualização geral da turma</p>
                         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -72,6 +77,7 @@ export default function DashboardTurma(){
                     </div>
                     <Resumo tipo={1} txt="A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA,  Dislexia). A maioria responde bem a atividades visuais e instruções  segmentadas. Recomenda-se uso de recursos multissensoriais e tempos  flexíveis nas avaliações." />
                     <Engajamento tipo={1} />
+                    {/* lista de alunos */}
                     <div className="flex flex-col gap-7 pb-6">
                         <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                             <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Alunos</p>
@@ -96,6 +102,7 @@ export default function DashboardTurma(){
                             </div>
                         </Link>
 
+                        {/* forms de criar, editar e excluir aluno */}
                         {mostrarForm && (
                             <FormAluno
                                 turmas={turmas}

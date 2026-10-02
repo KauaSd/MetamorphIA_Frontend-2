@@ -1,11 +1,6 @@
 @import "tailwindcss";
 
-/* ------------------------------------------------------------------
-   Tokens
-   O bloco [data-theme="dark"] e, de proposito, identico ao light.
-   A paleta escura real e trabalho futuro: para desenha-la, basta
-   editar os valores do bloco dark. Nenhum componente precisa mudar.
-   ------------------------------------------------------------------ */
+/* tokens de cor por tema, consumidos pelo bloco @theme inline */
 
 [data-theme="light"] {
   color-scheme: light;
@@ -21,9 +16,7 @@
   /* pilulas escuras: accordion, checkbox */
   --surface-secondary: #797979;
 
-  /* chrome escuro: header, footer, sidebar, botoes neutros.
-     E escuro nos DOIS temas, por isso --inverse/--inverse-muted
-     tambem sao claros nos dois. */
+  /* chrome escuro: header, footer, sidebar e botoes neutros */
   --surface-inverse: #433f3f;
   --surface-inverse-hover: #4c4c4c;
   --inverse: #fffdfa;
@@ -40,14 +33,15 @@
   --surface-positive: #c9f9fe;
   --surface-tag-other: #948f9e;
 
-  /* texto: estes SIM invertem entre os temas */
+  /* texto, invertido entre os temas */
   --primary: #433f3f;
   --secondary: #797979;
   --tertiary: #555555;
   /* detalhe claro fixo: icones (fill) sobre o chrome */
   --muted: #f0f0f0;
-  /* texto escuro fixo sobre superficies pastel */
+  /* texto escuro fixo sobre superficie pastel */
   --ink: #433f3f;
+  --ink-muted: #797979;
 
   /* hover, borda padrao */
   --sunken: #d9d9d9;
@@ -88,12 +82,13 @@
   --surface-positive: #c9f9fe;
   --surface-tag-other: #948f9e;
 
-  /* texto: invertido em relacao ao light */
+  /* texto, tambem invertido em relacao ao light */
   --primary: #fffdfa;
   --secondary: #d9d9d9;
   --tertiary: #c0c0c0;
   --muted: #f0f0f0;
   --ink: #433f3f;
+  --ink-muted: #797979;
 
   /* hover, borda padrão */
   --sunken: #797979;
@@ -118,10 +113,37 @@
   }
 }
 
+/* toast entrando na tela, usado pelo Toast do FormAuth */
+@keyframes alert-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* toast saindo da tela */
+@keyframes alert-sair {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
 .animate-caret-blink {
   animation: caret-blink 1s steps(1) infinite;
 }
 
+/* expoe os tokens como classes do tailwind */
 @theme inline {
   --color-surface-base: var(--surface-base);
   --color-surface-base-hover: var(--surface-base-hover);
@@ -144,6 +166,7 @@
   --color-secondary: var(--secondary);
   --color-muted: var(--muted);
   --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
   --color-sunken: var(--sunken);
   --color-sunken-hover: var(--sunken-hover);
   --color-tertiary: var(--tertiary);

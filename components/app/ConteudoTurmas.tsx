@@ -8,6 +8,7 @@ import BoxSemTurma from "@/components/app/BoxSemTurma";
 import { FormTurma, FormDeletaTurma } from "@/components/app/forms/FormAlunoTurma";
 import Link from "next/link";
 
+// dados de exemplo das turmas
 const turmasMock = [
   {
     nomeTurma: "3º Ano A - Manhã",
@@ -63,6 +64,7 @@ export default function ConteudoTurmas(){
     setTurmaSelecionada(null);
   }
 
+  // remove a turma escolhida da lista
   function confirmarExclusao(){
     if (turmaSelecionada === null) return;
 
@@ -78,11 +80,13 @@ export default function ConteudoTurmas(){
 
   return(
     <div className="flex flex-col w-full min-h-screen items-center">
+      {/* header e barra de busca */}
       <div className="flex flex-col w-full gap-4 sm:gap-5 mt-8 sm:mt-12 lg:mt-20">
         <HeaderPag onCriarTurma={abrirForm} />
         <BarraPesquisa type="search" placeholder="Procurar turmas..." />
       </div>
 
+      {/* lista de turmas ou estado vazio */}
       {temTurma ? (
         <Link href="/dashboardTurma" className="w-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-10 lg:gap-16 mt-6 sm:mt-10 w-full">
@@ -103,6 +107,7 @@ export default function ConteudoTurmas(){
         </div>
       )}
 
+      {/* forms de criar, editar e excluir */}
       {mostrarForm && (
         <FormTurma onClose={fecharForm} onCriar={criarTurma} />
       )}

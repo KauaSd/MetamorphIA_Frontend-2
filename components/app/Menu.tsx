@@ -135,7 +135,7 @@ export default function Menu() {
     };
   }, []);
 
-  // Abre a seção correspondente à rota, pra pílula ativa do "Ver todos..." ficar visível
+  // abre o dropdown da rota atual
   if (rotaAnterior !== pathname) {
     setRotaAnterior(pathname);
 
@@ -156,12 +156,12 @@ export default function Menu() {
 
   return (
     <>
-      {/* MODAL DE CONFIGURAÇÕES */}
+      {/* modal de configuracoes */}
       {isConfigOpen && (
         <Configuracoes onClose={() => setIsConfigOpen(false)} />
       )}
 
-      {/* Backdrop: só aparece no mobile quando o menu está aberto */}
+      {/* fundo escuro do menu no mobile */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-surface-inverse/50 z-40 md:hidden"
@@ -233,12 +233,12 @@ export default function Menu() {
               </div>
             </div>
 
+            {/* divisor */}
             <div className="border-t w-full border-surface-base my-5" />
 
-            {/*MENU PRINCIPAL*/}
-
+            {/* secoes do menu */}
             <div className="flex flex-col min-w-0 gap-5">
-              {/* TURMAS */}
+              {/* turmas */}
               <MenuSection
                 id="turmas"
                 label="Turmas"
@@ -250,7 +250,7 @@ export default function Menu() {
                 onToggle={() => setIsTurmaOpen(!isTurmaOpen)}
               />
 
-              {/* ALUNOS */}
+              {/* alunos */}
               <MenuSection
                 id="alunos"
                 label="Alunos"
@@ -262,10 +262,10 @@ export default function Menu() {
                 onToggle={() => setIsAlunoOpen(!isAlunoOpen)}
               />
 
-              {/* SEPARADOR */}
+              {/* separador */}
               <div className="h-px w-full bg-surface-base" />
 
-              {/* RECENTES */}
+              {/* recentes */}
               <MenuSection
                 id="recentes"
                 label="Recentes"
@@ -279,7 +279,7 @@ export default function Menu() {
             </div>
           </div>
 
-          {/* CONFIGURAÇÕES */}
+          {/* botao que abre as configuracoes */}
           <div className="config" onClick={() => setIsConfigOpen(true)}>
             <div className="border-t w-full border-surface-base" />
 

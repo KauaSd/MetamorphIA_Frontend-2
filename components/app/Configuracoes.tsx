@@ -52,8 +52,7 @@ interface ItemBusca {
   aba: string;
 }
 
-// Cada entrada aponta para um id que existe no JSX das abas. Se um id sumir
-// do JSX, apenas o scroll nao acontece -- a busca continua funcionando.
+// itens da busca, cada id aponta para um elemento do JSX das abas
 const ITENS_BUSCA: ItemBusca[] = [
   { id: "cfg-aba-geral", rotulo: "Geral", aba: "geral" },
   { id: "cfg-aba-conta", rotulo: "Conta", aba: "conta" },
@@ -96,11 +95,12 @@ const ROTULO_ABA: Record<string, string> = {
   privacidade: "Privacidade",
 };
 
-// Remove acentos e caixa para que "privac", "Privacidade" e "descon" batam.
+// tira acento e caixa, usado pelo filtrar
 function normalizar(texto: string) {
   return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
+// filtra os itens da busca, usado pela SidebarEscura
 function filtrar(termo: string) {
   const busca = normalizar(termo.trim());
   if (!busca) return [];
@@ -115,7 +115,7 @@ export default function Configuracoes({
   const [alvo, setAlvo] = useState<string | null>(null);
   const painelRef = useRef<HTMLElement>(null);
 
-  // Roda depois que a aba nova entrou no DOM, senao o alvo ainda nao existe.
+  // rola ate o item escolhido, usado pelo Configuracoes
   useEffect(() => {
     if (!alvo) return;
 
@@ -154,6 +154,7 @@ export default function Configuracoes({
   );
 }
 
+// escolhe a aba pelo nome, usado pelo Configuracoes
 function renderizarAba(aba : string, alvo: string | null) {
   if (aba === "conta") return <ContaConfig destaque={alvo} />;
   if (aba === "privacidade") return <PrivacidadeConfig destaque={alvo} />;
@@ -171,7 +172,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
   const resultados = filtrar(termo);
   const searchingAberto = termo.trim() !== "";
 
-  // mousedown e nao click, para nao roubar o clique do item ao fechar.
+  // fecha a lista de resultados ao clicar fora dela
   useEffect(() => {
     function clicar(event: MouseEvent) {
       if (buscaRef.current && !buscaRef.current.contains(event.target as Node)) {
@@ -195,9 +196,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
           onChange={(e) => setTermo(e.target.value)}
         />
 
-{/* Flutua sobre o painel claro: width fixo maior que a sidebar,
-            altura limitada a ~4 itens, com scroll quando sobra. Mesma
-            transicao de opacidade/translate do DropDown.tsx. */}
+{/* lista de resultados da busca */}
         <div
           className={`absolute left-0 top-full z-30 mt-1 w-[260px] max-h-[136px] overflow-hidden rounded-[30px] bg-surface-base text-primary shadow-lg transition-all duration-200 ease-out origin-top ${
             searchingAberto
@@ -205,8 +204,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
               : "pointer-events-none -translate-y-2 scale-95 opacity-0"
           }`}
         >
-          {/* Quem rola e o ul interno, sem raio. O raio fica no div de
-              fora, com overflow-hidden, que recorta a barra junto. */}
+          {/* lista rolavel */}
           <ul className="max-h-[136px] overflow-y-auto overscroll-contain py-1.5 pl-1.5 pr-2.5 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-surface-base-hover">
           {resultados.length === 0 ? (
             <li className="px-2.5 py-1.5 text-[13px] text-secondary">
@@ -232,6 +230,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
         </div>
       </div>
 
+      {/* abas geral, conta e privacidade */}
       <nav className="flex flex-col gap-1">
         {ABAS.map((aba) => (
           <div
@@ -427,15 +426,12 @@ function CampoValor({ value } : CampoValorProps) {
 }
 
 function Mode({ destaque }: { destaque: string | null }) {
-  // O inicializador le o mesmo localStorage que o script inline do <head>,
-  // entao o primeiro render do React bate com o DOM e nao ha hydration
-  // mismatch. No servidor cai no tema padrao.
+  // le o tema salvo, usado pelo Mode
   const [theme, setTheme] = useState<Theme>(() =>
     typeof window === "undefined" ? DEFAULT_THEME : lerTemaSalvo()
   );
 
-  // Reaplica o atributo depois do remount do StrictMode em dev, que limpa os
-  // atributos de <html> e apaga o que o script gravou. No-op em producao.
+  // aplica o atributo de tema no html
   useLayoutEffect(() => {
     document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
   }, [theme]);
@@ -444,7 +440,7 @@ function Mode({ destaque }: { destaque: string | null }) {
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, proximo);
     } catch {
-      // Sem storage o tema ainda funciona na sessao corrente.
+      // sem storage o tema funciona so na sessao corrente
     }
     setTheme(proximo);
   }
@@ -456,7 +452,7 @@ function Mode({ destaque }: { destaque: string | null }) {
 
   return (
     <div className="flex items-center gap-2">
-      {/* MODO CLARO */}
+      {/* botao de modo claro */}
       <button
         type="button"
         id="cfg-modo-claro"
@@ -472,7 +468,7 @@ function Mode({ destaque }: { destaque: string | null }) {
         <Sun className="h-5 w-5" />
       </button>
 
-      {/* MODO ESCURO */}
+      {/* botao de modo escuro */}
       <button
         type="button"
         id="cfg-modo-escuro"

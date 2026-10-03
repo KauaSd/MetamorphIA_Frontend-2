@@ -1,16 +1,26 @@
-import Menu from "@/components/app/Menu";
+"use client";
 
-export default function PrincipalLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+import { ReactNode, Suspense, useState } from "react";
+import { useData } from "@/components/app/state/DataProvider";
+import { FormIdentificacao } from "@/components/app/forms/FormAlunoTurma";
+import { saveTeacherName } from "@/utils/data/controller";
+
+export default function PrincipalLayout({ children }: { children: ReactNode }) {
+  const { hydrated, teacherName, recarregar } = useData();
+
+  if (hydrated && teacherName === null) {
     return (
-        <div className="flex min-h-screen w-full flex-row">
-            <Menu />
-            <main className="flex flex-1 min-w-0 flex-col">
-                {children}
-            </main>
-        </div>
-    )
+      <div className="flex min-h-screen items-center justify-center bg-surface-page px-4">
+        <Suspense fallback={null}>
+          <FormIdentificacao
+            onSalvar={async () => {
+              await recarregar();
+            }}
+          />
+        </Suspense>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }

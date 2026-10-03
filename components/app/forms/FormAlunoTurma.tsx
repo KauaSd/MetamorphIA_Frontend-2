@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
 import { X } from "lucide-react";
@@ -146,7 +147,7 @@ export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } :
                     />
               </div>
             </div>
-            <DropDown isTurma options={turmas}/>
+            <DropDown options={turmas}/>
         </div>
 
         {/* botoes cancelar e salvar */}
@@ -164,14 +165,14 @@ export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } :
 
 interface FormTurmaProps{
   onClose: () => void;
-  onCriar: () => void;
+  onSalvar: (nome: string) => Promise<{ ok: true } | { ok: false; erro: any }>;
   modo?: "criar" | "editar";
   nomeInicial?: string;
 }
 
 export function FormTurma({
   onClose,
-  onCriar,
+  onSalvar,
   modo = "criar",
   nomeInicial = "",
 }: FormTurmaProps) {
@@ -206,7 +207,7 @@ export function FormTurma({
 
         <div className="flex gap-5">
         <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">Cancelar</Button>
-        <Button type="button" onClick={onCriar}>Salvar</Button>
+        <Button type="submit">Salvar</Button>
       </div>
       </div>
     </form>
@@ -214,11 +215,28 @@ export function FormTurma({
   );
 }
 
-export function FormIdentificacao() {
-  const [Nome, setNome] = useState("");
+interface FormIdentificacaoProps {
+  onSalvar?: () => Promise<void>;
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
+export function FormIdentificacao({ onSalvar }: FormIdentificacaoProps) {
+  const [Nome, setNome] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const nomeTrim = Nome.trim();
+    if (nomeTrim.length === 0) return;
+    try {
+      const { saveTeacherName } = await import("@/utils/data/controller");
+      await saveTeacherName(nomeTrim);
+      if (onSalvar) {
+        await onSalvar();
+      }
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -228,15 +246,8 @@ export function FormIdentificacao() {
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
           <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>Identificação</p>
-          <button
-          type="button"
-          aria-label="Fechar"
-          className="cursor-pointer"
-          >
-            <X className="w-6 h-6"/>
-          </button>
           </div>
-          <p className="text-md text-primary text-justify">Como devemos de te chamar?</p>
+          <p className="text-md text-primary text-justify">Como devemos te chamar?</p>
         </div>
 
         <div className="flex flex-col items-center">
@@ -244,8 +255,7 @@ export function FormIdentificacao() {
         </div>
 
         <div className="flex gap-5">
-        <Button type="button" className="bg-surface-inverse text-inverse">Cancelar</Button>
-        <Button type="button">Salvar</Button>
+        <Button type="submit">Salvar</Button>
       </div>
       </div>
     </form>

@@ -23,10 +23,9 @@ export const ALERTAS = {
   },
   LOGIN_INVALIDO: {
     tom: "danger",
-    titulo: "Não foi possível entrar",
-    descricao: "Telefone, e-mail ou senha incorretos. Confira os dados e tente de novo.",
+    titulo: "E-mail ou telefone inválido",
+    descricao: "Verifique os dados e tente novamente.",
   },
-
   CAD_NOME_VAZIO: {
     tom: "danger",
     titulo: "Campo obrigatório",
@@ -40,7 +39,7 @@ export const ALERTAS = {
   CAD_TEL_INVALIDO: {
     tom: "danger",
     titulo: "Telefone inválido",
-    descricao: "Digite um telefone com DDD, com 10 ou 11 dígitos.",
+    descricao: "Verifique o número e tente novamente.",
   },
   CAD_EMAIL_VAZIO: {
     tom: "danger",
@@ -50,74 +49,73 @@ export const ALERTAS = {
   CAD_EMAIL_INVALIDO: {
     tom: "danger",
     titulo: "E-mail inválido",
-    descricao: "Confira o e-mail digitado. O formato esperado é nome@dominio.com.",
+    descricao: "Verifique o e-mail e tente novamente.",
   },
   CAD_SENHA_VAZIO: {
     tom: "danger",
     titulo: "Campo obrigatório",
-    descricao: "Digite uma senha.",
-  },
-  CAD_EMAIL_EM_USO: {
-    tom: "danger",
-    titulo: "E-mail já cadastrado",
-    descricao: "Já existe uma conta com esse e-mail. Tente entrar ou recuperar a senha.",
+    descricao: "Digite sua senha.",
   },
   CAD_TERMOS: {
     tom: "danger",
-    titulo: "Aceite os termos para continuar",
-    descricao:
-      "Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar a conta.",
+    titulo: "Aceite os termos",
+    descricao: "É necessário aceitar os termos para continuar.",
   },
-
   RECUPERA_VAZIO: {
     tom: "danger",
     titulo: "Campo obrigatório",
-    descricao: "Digite seu telefone ou e-mail cadastrado.",
+    descricao: "Digite seu e-mail ou telefone.",
   },
   RECUPERA_INVALIDO: {
     tom: "danger",
-    titulo: "Dado inválido",
-    descricao: "Confira o dado digitado. Use um e-mail válido ou um telefone com DDD.",
+    titulo: "E-mail ou telefone inválido",
+    descricao: "Verifique os dados e tente novamente.",
   },
-
   TOKEN_INCOMPLETO: {
     tom: "danger",
     titulo: "Código incompleto",
-    descricao: "Digite os 6 dígitos do código que enviamos para você.",
+    descricao: "Digite os 6 dígitos do código.",
   },
-  TOKEN_INVALIDO: {
+  TURMA_NOME_VAZIO: {
     tom: "danger",
-    titulo: "Código inválido",
-    descricao: "O código digitado não confere. Confira os números e tente de novo.",
+    titulo: "Informe o nome da turma",
   },
-
-  SUCESSO_CADASTRO: {
-    tom: "success",
-    titulo: "Cadastro realizado",
-    descricao: "Sua conta foi criada. Agora é só entrar.",
-  },
-  SUCESSO_RECUPERA: {
-    tom: "success",
-    titulo: "Link enviado",
-    descricao: "Enviamos as instruções de redefinição para o contato informado.",
-  },
-  SUCESSO_TOKEN: {
-    tom: "success",
-    titulo: "Código confirmado",
-    descricao: "Você pode definir uma nova senha agora.",
-  },
-
-  ERRO_CONEXAO: {
+  TURMA_NAO_ENCONTRADA: {
     tom: "danger",
-    titulo: "Não foi possível concluir",
-    descricao: "Não conseguimos falar com o servidor. Verifique sua conexão e tente de novo.",
+    titulo: "Turma não encontrada",
   },
-  CHAT_IA_FALHOU: {
-    tom: "info",
-    titulo: "Sem resposta da IA",
-    descricao: "Não foi possível obter uma resposta agora. Tente enviar a mensagem de novo.",
+  ALUNO_NOME_VAZIO: {
+    tom: "danger",
+    titulo: "Informe o nome do aluno",
   },
-} as const satisfies Record<string, MensagemAlerta>;
+  ALUNO_NAO_ENCONTRADO: {
+    tom: "danger",
+    titulo: "Aluno não encontrado",
+  },
+  CONVERSA_JA_EXISTE: {
+    tom: "warning",
+    titulo: "Já existe uma conversa com esse aluno",
+  },
+  TEXTO_VAZIO: {
+    tom: "danger",
+    titulo: "Digite uma mensagem",
+  },
+  CONVERSA_NAO_ENCONTRADA: {
+    tom: "danger",
+    titulo: "Conversa não encontrada",
+  },
+  DADOS_INVALIDOS: {
+    tom: "danger",
+    titulo: "Dados inválidos",
+  },
+  ERRO_GERAL: {
+    tom: "danger",
+    titulo: "Algo deu errado",
+  },
+} as const;
 
-// nome de cada entrada do catalogo
-export type ChaveAlerta = keyof typeof ALERTAS;
+export const ALERTAS_ADICIONAIS = {
+  ERRO_CONEXAO: { tom: "danger" as const, titulo: "Erro de conexão" },
+  CHAT_IA_FALHOU: { tom: "danger" as const, titulo: "Erro ao obter resposta" },
+  SUCESSO_CADASTRO: { tom: "success" as const, titulo: "Cadastro realizado" },
+};

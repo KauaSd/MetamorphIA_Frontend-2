@@ -270,9 +270,10 @@ export default function Home() {
               }`}
             >
               <p className="text-sm text-secondary overflow-hidden text-justify">
-                Sim! Totalmente gratuito. É só criar sua conta e já começar a
-                adaptar atividades, configurar o perfil da criança e explorar
-                todos os formatos.
+                Desenvolvida para <span className="font-bold">professores do Ensino Fundamental I</span>
+                , a plataforma oferece o suporte necessário para acolher e lecionar 
+                para alunos neurodivergentes, garantindo um ensino adaptado às suas 
+                especificidades. 
               </p>
             </div>
 
@@ -299,9 +300,11 @@ export default function Home() {
               }`}
             >
               <p className="text-sm text-secondary overflow-hidden text-justify">
-                Sim! Totalmente gratuito. É só criar sua conta e já começar a
-                adaptar atividades, configurar o perfil da criança e explorar
-                todos os formatos.
+                Nossa plataforma fundamenta-se em estudos de educação inclusiva, 
+                como os <span className="font-bold">referenciais do VB-MAPP e do Desenho Universal de Aprendizagem (DUA)</span> para 
+                oferecer um melhor suporte para <span className="font-bold">estudantes com condições do neurodesenvolvimento</span>
+                , com foco em <span className="font-bold">Transtorno do Espectro Autista (TEA), 
+                TDAH, Dislexia e Altas Habilidades/Superdotação</span>.
               </p>
             </div>
 
@@ -328,9 +331,13 @@ export default function Home() {
               }`}
             >
               <p className="text-sm text-secondary text-justify">
-                Sim! Totalmente gratuito. É só criar sua conta e já começar a
-                adaptar atividades, configurar o perfil da criança e explorar
-                todos os formatos.
+                <span className="font-bold">Sim! O acesso inicial é gratuito!</span> É
+                só criar sua conta para adaptar  e personalizar atividades escolares, 
+                configurar o perfil individual do aluno e explorar todos os formatos.
+                A MetamorphIA também oferece planos avançados com <span className="font-bold">
+                adaptações ilimitadas e relatórios de engajamento e evolução</span>. 
+                Para escolas, redes de ensino e coordenação pedagógica, temos 
+                um plano institucional totalmente personalizado.
               </p>
             </div>
           </div>

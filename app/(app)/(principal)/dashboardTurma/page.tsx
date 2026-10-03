@@ -31,6 +31,10 @@ export default function DashboardTurma(){
         {value: "3ano-a-manha", label: "3º Ano A - Manhã"}
     ]
 
+    const [resumoTurma, setReusmoTurma] = useState(
+        "A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA,  Dislexia). A maioria responde bem a atividades visuais e instruções  segmentadas. Recomenda-se uso de recursos multissensoriais e tempos  flexíveis nas avaliações."
+    )
+
     function abrirForm(){
         setMostrarForm(true);
     }
@@ -75,7 +79,7 @@ export default function DashboardTurma(){
                             <Estatistica tipo={3} valor={12} />
                         </div>
                     </div>
-                    <Resumo tipo={1} txt="A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA,  Dislexia). A maioria responde bem a atividades visuais e instruções  segmentadas. Recomenda-se uso de recursos multissensoriais e tempos  flexíveis nas avaliações." />
+                    <Resumo tipo={1} txt={resumoTurma} onSave={setReusmoTurma} />
                     <Engajamento tipo={1} />
                     {/* lista de alunos */}
                     <div className="flex flex-col gap-7 pb-6">

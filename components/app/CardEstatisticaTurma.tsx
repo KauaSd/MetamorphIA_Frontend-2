@@ -32,7 +32,10 @@ export default function CardEstatistica({ tipo, valor, subtexto }: CardEstatisti
 
   return (
     <div className="font-(family-name:--font-poppins) relative flex min-h-24 w-full items-center rounded-[40px] bg-surface-base p-4">
-      <Encaracolado src={EncaracoladoSvg.src} className="absolute left-[-5] top-1/2 -translate-y-1/2 w-[24px] aspect-[31/96]" />
+      <Encaracolado
+        src={EncaracoladoSvg.src}
+        className="absolute left-[-5] top-1/2 -translate-y-1/2 w-[24px] aspect-[31/96] pointer-events-none select-none bg-primary"
+      />
 
       <div className="flex flex-col justify-between h-full ml-4">
         <span className="text-xs sm:text-sm text-secondary">

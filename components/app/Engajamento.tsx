@@ -1,45 +1,45 @@
 import BarraPorcentagem from "@/components/common/BarraPorcentagem";
+import type { EngajamentoMateria } from "@/utils/data/types";
 
-type TipoStat = 1 | 2
-interface EngajamentoProps{
-    tipo: TipoStat
-}
-const CONFIG_TIPOS ={
-    1: {
-        titulo: "Engajamento por Área",
-    },
-    2: {
-        titulo: "Perfil do Aluno",
-    }
+type TipoStat = 1 | 2;
+
+interface EngajamentoProps {
+  tipo: TipoStat;
+  /** quando ausente, usa os percentuais de exemplo */
+  itens?: EngajamentoMateria[];
 }
 
-export default function Engajamento(props : EngajamentoProps){
-    const config = CONFIG_TIPOS[props.tipo] || CONFIG_TIPOS[1];
+const CONFIG_TIPOS = {
+  1: {
+    titulo: "Engajamento por Área",
+  },
+  2: {
+    titulo: "Perfil do Aluno",
+  },
+};
 
-    return(
-        <div className="flex flex-col gap-[16px]">
-            <p className="font-(family-name:--font-text-me-one) text-xl sm:text-2xl"> {config.titulo} </p>
-            <div>
-                <div className="flex flex-row justify-between w-full text-secondary">
-                    <p>Leitura e Escrita</p>
-                    <p>62%</p>
-                </div>
-                <BarraPorcentagem value={62} materia="leitura" />
-            </div>
-            <div>
-                <div className="flex flex-row justify-between w-full text-secondary">
-                    <p>Matemática</p>
-                    <p>78%</p>
-                </div>
-                <BarraPorcentagem value={78} materia="matematica" />
-            </div>
-            <div>
-                <div className="flex flex-row justify-between w-full text-secondary">
-                    <p>Ciências</p>
-                    <p>85%</p>
-                </div>
-                <BarraPorcentagem value={85} materia="ciencias" />
-            </div>
+const ITENS_EXEMPLO: EngajamentoMateria[] = [
+  { rotulo: "Leitura e Escrita", materia: "leitura", percentual: 62 },
+  { rotulo: "Matemática", materia: "matematica", percentual: 78 },
+  { rotulo: "Ciências", materia: "ciencias", percentual: 85 },
+];
+
+export default function Engajamento({ tipo, itens }: EngajamentoProps) {
+  const config = CONFIG_TIPOS[tipo] || CONFIG_TIPOS[1];
+  const areas = itens && itens.length > 0 ? itens : ITENS_EXEMPLO;
+
+  return (
+    <div className="flex flex-col gap-[16px]">
+      <p className="font-(family-name:--font-text-me-one) text-xl sm:text-2xl"> {config.titulo} </p>
+      {areas.map((area) => (
+        <div key={area.materia}>
+          <div className="flex w-full flex-row justify-between text-secondary">
+            <p>{area.rotulo}</p>
+            <p>{area.percentual}%</p>
+          </div>
+          <BarraPorcentagem value={area.percentual} materia={area.materia} />
         </div>
-    )
+      ))}
+    </div>
+  );
 }

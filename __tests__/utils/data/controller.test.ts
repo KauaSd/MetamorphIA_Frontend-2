@@ -56,23 +56,49 @@ describe("controller", () => {
     const res = await createAluno({
       nome: "Lucas Olioti",
       idade: 9,
-      neurodivergencias: ["TDAH"],
+      neuro: ["TDAH"],
       turmaId,
     });
     expect(res.ok).toBe(true);
     dados = await carregarDados();
     expect(dados.alunos.length).toBe(1);
     expect(dados.alunos[0].nome).toBe("Lucas Olioti");
+    expect(dados.alunos[0].turmaId).toBe(turmaId);
+  });
+
+  it("recusa aluno sem turma", async () => {
+    const res = await createAluno({ nome: "Sem turma", idade: 9, neuro: [], turmaId: "  " });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.erro.titulo).toBe("Escolha a turma");
+    }
+    const dados = await carregarDados();
+    expect(dados.alunos.length).toBe(0);
+  });
+
+  it("recusa aluno de turma inexistente", async () => {
+    const res = await createAluno({ nome: "Turma fantasma", idade: 9, neuro: [], turmaId: "tur_999" });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.erro.titulo).toBe("Turma não encontrada");
+    }
+  });
+
+  it("recusa idade negativa", async () => {
+    await createTurma({ nome: "T1" });
+    const dados = await carregarDados();
+    const res = await createAluno({ nome: "Idade ruim", idade: -3, neuro: [], turmaId: dados.turmas[0].id });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.erro.titulo).toBe("Idade inválida");
+    }
   });
 
   it("abre chat com aluno e adiciona mensagens", async () => {
-    await createAluno({
-      nome: "Lucas",
-      idade: 9,
-      neurodivergencias: [],
-      turmaId: null,
-    });
+    await createTurma({ nome: "T1" });
     let dados = await carregarDados();
+    await createAluno({ nome: "Lucas", idade: 9, neuro: [], turmaId: dados.turmas[0].id });
+    dados = await carregarDados();
     const alunoId = dados.alunos[0].id;
     const abertura = await openChatWith(alunoId);
     expect(abertura.ok).toBe(true);
@@ -88,8 +114,10 @@ describe("controller", () => {
   });
 
   it("não adiciona mensagem vazia", async () => {
-    await createAluno({ nome: "A", idade: null, neurodivergencias: [], turmaId: null });
+    await createTurma({ nome: "T1" });
     let dados = await carregarDados();
+    await createAluno({ nome: "A", idade: null, neuro: [], turmaId: dados.turmas[0].id });
+    dados = await carregarDados();
     const res = await openChatWith(dados.alunos[0].id);
     const cid = res.ok && res.conversaId ? res.conversaId : "";
     const msg = await addMessage(cid, "   ", "professor");

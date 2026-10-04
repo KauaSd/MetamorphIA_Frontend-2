@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { twMerge } from "tailwind-merge";
 import { Check, X } from "@phosphor-icons/react/dist/ssr";
 import Input from "@/components/common/Input";
 import CheckBox from "@/components/common/CheckBox";
-import Alert from "@/components/common/alert";
+import Toast from "@/components/common/Toast";
 import Button from "@/components/common/Button";
 import ButtonLink from "@/components/common/ButtonLink";
 import Link from "next/link";
@@ -20,63 +19,8 @@ import {
   validarTelefone,
 } from "@/utils/validacao";
 
-// tempos do toast em ms
-const TOAST_MS = 5000;
-const TOAST_SAIDA_MS = 250;
-
-type LimparAlerta = (valor: MensagemAlerta | null) => void;
-
 // encolhe o texto do checklist de senha em viewport baixa
 const TEXTO_CURTO = "[@media(max-height:960px)]:text-xs";
-
-// marca a animacao de saida e devolve o estado, usado pelo Toast
-function useToastAutoDismiss(alerta: MensagemAlerta, limpar: LimparAlerta) {
-  const [saindo, setSaindo] = useState(false);
-
-  useEffect(() => {
-    const comecarSaida = setTimeout(() => setSaindo(true), TOAST_MS);
-    // desmonta depois da animacao de saida terminar
-    const desmontar = setTimeout(
-      () => limpar(null),
-      TOAST_MS + TOAST_SAIDA_MS,
-    );
-
-    return () => {
-      clearTimeout(comecarSaida);
-      clearTimeout(desmontar);
-    };
-  }, [alerta, limpar]);
-
-  return saindo;
-}
-
-// toast fixo no rodape da tela, usado pelo FormLogin, FormCadastro,
-// FormRecuperaSenha e FormToken
-function Toast({
-  alerta,
-  limpar,
-}: {
-  alerta: MensagemAlerta;
-  limpar: LimparAlerta;
-}) {
-  const saindo = useToastAutoDismiss(alerta, limpar);
-
-  return (
-    // container do toast, o role="alert" fica no proprio Alert
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-3">
-      <div
-        className={twMerge(
-          "pointer-events-auto motion-reduce:animate-none",
-          saindo
-            ? "animate-[alert-sair_250ms_cubic-bezier(0.4,0,1,1)_forwards]"
-            : "animate-[alert-entrar_350ms_cubic-bezier(0.16,1,0.3,1)]",
-        )}
-      >
-        <Alert {...alerta} />
-      </div>
-    </div>
-  );
-}
 
 // checklist das regras de senha, usado pelo FormCadastro
 function RegrasSenha({ senha }: { senha: string }) {

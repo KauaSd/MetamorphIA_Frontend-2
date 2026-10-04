@@ -16,41 +16,55 @@ export interface DataContextValue extends AppData {
   recarregar: () => Promise<void>;
 }
 
-const DataContext = createContext<DataContextValue | undefined>(undefined);
+const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [estado, setEstado] = useState<AppData>({ ...dadosVazios });
+  const [dados, setDados] = useState<AppData>(dadosVazios);
   const [hydrated, setHydrated] = useState(false);
 
   const recarregar = useCallback(async () => {
-    try {
-      const dados = await repository.carregarDados();
-      setEstado(dados);
-    } finally {
-      setHydrated(true);
-    }
+    const [turmas, alunos, conversas, teacherName] = await Promise.all([
+      repository.listTurmas(),
+      repository.listAlunos(),
+      repository.listConversas(),
+      repository.getTeacherName(),
+    ]);
+
+    setDados({ turmas, alunos, conversas, teacherName });
   }, []);
 
+  // a leitura acontece depois da hidratacao: no primeiro render o estado e o de servidor,
+  // que e vazio. Sem isso o modal de Identificacao piscaria para quem ja se identificou.
   useEffect(() => {
-    recarregar();
+    let cancelado = false;
+
+    async function hidratar() {
+      await recarregar();
+      if (cancelado) return;
+      setHydrated(true);
+    }
+
+    hidratar();
+
+    return () => {
+      cancelado = true;
+    };
   }, [recarregar]);
 
-  const value = useMemo<DataContextValue>(
-    () => ({
-      ...estado,
-      hydrated,
-      recarregar,
-    }),
-    [estado, hydrated, recarregar]
+  const valor = useMemo<DataContextValue>(
+    () => ({ ...dados, hydrated, recarregar }),
+    [dados, hydrated, recarregar],
   );
 
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+  return <DataContext.Provider value={valor}>{children}</DataContext.Provider>;
 }
 
 export function useData(): DataContextValue {
-  const ctx = useContext(DataContext);
-  if (ctx === undefined) {
-    throw new Error("useData must be used within DataProvider");
+  const contexto = useContext(DataContext);
+
+  if (!contexto) {
+    throw new Error("useData precisa estar dentro de <DataProvider>");
   }
-  return ctx;
+
+  return contexto;
 }

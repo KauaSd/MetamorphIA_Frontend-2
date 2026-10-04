@@ -76,46 +76,73 @@ export const ALERTAS = {
     titulo: "Código incompleto",
     descricao: "Digite os 6 dígitos do código.",
   },
+  IDENTIFICACAO_NOME_VAZIO: {
+    tom: "danger",
+    titulo: "Campo obrigatório",
+    descricao: "Digite seu nome para o sistema saber como chamar você.",
+  },
   TURMA_NOME_VAZIO: {
     tom: "danger",
-    titulo: "Informe o nome da turma",
+    titulo: "Campo obrigatório",
+    descricao: "Digite o nome da turma.",
   },
   TURMA_NAO_ENCONTRADA: {
     tom: "danger",
     titulo: "Turma não encontrada",
+    descricao: "Essa turma não existe mais. Volte para a lista de turmas.",
   },
   ALUNO_NOME_VAZIO: {
     tom: "danger",
-    titulo: "Informe o nome do aluno",
+    titulo: "Campo obrigatório",
+    descricao: "Digite o nome do aluno.",
+  },
+  ALUNO_SEM_TURMA: {
+    tom: "danger",
+    titulo: "Escolha a turma",
+    descricao: "Selecione a turma em que o aluno vai ficar.",
+  },
+  ALUNO_IDADE_INVALIDA: {
+    tom: "danger",
+    titulo: "Idade inválida",
+    descricao: "A idade não pode ser negativa.",
+  },
+  ALUNO_SEM_TURMA_NAO_ENCONTRADA: {
+    tom: "danger",
+    titulo: "Turma não encontrada",
+    descricao: "A turma escolhida não existe mais. Crie a turma antes de cadastrar o aluno.",
   },
   ALUNO_NAO_ENCONTRADO: {
     tom: "danger",
     titulo: "Aluno não encontrado",
-  },
-  CONVERSA_JA_EXISTE: {
-    tom: "warning",
-    titulo: "Já existe uma conversa com esse aluno",
-  },
-  TEXTO_VAZIO: {
-    tom: "danger",
-    titulo: "Digite uma mensagem",
+    descricao: "Esse aluno não existe mais. Volte para a lista de alunos.",
   },
   CONVERSA_NAO_ENCONTRADA: {
     tom: "danger",
     titulo: "Conversa não encontrada",
+    descricao: "Essa conversa não existe mais.",
   },
-  DADOS_INVALIDOS: {
+  MENSAGEM_VAZIA: {
     tom: "danger",
-    titulo: "Dados inválidos",
+    titulo: "Mensagem vazia",
+    descricao: "Digite uma mensagem antes de enviar.",
   },
   ERRO_GERAL: {
     tom: "danger",
     titulo: "Algo deu errado",
   },
+  ERRO_CONEXAO: {
+    tom: "danger",
+    titulo: "Não foi possível concluir",
+    descricao: "Não conseguimos falar com o servidor. Verifique sua conexão e tente de novo.",
+  },
+  CHAT_IA_FALHOU: {
+    tom: "info",
+    titulo: "Sem resposta da IA",
+    descricao: "Não foi possível obter uma resposta agora. Tente enviar a mensagem de novo.",
+  },
+  SUCESSO_CADASTRO: {
+    tom: "success",
+    titulo: "Cadastro realizado",
+    descricao: "Sua conta foi criada. Agora é só entrar.",
+  },
 } as const;
-
-export const ALERTAS_ADICIONAIS = {
-  ERRO_CONEXAO: { tom: "danger" as const, titulo: "Erro de conexão" },
-  CHAT_IA_FALHOU: { tom: "danger" as const, titulo: "Erro ao obter resposta" },
-  SUCESSO_CADASTRO: { tom: "success" as const, titulo: "Cadastro realizado" },
-};

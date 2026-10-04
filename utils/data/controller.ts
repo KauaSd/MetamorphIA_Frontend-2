@@ -1,200 +1,180 @@
-"use client";
-
+import { ALERTAS, type MensagemAlerta } from "@/utils/alertas";
 import { repository } from "./dataRepository";
-import type { AppData, Aluno, Turma, Conversa, Mensagem } from "./types";
-import { dadosVazios } from "./types";
-import { ALERTAS, type MensagemAlerta } from "../alertas";
+import { conversaDoAluno, gerarId, hojeDDMMAAAA } from "./types";
+import type { Aluno } from "./types";
 
-export type Resultado = { ok: true; conversaId?: string } | { ok: false; erro: MensagemAlerta };
+export type Resultado =
+  | { ok: true; conversaId?: string }
+  | { ok: false; erro: MensagemAlerta };
 
-function gerarId(prefixo: string): string {
-  const timestamp = Date.now().toString(36);
-  const aleatorio = Math.random().toString(36).slice(2, 8);
-  return `${prefixo}_${timestamp}${aleatorio}`;
+function ok(): Resultado {
+  return { ok: true };
 }
 
-function hojeDDMMYYYY(): string {
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2, "0");
-  const mes = String(agora.getMonth() + 1).padStart(2, "0");
-  const ano = agora.getFullYear();
-  return `${dia}/${mes}/${ano}`;
-}
-
-function agoraISO(): string {
-  return new Date().toISOString();
-}
-
-export async function carregarDados(): Promise<AppData> {
-  try {
-    return await repository.carregarDados();
-  } catch {
-    return { ...dadosVazios };
-  }
-}
-
-export async function salvarDados(dados: AppData): Promise<void> {
-  await repository.salvarDados(dados);
-}
-
-export async function carregarProfessor(): Promise<string | null> {
-  return repository.carregarProfessor();
+function falha(erro: MensagemAlerta): Resultado {
+  return { ok: false, erro };
 }
 
 export async function saveTeacherName(nome: string): Promise<Resultado> {
-  const nomeTrim = nome.trim();
-  if (nomeTrim.length === 0) {
-    return { ok: false, erro: ALERTAS.DADOS_INVALIDOS };
-  }
-  await repository.salvarProfessor(nomeTrim);
-  return { ok: true };
+  const limpo = nome.trim();
+  if (!limpo) return falha(ALERTAS.IDENTIFICACAO_NOME_VAZIO);
+
+  await repository.saveTeacherName(limpo);
+  return ok();
 }
 
-export async function createTurma(input: { nome: string }): Promise<Resultado> {
-  const nomeTrim = input.nome.trim();
-  if (nomeTrim.length === 0) {
-    return { ok: false, erro: ALERTAS.TURMA_NOME_VAZIO };
-  }
-  const dados = await carregarDados();
-  const novaTurma: Turma = {
-    id: gerarId("tur"),
-    nome: nomeTrim,
-  };
-  const novosDados: AppData = {
-    ...dados,
-    turmas: [...dados.turmas, novaTurma],
-  };
-  await salvarDados(novosDados);
-  return { ok: true };
+export async function createTurma(dados?: { nome: string } | string): Promise<Resultado> {
+  const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
+  const limpo = nome.trim();
+  if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
+
+  await repository.createTurma({ nome: limpo });
+  return ok();
 }
 
-export async function updateTurma(id: string, input: { nome: string }): Promise<Resultado> {
-  const nomeTrim = input.nome.trim();
-  if (nomeTrim.length === 0) {
-    return { ok: false, erro: ALERTAS.TURMA_NOME_VAZIO };
-  }
-  const dados = await carregarDados();
-  const existe = dados.turmas.some((t) => t.id === id);
-  if (!existe) {
-    return { ok: false, erro: ALERTAS.TURMA_NAO_ENCONTRADA };
-  }
-  const turmasAtualizadas = dados.turmas.map((t) => (t.id === id ? { ...t, nome: nomeTrim } : t));
-  await salvarDados({ ...dados, turmas: turmasAtualizadas });
-  return { ok: true };
+export async function updateTurma(id: string, dados: { nome: string } | string): Promise<Resultado> {
+  const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
+  const limpo = nome.trim();
+  if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
+
+  const turmas = await repository.listTurmas();
+  if (!turmas.some((turma) => turma.id === id)) return falha(ALERTAS.TURMA_NAO_ENCONTRADA);
+
+  await repository.updateTurma(id, { nome: limpo });
+  return ok();
 }
 
 export async function deleteTurma(id: string): Promise<Resultado> {
-  const dados = await carregarDados();
-  const turmasAtualizadas = dados.turmas.filter((t) => t.id !== id);
-  await salvarDados({ ...dados, turmas: turmasAtualizadas });
-  return { ok: true };
+  const turmas = await repository.listTurmas();
+  if (!turmas.some((turma) => turma.id === id)) return falha(ALERTAS.TURMA_NAO_ENCONTRADA);
+
+  await repository.deleteTurma(id);
+  return ok();
 }
 
 export async function createAluno(input: {
   nome: string;
   idade: number | null;
-  neurodivergencias: string[];
-  turmaId: string | null;
+  neuro?: string[];
+  turmaId: string;
 }): Promise<Resultado> {
-  const nomeTrim = input.nome.trim();
-  if (nomeTrim.length === 0) {
-    return { ok: false, erro: ALERTAS.ALUNO_NOME_VAZIO };
+  const nome = input.nome.trim();
+  if (!nome) return falha(ALERTAS.ALUNO_NOME_VAZIO);
+
+  // todo aluno pertence a uma turma: e assim que a lista de cada turma e montada
+  const turmaId = input.turmaId.trim();
+  if (!turmaId) return falha(ALERTAS.ALUNO_SEM_TURMA);
+
+  const turmas = await repository.listTurmas();
+  if (!turmas.some((turma) => turma.id === turmaId)) {
+    return falha(ALERTAS.ALUNO_SEM_TURMA_NAO_ENCONTRADA);
   }
-  const dados = await carregarDados();
-  const neuro = Array.isArray(input.neurodivergencias)
-    ? input.neurodivergencias.filter((n) => typeof n === "string" && n.trim().length > 0)
-    : [];
-  const novoAluno: Aluno = {
-    id: gerarId("alu"),
-    nome: nomeTrim,
-    idade: typeof input.idade === "number" && !Number.isNaN(input.idade) ? input.idade : null,
-    neurodivergencias: neuro,
-    turmaId: typeof input.turmaId === "string" ? input.turmaId : null,
-  };
-  const novosDados: AppData = {
-    ...dados,
-    alunos: [...dados.alunos, novoAluno],
-  };
-  await salvarDados(novosDados);
-  return { ok: true };
+
+  if (input.idade !== null && input.idade < 0) {
+    return falha(ALERTAS.ALUNO_IDADE_INVALIDA);
+  }
+
+  await repository.createAluno({ nome, idade: input.idade, neuro: input.neuro ?? [], turmaId });
+  return ok();
 }
 
-export async function updateAluno(id: string, input: Partial<Aluno>): Promise<Resultado> {
-  const dados = await carregarDados();
-  const aluno = dados.alunos.find((a) => a.id === id);
-  if (!aluno) {
-    return { ok: false, erro: ALERTAS.ALUNO_NAO_ENCONTRADO };
+export async function updateAluno(id: string, dados: Partial<Aluno>): Promise<Resultado> {
+  const alunos = await repository.listAlunos();
+  const existente = alunos.find((aluno) => aluno.id === id);
+  if (!existente) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
+
+  const nome = dados.nome === undefined ? existente.nome : dados.nome.trim();
+  if (!nome) return falha(ALERTAS.ALUNO_NOME_VAZIO);
+
+  if (dados.idade !== undefined && dados.idade !== null && dados.idade < 0) {
+    return falha(ALERTAS.ALUNO_IDADE_INVALIDA);
   }
-  const atualizado: Aluno = {
-    ...aluno,
-    ...input,
-    id: aluno.id,
-    nome: typeof input.nome === "string" && input.nome.trim().length > 0 ? input.nome.trim() : aluno.nome,
-    neurodivergencias: Array.isArray(input.neurodivergencias)
-      ? input.neurodivergencias.filter((n) => typeof n === "string" && n.trim().length > 0)
-      : aluno.neurodivergencias,
-    turmaId: input.turmaId === undefined ? aluno.turmaId : (typeof input.turmaId === "string" ? input.turmaId : null),
-    idade: input.idade === undefined ? aluno.idade : (typeof input.idade === "number" && !Number.isNaN(input.idade) ? input.idade : null),
-  };
-  const alunosAtualizados = dados.alunos.map((a) => (a.id === id ? atualizado : a));
-  await salvarDados({ ...dados, alunos: alunosAtualizados });
-  return { ok: true };
+
+  if (dados.turmaId !== undefined) {
+    const turmaId = dados.turmaId.trim();
+    if (!turmaId) return falha(ALERTAS.ALUNO_SEM_TURMA);
+
+    const turmas = await repository.listTurmas();
+    if (!turmas.some((turma) => turma.id === turmaId)) {
+      return falha(ALERTAS.ALUNO_SEM_TURMA_NAO_ENCONTRADA);
+    }
+    dados = { ...dados, turmaId };
+  }
+
+  await repository.updateAluno(id, { ...dados, nome });
+  return ok();
 }
 
 export async function deleteAluno(id: string): Promise<Resultado> {
-  const dados = await carregarDados();
-  const alunosAtualizados = dados.alunos.filter((a) => a.id !== id);
-  await salvarDados({ ...dados, alunos: alunosAtualizados });
-  return { ok: true };
+  const alunos = await repository.listAlunos();
+  if (!alunos.some((aluno) => aluno.id === id)) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
+
+  await repository.deleteAluno(id);
+  return ok();
 }
 
-export async function openChatWith(alunoId: string): Promise<Resultado> {
-  const dados = await carregarDados();
-  const existente = dados.conversas.find((c) => c.alunoId === alunoId);
-  if (existente) {
-    return { ok: true, conversaId: existente.id };
-  }
-  const aluno = dados.alunos.find((a) => a.id === alunoId);
-  const titulo = aluno ? `Conversa com ${aluno.nome}` : "Nova conversa";
-  const novaConversa: Conversa = {
+// a conversa nasce no clique, e nao na primeira mensagem, para o Recentes ja ter o que mostrar
+export async function openChatWith(alunoId: string | null): Promise<Resultado> {
+  if (!alunoId) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
+  const alunos = await repository.listAlunos();
+  if (!alunos.some((aluno) => aluno.id === alunoId)) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
+
+  const conversas = await repository.listConversas();
+  const existente = conversaDoAluno(conversas, alunoId);
+
+  if (existente) return { ok: true, conversaId: existente.id };
+
+  const conversa = {
     id: gerarId("con"),
     alunoId,
-    titulo,
-    data: hojeDDMMYYYY(),
+    titulo: "Nova conversa",
+    data: hojeDDMMAAAA(),
     mensagens: [],
   };
-  const novosDados: AppData = {
-    ...dados,
-    conversas: [...dados.conversas, novaConversa],
-  };
-  await salvarDados(novosDados);
-  return { ok: true, conversaId: novaConversa.id };
+
+  await repository.upsertConversa(conversa);
+  return { ok: true, conversaId: conversa.id };
 }
 
-export async function addMessage(conversaId: string, texto: string, autor: "professor" | "aluno"): Promise<Resultado> {
-  const textoTrim = texto.trim();
-  if (textoTrim.length === 0) {
-    return { ok: false, erro: ALERTAS.TEXTO_VAZIO };
-  }
-  const dados = await carregarDados();
-  const conversa = dados.conversas.find((c) => c.id === conversaId);
-  if (!conversa) {
-    return { ok: false, erro: ALERTAS.CONVERSA_NAO_ENCONTRADA };
-  }
-  const novaMensagem: Mensagem = {
+export async function addMessage(
+  conversaId: string,
+  texto: string,
+  autor: "professor" | "aluno",
+): Promise<Resultado> {
+  const limpo = texto.trim();
+  if (!limpo) return falha(ALERTAS.MENSAGEM_VAZIA);
+
+  const conversas = await repository.listConversas();
+  const conversa = conversas.find((item) => item.id === conversaId);
+  if (!conversa) return falha(ALERTAS.CONVERSA_NAO_ENCONTRADA);
+
+  const mensagem = {
     id: gerarId("msg"),
+    texto: limpo,
     autor,
-    texto: textoTrim,
-    dataHora: agoraISO(),
+    em: new Date().toISOString(),
   };
-  const conversasAtualizadas = dados.conversas.map((c) =>
-    c.id === conversaId
-      ? {
-          ...c,
-          mensagens: [...c.mensagens, novaMensagem],
-        }
-      : c
-  );
-  await salvarDados({ ...dados, conversas: conversasAtualizadas });
-  return { ok: true };
+
+  // a primeira mensagem do professor da titulo a conversa, o que da nome ao item no Recentes
+  const titulo =
+    autor === "professor" && conversa.mensagens.length === 0 ? limpo : conversa.titulo;
+
+  await repository.upsertConversa({
+    ...conversa,
+    titulo,
+    data: hojeDDMMAAAA(),
+    mensagens: [...conversa.mensagens, mensagem],
+  });
+
+  return ok();
+}
+
+export async function carregarDados() {
+  const [turmas, alunos, conversas, teacherName] = await Promise.all([
+    repository.listTurmas(),
+    repository.listAlunos(),
+    repository.listConversas(),
+    repository.getTeacherName(),
+  ]);
+  return { turmas, alunos, conversas, teacherName };
 }

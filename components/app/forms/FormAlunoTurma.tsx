@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { saveTeacherName } from "@/utils/data/controller";
+import type { Resultado } from "@/utils/data/controller";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
 import { X } from "lucide-react";
@@ -15,17 +16,32 @@ interface turma{
   label: string
 }
 
+/** o que o form entrega para o handler salvar */
+export interface DadosAluno {
+  nome: string
+  idade: number | null
+  neuro: string[]
+  turmaId: string
+}
+
 interface turmasprops{
   turmas: turma[]
   onClose: () => void
+  /** obrigatorio: sem ele o botao salvar nao teria para onde enviar os dados */
+  onSalvar: (dados: DadosAluno) => Promise<Resultado>
   modo?: "criar" | "editar"
   nomeInicial?: string
+  idadeInicial?: number | null
+  neuroInicial?: string[]
+  turmaIdInicial?: string
 }
 
-export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } : turmasprops) {
-    const [neuro, setNeuro] = useState<string[]>([])
-    const [Nome, setNome] = useState("");
-    const [idade, setIdade] = useState("");
+export function FormAluno( { turmas, onClose, onSalvar, modo = "criar", nomeInicial="", idadeInicial=null, neuroInicial=[], turmaIdInicial="" } : turmasprops) {
+    const [neuro, setNeuro] = useState<string[]>(neuroInicial);
+    const [Nome, setNome] = useState(nomeInicial);
+    const [idade, setIdade] = useState(idadeInicial === null ? "" : String(idadeInicial));
+    const [turmaId, setTurmaId] = useState(turmaIdInicial || (turmas[0]?.value ?? ""));
+    const [salvando, setSalvando] = useState(false);
 
     const handleToggleNeuro = (item: string) => {
         setNeuro((prev) =>
@@ -43,8 +59,27 @@ export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } :
             return String(Math.max(0, novo));
         });
     };
-      const handleSubmit = (e: React.FormEvent) => {
+
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (salvando) return;
+
+    setSalvando(true);
+    try {
+      const resultado = await onSalvar({
+        nome: Nome,
+        idade: idade === "" ? null : Number(idade),
+        neuro,
+        turmaId,
+      });
+
+      // em caso de erro quem mostra a mensagem e o handler; o form continua aberto
+      if (resultado.ok) {
+        onClose();
+      }
+    } finally {
+      setSalvando(false);
+    }
     };
   
 
@@ -147,15 +182,17 @@ export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } :
                     />
               </div>
             </div>
-            <DropDown options={turmas}/>
+            <DropDown options={turmas} value={turmaId} onChange={(v: string) => setTurmaId(v)} />
         </div>
 
         {/* botoes cancelar e salvar */}
         <div className="flex gap-5">
-          <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">
+          <Button type="button" onClick={onClose} disabled={salvando} className="bg-surface-inverse text-inverse">
             Cancelar
           </Button>
-          <Button type="button">Salvar</Button>
+          <Button type="submit" disabled={salvando}>
+            {salvando ? "Salvando..." : "Salvar"}
+          </Button>
         </div>
       </div>
     </form>
@@ -165,7 +202,7 @@ export function FormAluno( { turmas, onClose, modo = "criar", nomeInicial="" } :
 
 interface FormTurmaProps{
   onClose: () => void;
-  onSalvar: (nome: string) => Promise<{ ok: true } | { ok: false; erro: any }>;
+  onSalvar: (nome: string) => Promise<Resultado>;
   modo?: "criar" | "editar";
   nomeInicial?: string;
 }
@@ -176,10 +213,23 @@ export function FormTurma({
   modo = "criar",
   nomeInicial = "",
 }: FormTurmaProps) {
-  const [nomeTurma, setNomeTurma] = useState("");
+  const [nomeTurma, setNomeTurma] = useState(nomeInicial);
+  const [salvando, setSalvando] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (salvando) return;
+
+    setSalvando(true);
+    try {
+      // quem valida o nome vazio e o controller; o form so fecha se der ok
+      const resultado = await onSalvar(nomeTurma.trim());
+      if (resultado.ok) {
+        onClose();
+      }
+    } finally {
+      setSalvando(false);
+    }
   };
 
   return (
@@ -206,8 +256,10 @@ export function FormTurma({
         </div>
 
         <div className="flex gap-5">
-        <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">Cancelar</Button>
-        <Button type="submit">Salvar</Button>
+        <Button type="button" disabled={salvando} onClick={onClose} className="bg-surface-inverse text-inverse">Cancelar</Button>
+        <Button type="submit" disabled={salvando}>
+          {salvando ? "Salvando..." : "Salvar"}
+        </Button>
       </div>
       </div>
     </form>
@@ -221,21 +273,14 @@ interface FormIdentificacaoProps {
 
 export function FormIdentificacao({ onSalvar }: FormIdentificacaoProps) {
   const [Nome, setNome] = useState("");
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nomeTrim = Nome.trim();
     if (nomeTrim.length === 0) return;
-    try {
-      const { saveTeacherName } = await import("@/utils/data/controller");
-      await saveTeacherName(nomeTrim);
-      if (onSalvar) {
-        await onSalvar();
-      }
-      router.refresh();
-    } catch (err) {
-      console.error(err);
+    const resultado = await saveTeacherName(nomeTrim);
+    if (resultado.ok && onSalvar) {
+      await onSalvar();
     }
   };
 
@@ -265,17 +310,30 @@ export function FormIdentificacao({ onSalvar }: FormIdentificacaoProps) {
 
 interface FormDeletaAlunoProps{
   onClose: () => void;
+  /** obrigatorio: sem ele o botao excluir nao teria o que confirmar */
+  onExcluir: () => Promise<Resultado>;
+  nomeAluno?: string;
 }
 
-export function FormDeletaAluno({onClose}: FormDeletaAlunoProps) {
+export function FormDeletaAluno({onClose, onExcluir, nomeAluno}: FormDeletaAlunoProps) {
+  const [excluindo, setExcluindo] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleExcluir = async () => {
+    if (excluindo) return;
+    setExcluindo(true);
+    try {
+      const resultado = await onExcluir();
+      if (resultado.ok) {
+        onClose();
+      }
+    } finally {
+      setExcluindo(false);
+    }
   };
 
   return (
     <Blurfundo onClose={onClose}>
-    <form onSubmit={handleSubmit} className="w-full max-w-md">
+    <div className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
@@ -290,35 +348,51 @@ export function FormDeletaAluno({onClose}: FormDeletaAlunoProps) {
           </button>
           </div>
           <div className="flex flex-col gap-3">
-            <p className="text-md text-primary text-justify">Tem certeza de que deseja excluir o aluno?</p>
+            <p className="text-md text-primary text-justify">
+              {nomeAluno ? `Tem certeza de que deseja excluir ${nomeAluno}?` : "Tem certeza de que deseja excluir o aluno?"}
+            </p>
             <p className="text-xs text-secondary">Esta ação será permanente e não poderá ser revertida.</p>
           </div>
         </div>
 
         <div className="flex gap-5 self-end">
-            <Button type="button" className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
-            <Button type="button" className="bg-surface-danger text-ink w-32 whitespace-nowrap">Excluir</Button>
+            <Button type="button" disabled={excluindo} className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
+            <Button type="button" disabled={excluindo} onClick={handleExcluir} className="bg-surface-danger text-ink w-32 whitespace-nowrap">
+              {excluindo ? "Excluindo..." : "Excluir"}
+            </Button>
         </div>
       </div>
-    </form>
+    </div>
     </Blurfundo>
   );
 }
 
 interface FormDeletaTurmaProps{
   onClose: () => void;
-  onExcluir?: () => void;
+  /** obrigatorio: sem ele o botao excluir nao teria o que confirmar */
+  onExcluir: () => Promise<Resultado>;
+  nomeTurma?: string;
 }
 
-export function FormDeletaTurma({onClose, onExcluir}:FormDeletaTurmaProps) {
+export function FormDeletaTurma({onClose, onExcluir, nomeTurma}:FormDeletaTurmaProps) {
+  const [excluindo, setExcluindo] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleExcluir = async () => {
+    if (excluindo) return;
+    setExcluindo(true);
+    try {
+      const resultado = await onExcluir();
+      if (resultado.ok) {
+        onClose();
+      }
+    } finally {
+      setExcluindo(false);
+    }
   };
 
   return (
     <Blurfundo onClose={onClose}>
-    <form onSubmit={handleSubmit} className="w-full max-w-md">
+    <div className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
@@ -333,17 +407,21 @@ export function FormDeletaTurma({onClose, onExcluir}:FormDeletaTurmaProps) {
           </button>
           </div>
           <div className="flex flex-col gap-3">
-            <p className="text-md text-primary text-justify">Tem certeza de que deseja excluir a turma?</p>
+            <p className="text-md text-primary text-justify">
+              {nomeTurma ? `Tem certeza de que deseja excluir a turma ${nomeTurma}?` : "Tem certeza de que deseja excluir a turma?"}
+            </p>
             <p className="text-xs text-secondary">Esta ação será permanente e não poderá ser revertida.</p>
           </div>
         </div>
 
         <div className="flex gap-5 self-end">
-          <Button type="button" className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
-          <Button type="button" className="bg-surface-danger text-ink w-32 whitespace-nowrap" onClick={onExcluir}>Excluir</Button>
+          <Button type="button" disabled={excluindo} className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
+          <Button type="button" disabled={excluindo} onClick={handleExcluir} className="bg-surface-danger text-ink w-32 whitespace-nowrap">
+            {excluindo ? "Excluindo..." : "Excluir"}
+          </Button>
       </div>
       </div>
-    </form>
+    </div>
     </Blurfundo>
   );
 }

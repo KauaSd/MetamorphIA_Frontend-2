@@ -19,6 +19,9 @@ import Aluno from "@/components/app/Aluno";
 import { useState } from "react";
 import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma";
 
+const RESUMO_PADRAO_TURMA =
+  "A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA, Dislexia). A maioria responde bem a atividades visuais e instruções segmentadas. Recomenda-se uso de recursos multissensoriais e tempos flexíveis nas avaliações.";
+
 export default function ConteudoDashboardTurma(){
     const [mostrarForm, setMostrarForm] = useState(false);
     const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
@@ -36,6 +39,10 @@ export default function ConteudoDashboardTurma(){
     const turmasParaForm = turmas.map((t) => ({ value: t.id, label: t.nome }));
     const alunoEmEdicao = idEmEdicao ? alunosDaTurmaList.find((a) => a.id === idEmEdicao) : undefined;
     const alunoEmExclusao = idEmExclusao ? alunosDaTurmaList.find((a) => a.id === idEmExclusao) : undefined;
+
+    // o Resumo e editavel; enquanto nao houver edicao vale o textoPadrao,
+    // depois passa a valer o que foi salvo
+    const [resumo, setResumo] = useState("");
 
     /** o form fica aberto e o toast aparece quando o controller recusa */
     async function tentar(resultado: Resultado): Promise<Resultado> {
@@ -96,7 +103,7 @@ export default function ConteudoDashboardTurma(){
                             <Estatistica tipo={3} valor={12} />
                         </div>
                     </div>
-                    <Resumo tipo={1} txt="A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA, Dislexia). A maioria responde bem a atividades visuais e instruções segmentadas. Recomenda-se uso de recursos multissensoriais e tempos flexíveis nas avaliações." />
+                    <Resumo tipo={1} txt={resumo || RESUMO_PADRAO_TURMA} onSave={setResumo} />
                     <Engajamento tipo={1} />
                     {/* lista de alunos */}
                     <div className="flex flex-col gap-7 pb-6">

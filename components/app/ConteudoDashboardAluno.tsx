@@ -38,6 +38,13 @@ export default function ConteudoDashboardAluno() {
   const alunoEmEdicao = idEmEdicao ? alunos.find((a) => a.id === idEmEdicao) : undefined;
   const alunoEmExclusao = idEmExclusao ? alunos.find((a) => a.id === idEmExclusao) : undefined;
 
+  // o Resumo e editavel; enquanto nao houver edicao vale o texto montado
+  // a partir dos dados do aluno, depois passa a valer o que foi salvo
+  const resumoDoAluno = aluno
+    ? `Nome: ${aluno.nome} | Idade: ${aluno.idade} anos | Neurodivergência: ${aluno.neuro.join(", ") || "Nenhuma informada"} | Turma: ${turma?.nome || "Sem turma"}`
+    : "";
+  const [resumo, setResumo] = useState("");
+
   async function tentar(resultado: Resultado): Promise<Resultado> {
     if (!resultado.ok) {
       mostrar(resultado.erro);
@@ -134,10 +141,7 @@ export default function ConteudoDashboardAluno() {
 
       <div className="flex flex-col gap-4">
         <p className="text-lg text-secondary font-semibold">Resumo do perfil</p>
-        <Resumo
-          tipo={2}
-          txt={`Nome: ${aluno.nome} | Idade: ${aluno.idade} anos | Neurodivergência: ${aluno.neuro.join(", ") || "Nenhuma informada"} | Turma: ${turma?.nome || "Sem turma"}`}
-        />
+        <Resumo tipo={2} txt={resumo || resumoDoAluno} onSave={setResumo} />
       </div>
 
       <Engajamento tipo={2} itens={[]} />

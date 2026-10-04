@@ -5,25 +5,13 @@ import MenuSection from "@/components/app/MenuSection";
 import Icon from "@/public/icon.png";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { useData } from "@/components/app/state/DataProvider";
+import { turmaDoAluno } from "@/utils/data/types";
+import { corDoNome } from "@/utils/cores";
 
 const hrefTurmas = "/turmas";
 const hrefAlunos = "/alunos";
 const hrefRecentes = "/recentes";
-
-const itensTurmas = [
-  { tag: "TDAH", nome: "1º Ano N - Período", href: "/dashboardTurma" },
-  { tag: "TEA", nome: "2º Ano M - Período", href: "/dashboardTurma" },
-];
-
-const itensAlunos = [
-  { tag: "TDAH", nome: "Ana Beatriz Souza", href: "/dashboardAluno" },
-  { tag: "AH/SD", nome: "Carlos Eduardo Lima", href: "/dashboardAluno" },
-];
-
-const itensRecentes = [
-  { tag: "TDAH", nome: "Ana Beatriz Souza - Chat", href: "/chat" },
-  { tag: "TEA", nome: "Carlos Eduardo Lima - Chat", href: "/chat" },
-];
 
 const iconTurmas = (
   <svg width="24" height="24" viewBox="0 0 30 30" fill="none">
@@ -97,8 +85,43 @@ const iconRecentes = (
 
 export default function Menu() {
   const pathname = usePathname();
+  const { turmas, alunos, conversas, hydrated } = useData();
+
+  const itensTurmas = React.useMemo(() => {
+    // a cor da turma nasce do nome dela, e nao dos alunos cadastrados nela
+    return turmas.slice(0, 3).map((turma) => ({
+      cor: corDoNome(turma.nome),
+      neuros: [],
+      nome: turma.nome,
+      href: `/dashboardTurma?id=${turma.id}`,
+    }));
+  }, [turmas]);
+
+  const itensAlunos = React.useMemo(() => {
+    return alunos.slice(0, 3).map((aluno) => {
+      return {
+        neuros: aluno.neuro,
+        nome: aluno.nome,
+        href: `/dashboardAluno?id=${aluno.id}`,
+      };
+    });
+  }, [alunos]);
+
+  const itensRecentes = React.useMemo(() => {
+    return conversas.slice(0, 3).map((conversa) => {
+      const aluno = alunos.find((a) => a.id === conversa.alunoId);
+      const turma = aluno ? turmaDoAluno(turmas, alunos, aluno.id) : undefined;
+      return {
+        neuros: aluno ? aluno.neuro : [],
+        nome: `${aluno?.nome ?? "Aluno"} - ${conversa.titulo}`,
+        href: `/chat?conversaId=${conversa.id}`,
+      };
+    });
+  }, [conversas, alunos, turmas]);
 
   const [isOpen, setIsOpen] = React.useState(true);
+  // depois que a pessoa colapsa a sidebar na mao, o resize para de decidir por ela
+  const [preferenciaRecolhida, setPreferenciaRecolhida] = React.useState(false);
   const [isAlunoOpen, setIsAlunoOpen] = React.useState(
     pathname === hrefAlunos
   );
@@ -117,13 +140,22 @@ export default function Menu() {
     setIsRecentesOpen(false);
   };
 
+  // colapso e expansao feitas pela pessoa valem mais que o tamanho da janela
+  const recolher = () => {
+    setPreferenciaRecolhida(true);
+    setIsOpen(false);
+    fecharDropdowns();
+  };
+
+  const expandir = () => {
+    setPreferenciaRecolhida(true);
+    setIsOpen(true);
+  };
+
   React.useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1280) {
-        setIsOpen(false);
-      } else {
-        setIsOpen(true);
-      }
+      const telaLarga = window.innerWidth >= 1280;
+      setIsOpen((atual) => (preferenciaRecolhida ? atual : telaLarga));
     };
 
     handleResize();
@@ -133,7 +165,7 @@ export default function Menu() {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [preferenciaRecolhida]);
 
   // abre o dropdown da rota atual
   if (rotaAnterior !== pathname) {
@@ -188,14 +220,29 @@ export default function Menu() {
               }`}
             >
               <div className="flex min-w-0 gap-1 items-center">
-                <img
-                  src={Icon.src}
-                  alt=""
-                  className={`h-8 w-8 shrink-0 select-none md:h-9 md:w-9 ${
-                    !isOpen && "cursor-pointer"
-                  }`}
-                  onClick={!isOpen ? () => setIsOpen(true) : undefined}
-                />
+                {isOpen ? (
+                  <img
+                    src={Icon.src}
+                    alt=""
+                    aria-hidden
+                    className="h-8 w-8 shrink-0 select-none md:h-9 md:w-9"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={expandir}
+                    aria-label="Expandir menu"
+                    aria-expanded={false}
+                    className="shrink-0 cursor-pointer select-none"
+                  >
+                    <img
+                      src={Icon.src}
+                      alt=""
+                      aria-hidden
+                      className="h-8 w-8 select-none md:h-9 md:w-9"
+                    />
+                  </button>
+                )}
 
                 <h1
                   className={`truncate text-2xl text-inverse font-(family-name:--font-text-me-one) select-none md:text-3xl ${
@@ -210,8 +257,7 @@ export default function Menu() {
                 className={`shrink-0 cursor-pointer p-2 -m-2 ${!isOpen && "hidden"}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsOpen(false);
-                  fecharDropdowns();
+                  recolher();
                 }}
               >
                 <svg
@@ -247,7 +293,10 @@ export default function Menu() {
                 items={itensTurmas}
                 isOpen={isTurmaOpen}
                 isSidebarOpen={isOpen}
-                onToggle={() => setIsTurmaOpen(!isTurmaOpen)}
+                carregando={!hydrated}
+                onToggle={() => {
+                  if (itensTurmas.length > 0) setIsTurmaOpen(!isTurmaOpen);
+                }}
               />
 
               {/* alunos */}
@@ -259,7 +308,10 @@ export default function Menu() {
                 items={itensAlunos}
                 isOpen={isAlunoOpen}
                 isSidebarOpen={isOpen}
-                onToggle={() => setIsAlunoOpen(!isAlunoOpen)}
+                carregando={!hydrated}
+                onToggle={() => {
+                  if (itensAlunos.length > 0) setIsAlunoOpen(!isAlunoOpen);
+                }}
               />
 
               {/* separador */}
@@ -274,21 +326,27 @@ export default function Menu() {
                 items={itensRecentes}
                 isOpen={isRecentesOpen}
                 isSidebarOpen={isOpen}
-                onToggle={() => setIsRecentesOpen(!isRecentesOpen)}
+                carregando={!hydrated}
+                onToggle={() => {
+                  if (itensRecentes.length > 0) setIsRecentesOpen(!isRecentesOpen);
+                }}
               />
             </div>
           </div>
 
           {/* botao que abre as configuracoes */}
-          <div className="config" onClick={() => setIsConfigOpen(true)}>
+          <div className="config">
             <div className="border-t w-full border-surface-base" />
 
             <div className="flex flex-col w-full mt-3">
-              <div
-                className={`h-[35px] flex items-center cursor-pointer ${
-                  isOpen
-                    ? "w-full justify-between"
-                    : "w-[30px] justify-center mx-auto"
+              <button
+                type="button"
+                onClick={() => setIsConfigOpen(true)}
+                aria-label="Configurações"
+                aria-haspopup="dialog"
+                aria-expanded={isConfigOpen}
+                className={`h-[35px] flex items-center cursor-pointer w-full ${
+                  isOpen ? "justify-between" : "justify-center mx-auto w-[30px]"
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -297,6 +355,7 @@ export default function Menu() {
                     height="24"
                     viewBox="0 0 30 30"
                     fill="none"
+                    aria-hidden
                   >
                     <path
                       d="M23.9251 16.175C23.9751 15.8 24.0001 15.4125 24.0001 15C24.0001 14.6 23.9751 14.2 23.9126 13.825L26.4501 11.85C26.6751 11.675 26.7376 11.3375 26.6001 11.0875L24.2001 6.9375C24.0501 6.6625 23.7376 6.575 23.4626 6.6625L20.4751 7.8625C19.8501 7.3875 19.1876 6.9875 18.4501 6.6875L18.0001 3.5125C17.9501 3.2125 17.7001 3 17.4001 3H12.6001C12.3001 3 12.0626 3.2125 12.0126 3.5125L11.5625 6.6875C10.8251 6.9875 10.1501 7.4 9.53764 7.8625L6.55014 6.6625C6.27514 6.5625 5.96264 6.6625 5.81264 6.9375L3.42514 11.0875C3.27514 11.35 3.32514 11.675 3.57514 11.85L6.11264 13.825C6.0501 14.2 6.0001 14.6125 6.0001 15C6.0001 15.3875 6.02515 15.8 6.08764 16.175L3.55014 18.15C3.32514 18.325 3.26264 18.6625 3.40014 18.9125L5.80014 23.0625C5.9501 23.3375 6.26264 23.425 6.53764 23.3375L9.52514 22.1375C10.1501 22.6125 10.8126 23.0125 11.5501 23.3125L12.0001 26.4875C12.0626 26.7875 12.3001 27 12.6001 27H17.4001C17.7001 27 17.9501 26.7875 17.9876 26.4875L18.4376 23.3125C19.1751 23.0125 19.8501 22.6125 20.4626 22.1375L23.4501 23.3375C23.7251 23.4375 24.0376 23.3375 24.1876 23.0625L26.5876 18.9125C26.7376 18.6375 26.6751 18.325 26.4376 18.15L23.9251 16.175ZM15.0001 19.5C12.5251 19.5 10.5001 17.475 10.5001 15C10.5001 12.525 12.5251 10.5 15.0001 10.5C17.4751 10.5 19.5001 12.525 19.5001 15C19.5001 17.475 17.4751 19.5 15.0001 19.5Z"
@@ -312,7 +371,7 @@ export default function Menu() {
                     Configurações
                   </p>
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         </div>

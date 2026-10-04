@@ -1,129 +1,148 @@
 "use client";
 
-import { use, useState } from "react";
+import { useMemo, useState } from "react";
 import HeaderPag from "@/components/app/HeaderPagTurmas";
 import BarraPesquisa from "@/components/common/Input";
 import Turma from "@/components/app/Turma";
 import BoxSemTurma from "@/components/app/BoxSemTurma";
+import Toast, { useAlerta } from "@/components/common/Toast";
 import { FormTurma, FormDeletaTurma } from "@/components/app/forms/FormAlunoTurma";
-import Link from "next/link";
+import { useData } from "@/components/app/state/DataProvider";
+import { createTurma, deleteTurma, updateTurma } from "@/utils/data/controller";
+import type { Resultado } from "@/utils/data/controller";
+import { ALERTAS } from "@/utils/alertas";
+import { alunosDaTurma } from "@/utils/data/types";
 
-// dados de exemplo das turmas
-const turmasMock = [
-  {
-    nomeTurma: "3º Ano A - Manhã",
-    alunos: [
-      {nome: "Junior M.", neuro:"TDAH", turma:"3º Ano A - Manhã"},
-      {nome: "Julia H.", neuro:"TEA", turma:"3º Ano A - Manhã"},
-      {nome: "Lucas O.", neuro:"TDAH", turma:"3º Ano A - Manhã"},
-      {nome: "Rodrigo M.", neuro:"AH/SD", turma:"3º Ano A - Manhã"},
-    ]
-  },
-];
-
-export default function ConteudoTurmas(){
-  const [temTurma, setTemTurma] = useState(false);
+export default function ConteudoTurmas() {
+  const { turmas, alunos, recarregar } = useData();
   const [mostrarForm, setMostrarForm] = useState(false);
-  const [mostrarEditar, setMostrarEditar] = useState(false);
-  const [mostrarExcluir, setMostrarExcluir] = useState(false);
-  const [turmaSelecionada, setTurmaSelecionada] = useState<number | null>(null)
+  const [busca, setBusca] = useState("");
+  const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
+  const [idEmExclusao, setIdEmExclusao] = useState<string | null>(null);
+  const { alerta, mostrar, limpar } = useAlerta();
 
-  const [turmas, setTurmas] = useState(turmasMock);
+  const turmaEmEdicao = idEmEdicao
+    ? turmas.find((turma) => turma.id === idEmEdicao)
+    : undefined;
+  const turmaEmExclusao = idEmExclusao
+    ? turmas.find((turma) => turma.id === idEmExclusao)
+    : undefined;
 
-  function abrirForm(){
-    setMostrarForm(true);
-  }
-
-  function fecharForm(){
-    setMostrarForm(false);
-  }
-
-  function criarTurma(){
-    setTurmas(turmasMock);
-    setTemTurma(true);
-    setMostrarForm(false);
-  }
-
-  function abrirEditar(index:number){
-    setTurmaSelecionada(index);
-    setMostrarEditar(true);
-  }
-
-  function fecharEditar(){
-    setMostrarEditar(false);
-    setTurmaSelecionada(null);
-  }
-
-  function abrirExcluir(index:number){
-    setTurmaSelecionada(index);
-    setMostrarExcluir(true);
-  }
-
-  function fecharExcluir(){
-    setMostrarExcluir(false);
-    setTurmaSelecionada(null);
-  }
-
-  // remove a turma escolhida da lista
-  function confirmarExclusao(){
-    if (turmaSelecionada === null) return;
-
-    const novasTurmas = turmas.filter((_, i) => i !== turmaSelecionada);
-    setTurmas(novasTurmas);
-
-    if (novasTurmas.length === 0){
-      setTemTurma(false);
+  /** o form fica aberto e o toast aparece quando o controller recusa */
+  async function tentar(resultado: Resultado): Promise<Resultado> {
+    if (!resultado.ok) {
+      mostrar(resultado.erro);
     }
-
-    fecharExcluir();
+    return resultado;
   }
 
-  return(
+  async function aoCriar(nome: string): Promise<Resultado> {
+    const resultado = await createTurma({ nome });
+    if (resultado.ok) {
+      await recarregar();
+    }
+    return tentar(resultado);
+  }
+
+  async function aoEditar(nome: string): Promise<Resultado> {
+    if (!idEmEdicao) {
+      return tentar({ ok: false, erro: ALERTAS.TURMA_NAO_ENCONTRADA });
+    }
+    const resultado = await updateTurma(idEmEdicao, { nome });
+    if (resultado.ok) {
+      await recarregar();
+    }
+    return tentar(resultado);
+  }
+
+  async function confirmarExclusao(): Promise<Resultado> {
+    if (!idEmExclusao) {
+      return tentar({ ok: false, erro: ALERTAS.TURMA_NAO_ENCONTRADA });
+    }
+    const resultado = await deleteTurma(idEmExclusao);
+    if (resultado.ok) {
+      await recarregar();
+    }
+    return tentar(resultado);
+  }
+
+  const turmasFiltradas = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    if (!termo) return turmas;
+    return turmas.filter((turma) => turma.nome.toLowerCase().includes(termo));
+  }, [turmas, busca]);
+
+  const temTurma = turmas.length > 0;
+  const temResultado = turmasFiltradas.length > 0;
+
+  return (
     <div className="flex flex-col w-full min-h-screen items-center">
-      {/* header e barra de busca */}
       <div className="flex flex-col w-full gap-4 sm:gap-5 mt-8 sm:mt-12 lg:mt-20">
-        <HeaderPag onCriarTurma={abrirForm} />
-        <BarraPesquisa type="search" placeholder="Procurar turmas..." />
+        <HeaderPag onCriarTurma={() => setMostrarForm(true)} />
+        <BarraPesquisa
+          type="search"
+          placeholder="Procurar turmas..."
+          value={busca}
+          onChange={(event) => setBusca(event.target.value)}
+        />
       </div>
 
-      {/* lista de turmas ou estado vazio */}
-      {temTurma ? (
-        <Link href="/dashboardTurma" className="w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-10 lg:gap-16 mt-6 sm:mt-10 w-full">
-            {turmas.map((turma, index) => (
-              <Turma
-                key={index}
-                nomeTurma={turma.nomeTurma}
-                alunos={turma.alunos}
-                onEditar={() => abrirEditar(index)}
-                onExcluir={() => abrirExcluir(index)}
-              />
-            ))}
+      {temResultado ? (
+        <div className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 xl:gap-8 mt-6 sm:mt-10 w-full">
+            {turmasFiltradas.map((turma) => {
+              const daTurma = alunosDaTurma(alunos, turma.id);
+
+              return (
+                <Turma
+                  key={turma.id}
+                  nomeTurma={turma.nome}
+                  alunos={daTurma.map((aluno) => ({
+                    id: aluno.id,
+                    nome: aluno.nome,
+                    neuros: aluno.neuro,
+                  }))}
+                  href={`/dashboardTurma?id=${turma.id}`}
+                  onEditar={() => setIdEmEdicao(turma.id)}
+                  onExcluir={() => setIdEmExclusao(turma.id)}
+                />
+              );
+            })}
           </div>
-        </Link>
+        </div>
+      ) : temTurma ? (
+        <div className="flex flex-1 w-full flex-col items-center justify-center gap-2 py-16">
+          <p className="text-lg text-secondary">Nenhuma turma encontrada</p>
+          <p className="text-sm text-ink-muted">Tente outro termo de busca.</p>
+        </div>
       ) : (
         <div className="flex flex-1 w-full items-center justify-center">
-          <BoxSemTurma onCriarTurma={abrirForm} />
+          <BoxSemTurma onCriarTurma={() => setMostrarForm(true)} />
         </div>
       )}
 
-      {/* forms de criar, editar e excluir */}
       {mostrarForm && (
-        <FormTurma onClose={fecharForm} onCriar={criarTurma} />
+        <FormTurma onClose={() => setMostrarForm(false)} onSalvar={aoCriar} />
       )}
 
-      {mostrarEditar && turmaSelecionada !== null && (
+      {turmaEmEdicao && (
         <FormTurma
           modo="editar"
-          nomeInicial={turmas[turmaSelecionada]?.nomeTurma}
-          onClose={fecharEditar}
-          onCriar={fecharEditar}
+          nomeInicial={turmaEmEdicao.nome}
+          onClose={() => setIdEmEdicao(null)}
+          onSalvar={aoEditar}
         />
       )}
 
-      {mostrarExcluir && turmaSelecionada !== null &&(
-        <FormDeletaTurma onClose={fecharExcluir} onExcluir={confirmarExclusao} />
+      {turmaEmExclusao && (
+        <FormDeletaTurma
+          nomeTurma={turmaEmExclusao.nome}
+          onClose={() => setIdEmExclusao(null)}
+          onExcluir={confirmarExclusao}
+        />
       )}
+
+      {alerta && <Toast alerta={alerta} limpar={limpar} />}
     </div>
   );
 }

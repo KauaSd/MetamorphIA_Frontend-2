@@ -1,7 +1,12 @@
 import Seta from "@/public/seta.svg";
 import Link from "next/link";
 
-export default function HeaderDashTurma(){
+interface HeaderDashTurmaProps {
+    nomeTurma?: string;
+    totalAlunos?: number;
+}
+
+export default function HeaderDashTurma({ nomeTurma = "", totalAlunos = 0 }: HeaderDashTurmaProps){
     return(
         <div className="flex w-full flex-col gap-4">
 
@@ -13,9 +18,9 @@ export default function HeaderDashTurma(){
             </Link>
 
             <div className="flex flex-col gap-[5px]">
-                <p className="font-(family-name:--font-text-me-one) text-2xl text-primary sm:text-3xl">3º Ano A - Manhã</p>
-                <div className="bg-surface-info w-[80px] h-[22px] rounded-[70px] flex justify-center items-center">
-                    <p className="text-sm text-ink">18 alunos</p>
+                <p className="font-(family-name:--font-text-me-one) text-2xl text-primary sm:text-3xl">{nomeTurma || "Turma"}</p>
+                <div className="bg-surface-info inline-flex h-[22px] rounded-[70px] items-center justify-center px-2 self-start">
+                    <p className="text-sm text-ink">{totalAlunos} {totalAlunos === 1 ? "aluno" : "alunos"}</p>
                 </div>
             </div>
         </div>

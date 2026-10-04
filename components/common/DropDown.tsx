@@ -1,116 +1,139 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ChevronDown } from "lucide-react"
+import React, { useState, useRef, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 
 interface Option {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
-interface OptionsProps {
-  options: Option[]
-  isTurma?: boolean
-  small?: boolean
+interface DropDownProps {
+  options: Option[];
+  small?: boolean;
+  value?: string;
+  placeholder?: string;
+  onChange?: (value: string) => void;
 }
 
-export default function Dropdown({ options, isTurma = false, small = false }: OptionsProps) {
-  const [isOpen, setIsOpen] = React.useState(false)
+export default function DropDown({
+  options,
+  small = false,
+  value,
+  placeholder = "Selecione a turma",
+  onChange,
+}: DropDownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [interno, setInterno] = useState(value ?? options[0]?.value ?? "");
 
-  const [position, setPosition] = React.useState<string | undefined>(() => {
-    return isTurma ? undefined : options[0]?.value
-  })
+  const selectedValue = value !== undefined ? value : interno;
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const dropdown = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    function clicar(event: MouseEvent) {
-      if (dropdown.current && !dropdown.current.contains(event.target as Node)) {
-        setIsOpen(false)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
       }
-    }
-    document.addEventListener("mousedown", clicar)
-    return () => document.removeEventListener("mousedown", clicar)
-  }, [])
+    };
 
-  const selectedOption = options.find((opt) => opt.value === position)
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const renderLabel = () => {
-    if (selectedOption) {
-      return selectedOption.label
+  const handleSelect = (optionValue: string) => {
+    if (value === undefined) {
+      setInterno(optionValue);
     }
-    return isTurma ? "Turma" : options[0]?.label
-  }
+    setIsOpen(false);
+    onChange?.(optionValue);
+  };
+
+  const selectedOption = options.find(
+    (option) => option.value === selectedValue
+  );
 
   return (
     <div
-      className={`relative font-(family-name:--font-text-me-one) ${
-        small ? "text-sm sm:text-base" : "text-base sm:text-xl"
-      } ${
-        isTurma ? "w-full block" : "inline-block text-left"
-      }`}
-      ref={dropdown}
+      ref={dropdownRef}
+      className={`relative ${small ? "w-36" : "w-full"}`}
     >
+      {/* botão */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between gap-2 bg-sunken rounded-[30px] text-primary hover:bg-surface-base focus:outline-none transition-colors ${
-          small ? "px-2 py-0.5 sm:px-2.5 sm:py-1" : "px-3 py-1 sm:px-4 sm:py-1.5"
-        } ${
-          isTurma
-            ? "w-full"
-            : small
-              ? "min-w-[80px] sm:min-w-[100px]"
-              : "min-w-[100px] sm:min-w-[140px]"
-        }`}
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={`
+          flex w-full items-center justify-between
+          rounded-full
+          bg-sunken
+          text-primary text-[18px] leading-none
+          font-(family-name:--font-text-me-one)
+          transition-all duration-200 ease-out
+          ${small ? "h-8 px-4" : "h-9 px-5"}
+        `}
       >
-        <span className="whitespace-nowrap">{renderLabel()}</span>
+        <span className="truncate">
+          {selectedOption?.label || placeholder}
+        </span>
+
         <ChevronDown
-          className={`${
-            small ? "w-3.5 h-3.5 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 sm:h-5"
-          } shrink-0 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : "rotate-0"
-          }`}
+          className={`
+            h-5 w-5 shrink-0 ml-2
+            transition-transform duration-300 ease-out
+            ${isOpen ? "rotate-180" : ""}
+          `}
+          strokeWidth={2.5}
         />
       </button>
 
+      {/* opções */}
       <div
-        className={`absolute left-1/2 -translate-x-1/2 mt-2 rounded-[30px] text-primary bg-sunken shadow-lg focus:outline-none z-10 ${
-          small ? "p-1" : "p-1.5"
-        } 
-          transition-all duration-200 ease-out origin-top ${
-            isTurma
-              ? "w-full max-h-[150px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              : small
-                ? "min-w-[80px] sm:min-w-[100px]"
-                : "min-w-[100px] sm:min-w-[140px]"
+        className={`
+          absolute left-0 z-10 w-full
+          mt-2 p-1.5
+          rounded-3xl
+          bg-sunken
+          shadow-lg
+          origin-top
+          transition-all duration-200 ease-out
+          ${
+            isOpen
+              ? "visible translate-y-0 scale-y-100 opacity-100"
+              : "invisible -translate-y-1 scale-y-95 opacity-0"
           }
-        ${
-          isOpen
-            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
-            : "opacity-0 -translate-y-2 scale-95 pointer-events-none"
-        }`}
+        `}
       >
-        <div className="py-1 flex flex-col gap-0.5" role="radiogroup">
+        <div className="flex flex-col gap-0.5">
           {options.map((option) => {
-            const isSelected = position === option.value
+            const selecionada = option.value === selectedValue;
+
             return (
-              <label
+              <button
                 key={option.value}
-                onClick={() => {
-                  setPosition(option.value)
-                  setIsOpen(false)
-                }}
-                className={`flex items-center px-2.5 py-0.5 cursor-pointer rounded-[70px] text-primary transition-colors ${
-                  isSelected ? "bg-surface-base" : "hover:bg-surface-base"
-                }`}
+                type="button"
+                onClick={() => handleSelect(option.value)}
+                className={`
+                  w-full truncate text-left
+                  rounded-full
+                  text-primary text-[18px] leading-none
+                  font-(family-name:--font-text-me-one)
+                  transition-colors duration-150
+                  ${small ? "px-2.5 py-1.5" : "px-3 py-2"}
+                  ${
+                    selecionada
+                      ? "bg-surface-base"
+                      : "bg-transparent hover:bg-surface-base-strong"
+                  }
+                `}
               >
-                <span className="whitespace-nowrap">{option.label}</span>
-              </label>
-            )
+                {option.label}
+              </button>
+            );
           })}
         </div>
       </div>
     </div>
-  )
+  );
 }

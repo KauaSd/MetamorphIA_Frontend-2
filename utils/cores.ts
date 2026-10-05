@@ -23,6 +23,14 @@ export const TOKENS = {
   "surface-positive": "var(--surface-positive)",
   "surface-tag-other": "var(--surface-tag-other)",
 
+  // Neurodivergências
+  "neuro-tdah": "var(--neuro-tdah)",
+  "neuro-tea": "var(--neuro-tea)",
+  "neuro-disllexia": "var(--neuro-disllexia)",
+  "neuro-discalculia": "var(--neuro-discalculia)",
+  "neuro-ahs": "var(--neuro-ahs)",
+  "neuro-outro": "var(--neuro-outro)",
+
   // Texto
   primary: "var(--primary)",
   secondary: "var(--secondary)",
@@ -74,6 +82,14 @@ export const TW_COLOR_MAP = {
   "surface-info": "bg-surface-info",
   "surface-positive": "bg-surface-positive",
   "surface-tag-other": "bg-surface-tag-other",
+
+  // Neurodivergências
+  "neuro-tdah": "bg-neuro-tdah",
+  "neuro-tea": "bg-neuro-tea",
+  "neuro-disllexia": "bg-neuro-disllexia",
+  "neuro-discalculia": "bg-neuro-discalculia",
+  "neuro-ahs": "bg-neuro-ahs",
+  "neuro-outro": "bg-neuro-outro",
 
   // Texto
   primary: "text-primary",
@@ -149,15 +165,12 @@ export function corDoNomeCSS(nome: string): string {
  * (corPorNeuro) saem daqui, então nunca mais divergem de cor.
  */
 const NEURO_TOKEN = {
-  TDAH: "surface-accent",
-  TEA: "surface-info",
-  Dislexia: "surface-warning",
-  Discalculia: "surface-danger-strong",
-  "AH/SD": "surface-accent",
-  TOD: "surface-danger",
-  "Altas Habilidades": "surface-positive",
-  "Deficiência Intelectual": "surface-tag-other",
-  Outro: "surface-secondary",
+  TDAH: "neuro-tdah",
+  TEA: "neuro-tea",
+  Dislexia: "neuro-disllexia",
+  Discalculia: "neuro-discalculia",
+  "AH/SD": "neuro-ahs",
+  Outro: "neuro-outro",
 } as const satisfies Record<string, TokenName>;
 
 type NeuroLabel = keyof typeof NEURO_TOKEN;

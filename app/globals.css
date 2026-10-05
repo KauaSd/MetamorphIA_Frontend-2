@@ -33,6 +33,15 @@
   --surface-positive: #c9f9fe;
   --surface-tag-other: #948f9e;
 
+  /* neurodivergencias: cor de identidade de cada uma, usada na TagNeuro
+     e nas fatias da bolinha do menu. Constantes nos dois temas. */
+  --neuro-tdah: #caf3ff;
+  --neuro-tea: #ffd279;
+  --neuro-disllexia: #ceffca;
+  --neuro-discalculia: #FF9999;
+  --neuro-ahs: #d4c7f8;
+  --neuro-outro: #948f9e;
+
   /* texto, invertido entre os temas */
   --primary: #433f3f;
   --secondary: #797979;
@@ -81,6 +90,14 @@
   --surface-info: #caf3ff;
   --surface-positive: #c9f9fe;
   --surface-tag-other: #948f9e;
+
+  /* neurodivergencias: mesmas cores dos dois temas */
+  --neuro-tdah: #caf3ff;
+  --neuro-tea: #ffd279;
+  --neuro-disllexia: #ceffca;
+  --neuro-discalculia: #FF9999;
+  --neuro-ahs: #d4c7f8;
+  --neuro-outro: #948f9e;
 
   /* texto, tambem invertido em relacao ao light */
   --primary: #fffdfa;
@@ -162,6 +179,15 @@
   --color-surface-info: var(--surface-info);
   --color-surface-positive: var(--surface-positive);
   --color-surface-tag-other: var(--surface-tag-other);
+
+  /* neurodivergencias */
+  --color-neuro-tdah: var(--neuro-tdah);
+  --color-neuro-tea: var(--neuro-tea);
+  --color-neuro-disllexia: var(--neuro-disllexia);
+  --color-neuro-discalculia: var(--neuro-discalculia);
+  --color-neuro-ahs: var(--neuro-ahs);
+  --color-neuro-outro: var(--neuro-outro);
+
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-muted: var(--muted);

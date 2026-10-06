@@ -160,14 +160,14 @@ export function FormPlanos({onClose}: FormProps){
 
   return (
     <Blurfundo onClose={onClose}>
-    <form onSubmit={handleSubmit} className="w-full max-w-md">
+    <form onSubmit={handleSubmit} className="w-full max-w-[min(95vw,1100px)]">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
           <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>Planos</p>
           <BotaoFechar onClose={onClose} />
           </div>
-          <div className="flex gap-10 mt-15 self-center">
+          <div className="flex flex-wrap items-stretch justify-center gap-6 md:gap-10 mt-6 md:mt-10 max-w-full">
               <Planos tipo="pro"/>
               <Planos tipo="institucional"/>
           </div>

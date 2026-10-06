@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Paperclip } from "lucide-react";
 
 import ChatTgAluno from "@/components/app/ChatTgAluno";
 import EditaPEI from "@/components/app/EditaPEI";
@@ -11,8 +12,8 @@ import GeraPEI from "@/components/app/GeraPEI";
 import Toast, { useAlerta } from "@/components/common/Toast";
 
 import { useData } from "@/components/app/state/DataProvider";
-import { alunoPorId, primeiraNeuro } from "@/utils/data/types";
-import { addMessage } from "@/utils/data/controller";
+import { primeiraNeuro, resolverChat } from "@/utils/data/types";
+import { addMessage, openChatWith } from "@/utils/data/controller";
 import { ALERTAS } from "@/utils/alertas";
 
 // o mesmo formato de Mensagem do store, mais um id local para a lista nao
@@ -36,21 +37,61 @@ function Dots() {
 
 export default function ConteudoChat() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const conversaId = searchParams.get("conversaId");
+  const alunoId = searchParams.get("alunoId");
 
-  const { conversas, alunos, teacherName, recarregar } = useData();
+  const { conversas, alunos, teacherName, hydrated, recarregar } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
 
   // o que o stream esta escrevendo agora; o que ja foi salvo vem do store
   const [rascunho, setRascunho] = useState<Bolha[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isThinking, setIsThinking] = useState(false);
+  const [arquivos, setArquivos] = useState<File[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const conversa = conversaId
-    ? conversas.find((item) => item.id === conversaId)
-    : undefined;
-  const aluno = conversa ? alunoPorId(alunos, conversa.alunoId) : undefined;
+  // regra: chat sem aluno nao existe. Antes da hidratacao os dados ainda estao
+  // vazios, entao nada e decidido nesse meio-tempo
+  const resolucao = useMemo(
+    () => resolverChat(conversas, alunos, { conversaId, alunoId }),
+    [conversas, alunos, conversaId, alunoId],
+  );
+  const semAluno = hydrated && resolucao.status === "sem-aluno";
+  const aluno = resolucao.status === "ok" ? resolucao.aluno : undefined;
+  const conversa = resolucao.status === "ok" ? resolucao.conversa : undefined;
+  const precisaCriar = resolucao.status === "ok" && resolucao.precisaCriar;
+  const idDoAluno = resolucao.status === "ok" ? resolucao.aluno.id : null;
+
+  useEffect(() => {
+    if (semAluno) router.replace("/alunos");
+  }, [semAluno, router]);
+
+  // chegou pelo alunoId: a conversa nasce aqui e a URL vira canonica, para as
+  // mensagens terem um conversaId para persistir
+  useEffect(() => {
+    if (!hydrated || !precisaCriar || !idDoAluno) return;
+    let cancelado = false;
+
+    (async () => {
+      const resultado = await openChatWith(idDoAluno);
+      await recarregar();
+      if (cancelado) return;
+
+      if (resultado.ok && resultado.conversaId) {
+        router.replace(`/chat?conversaId=${resultado.conversaId}`);
+      } else if (!resultado.ok) {
+        // so falha quando o aluno nao existe mais: ai o chat sai da rota
+        mostrar(resultado.erro);
+        router.replace("/alunos");
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [hydrated, precisaCriar, idDoAluno, recarregar, router, mostrar]);
 
   // mensagens salvas + o que ainda esta em transito
   const bolhas: Bolha[] = [
@@ -79,11 +120,26 @@ export default function ConteudoChat() {
     }
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) {
+      setArquivos((prev) => [...prev, ...files]);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setArquivos((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // sem conversa criada ainda nao ha onde persistir a mensagem
+    if (!conversaId) return;
+
     const texto = inputValue.trim();
-    if (!texto) return;
+    if (!texto && arquivos.length === 0) return;
     if (isThinking) return;
 
     const idDaMinha = `enviada-${Date.now()}`;
@@ -179,6 +235,9 @@ export default function ConteudoChat() {
     }
   };
 
+  // chat sem aluno nao existe: a rota so renderiza com aluno resolvido
+  if (!hydrated || semAluno) return null;
+
   return (
     // tela do chat
     <div className="relative flex h-screen w-full overflow-hidden p-4 sm:p-6 md:p-11">
@@ -237,23 +296,45 @@ export default function ConteudoChat() {
 
               {/* campo de escrita da mensagem */}
               <form onSubmit={handleSendMessage}>
+                {arquivos.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2 px-4">
+                    {arquivos.map((arquivo, index) => (
+                      <div
+                        key={`${arquivo.name}-${index}`}
+                        className="flex items-center gap-2 rounded-full bg-surface-inverse/10 px-3 py-1 text-xs sm:text-sm"
+                      >
+                        <span className="max-w-[150px] truncate">{arquivo.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(index)}
+                          className="cursor-pointer text-red-500 hover:text-red-600"
+                          aria-label="Remover arquivo"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="flex items-center w-full h-11 rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6">
                   <div className="flex w-full justify-between items-center">
                     <div className="flex gap-3 items-center shrink-0">
-                      <div className="cursor-pointer">
-                        <svg
-                          width="22"
-                          height="22"
-                          viewBox="0 0 22 22"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M0.999898 9.54997H9.5499V0.949973C9.5499 0.31664 9.86657 -2.64645e-05 10.4999 -2.64645e-05H10.8999C11.5332 0.0666413 11.8832 0.383308 11.9499 0.949973V9.54997H20.4999C21.1332 9.54997 21.4499 9.86664 21.4499 10.5V10.95C21.4499 11.2166 21.3499 11.45 21.1499 11.65C20.9832 11.85 20.7666 11.95 20.4999 11.95H11.9499V20.5C11.8832 21.1666 11.5499 21.5 10.9499 21.5H10.4499C9.8499 21.4333 9.5499 21.1 9.5499 20.5V11.95H0.999898C0.699898 11.95 0.449898 11.85 0.249898 11.65C0.0832313 11.45 -0.000102025 11.2166 -0.000102025 10.95V10.5C-0.000102025 9.86664 0.333231 9.54997 0.999898 9.54997Z"
-                            fill="var(--primary)"
-                          />
-                        </svg>
-                      </div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.pptx"
+                        multiple
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="cursor-pointer flex items-center justify-center"
+                        aria-label="Anexar arquivo ou imagem"
+                      >
+                        <Paperclip size={22} color="var(--primary)" />
+                      </button>
                     </div>
 
                     <div className="flex-1 min-w-0 h-full">
@@ -268,7 +349,7 @@ export default function ConteudoChat() {
 
                     <button
                       type="submit"
-                      disabled={isThinking}
+                      disabled={isThinking || !conversaId}
                       aria-label="Enviar mensagem"
                       className="w-10 h-10 rounded-[70px] bg-surface-inverse flex items-center justify-center cursor-pointer shrink-0 disabled:opacity-50"
                     >

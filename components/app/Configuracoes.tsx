@@ -8,6 +8,10 @@ import engrenagem from "@/public/engrenagem.svg";
 import circulo_conta from "@/public/circulo_conta.svg";
 import cadeado from "@/public/cadeado.svg";
 import { FormDeletaConta, FormDesconectaTodos, FormDesconecta, FormAlterarSenha, FormPlanos} from "@/components/app/forms/FormConta";
+import CampoEditavel from "@/components/app/CampoEditavel";
+import BarraAlteracoes from "@/components/app/BarraAlteracoes";
+import { useData } from "@/components/app/state/DataProvider";
+import { saveTeacherName } from "@/utils/data/controller";
 import Link from "next/link";
 import {
   DEFAULT_THEME,
@@ -44,6 +48,13 @@ interface CampoValorProps {
 
 interface ConfiguracoesProps {
   onClose?: () => void;
+}
+
+// rascunho do perfil em edicao na aba geral, mora no Configuracoes porque a
+// barra de salvar/cancelar fica fora da aba
+interface PerfilProps {
+  nome: string;
+  aoDigitar: (valor: string) => void;
 }
 
 interface ItemBusca {
@@ -124,10 +135,63 @@ function filtrar(termo: string) {
 export default function Configuracoes({
   onClose,
 }: ConfiguracoesProps) {
+  const { teacherName, recarregar } = useData();
   const [abaAtiva, setAbaAtiva] = useState("geral");
   const [termo, setTermo] = useState("");
   const [alvo, setAlvo] = useState<string | null>(null);
   const painelRef = useRef<HTMLElement>(null);
+
+  // rascunho do nome: a pessoa digita direto no campo e so grava (ou descarta)
+  // pela barra de alteracoes do rodape
+  const [nome, setNome] = useState(teacherName ?? "");
+  const alterado = nome.trim() !== (teacherName ?? "").trim();
+
+  // saida tentada com pendencia: a barra de alteracoes fica vermelha ate
+  // salvar, cancelar ou digitar de novo
+  const [bloqueada, setBloqueada] = useState(false);
+  const caixaRef = useRef<HTMLDivElement>(null);
+
+  async function salvarAlteracoes() {
+    const resultado = await saveTeacherName(nome.trim());
+    if (!resultado.ok) throw new Error(resultado.erro.titulo);
+    await recarregar();
+    setBloqueada(false);
+  }
+
+  function cancelarAlteracoes() {
+    setNome(teacherName ?? "");
+    setBloqueada(false);
+  }
+
+  function aoDigitar(valor: string) {
+    setNome(valor);
+    setBloqueada(false);
+  }
+
+  // o blur e o x chamam isso: sem alteracao fecha, com alteracao so alerta
+  function tentarFechar() {
+    if (!alterado) {
+      onClose?.();
+      return;
+    }
+    setBloqueada(true);
+    chacoalhar();
+  }
+
+  // chacoalhada leve na box do modal (no navegador; sem suporte nao faz nada)
+  function chacoalhar() {
+    caixaRef.current?.animate?.(
+      [
+        { transform: "translateX(0)" },
+        { transform: "translateX(-6px)" },
+        { transform: "translateX(6px)" },
+        { transform: "translateX(-4px)" },
+        { transform: "translateX(4px)" },
+        { transform: "translateX(0)" },
+      ],
+      { duration: 320, easing: "ease-in-out" },
+    );
+  }
 
   // rola ate o item escolhido, usado pelo Configuracoes
   useEffect(() => {
@@ -148,8 +212,8 @@ export default function Configuracoes({
   }
 
   return (
-    <Blurfundo onClose={onClose}>
-      <div className="flex h-[590px] w-[890px] absolute overflow-hidden rounded-[40px] bg-surface-muted">
+    <Blurfundo onClose={tentarFechar}>
+      <div ref={caixaRef} className="flex h-[590px] w-[890px] absolute overflow-hidden rounded-[40px] bg-surface-muted">
         <SidebarEscura
           abaAtiva={abaAtiva}
           setAbaAtiva={setAbaAtiva}
@@ -159,21 +223,30 @@ export default function Configuracoes({
         />
 
         <PainelClaro
-          Preencher={renderizarAba(abaAtiva, alvo)}
-          onClose={onClose}
+          Preencher={renderizarAba(abaAtiva, alvo, { nome, aoDigitar })}
+          onClose={tentarFechar}
           painelRef={painelRef}
         />
       </div>
+
+      {alterado && (
+        <BarraAlteracoes
+          nome={nome}
+          bloqueada={bloqueada}
+          onSalvar={salvarAlteracoes}
+          onCancelar={cancelarAlteracoes}
+        />
+      )}
     </Blurfundo>
   );
 }
 
 // escolhe a aba pelo nome, usado pelo Configuracoes
-function renderizarAba(aba : string, alvo: string | null) {
+function renderizarAba(aba : string, alvo: string | null, perfil: PerfilProps) {
   if (aba === "conta") return <ContaConfig destaque={alvo} />;
   if (aba === "privacidade") return <PrivacidadeConfig destaque={alvo} />;
   if (aba === "planos") return <PlanosConfig destaque={alvo} />;
-  return <GeralConfig destaque={alvo} />;
+  return <GeralConfig destaque={alvo} perfil={perfil} />;
 }
 
 const ABAS = [
@@ -272,6 +345,8 @@ function PainelClaro({ Preencher, onClose, painelRef }: PainelProps) {
       ref={painelRef}
       className="relative flex-1 overflow-y-auto px-8 py-6 text-primary"
     >
+      {/* o x sempre aparece: sem alteracao fecha; com alteracao o onclose vira
+          tentarFechar (só alerta) */}
       <BotaoFechar onClose={onClose} />
       {Preencher}
     </section>
@@ -292,7 +367,7 @@ function BotaoFechar({onClose}: { onClose?: () => void;})
   );
 }
 
-export function GeralConfig({ destaque }: { destaque: string | null }) {
+export function GeralConfig({ destaque, perfil }: { destaque: string | null; perfil: PerfilProps }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -304,7 +379,7 @@ export function GeralConfig({ destaque }: { destaque: string | null }) {
           </LinhaConfig>
 
           <LinhaConfig id="cfg-como-te-chamar" destaque={destaque} label="Como o MetamorphIA deveria te chamar">
-            <CampoValor value="Prof. Rafaela" />
+            <CampoEditavel valor={perfil.nome} aoDigitar={perfil.aoDigitar} />
           </LinhaConfig>
 
           <div

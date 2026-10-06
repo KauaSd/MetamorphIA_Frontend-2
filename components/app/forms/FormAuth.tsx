@@ -12,6 +12,7 @@ import { OTPInput, SlotProps } from "input-otp";
 import { ALERTAS, type MensagemAlerta } from "@/utils/alertas";
 import {
   ehEmailOuTelefone,
+  pareceTelefone,
   validarEmail,
   validarSenha,
   validarTelefone,
@@ -44,7 +45,7 @@ export function FormLogin() {
     }
 
     setAlerta(null);
-    router.push("/chat");
+    router.push("/alunos");
   }
 
   return (
@@ -113,8 +114,8 @@ export function FormLogin() {
 
 export function FormCadastro() {
   const router = useRouter();
-  const [tel, setTel] = useState("");
-  const [email, setEmail] = useState("");
+  // telefone e e-mail no mesmo campo: a deteccao acontece na validacao
+  const [contato, setContato] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [aceitaTermos, setAceitaTermos] = useState(false);
@@ -128,22 +129,19 @@ export function FormCadastro() {
       return;
     }
 
-    if (!tel.trim()) {
-      setAlerta(ALERTAS.CAD_TEL_VAZIO);
+    if (!contato.trim()) {
+      setAlerta(ALERTAS.CAD_CONTATO_VAZIO);
       return;
     }
 
-    if (!validarTelefone(tel)) {
-      setAlerta(ALERTAS.CAD_TEL_INVALIDO);
-      return;
-    }
-
-    if (!email.trim()) {
-      setAlerta(ALERTAS.CAD_EMAIL_VAZIO);
-      return;
-    }
-
-    if (!validarEmail(email)) {
+    // so digitos parece telefone; letras (com ou sem @) caem na validacao
+    // de e-mail, assim "qualquer texto" nao acusa erro de telefone
+    if (pareceTelefone(contato)) {
+      if (!validarTelefone(contato)) {
+        setAlerta(ALERTAS.CAD_TEL_INVALIDO);
+        return;
+      }
+    } else if (!validarEmail(contato)) {
       setAlerta(ALERTAS.CAD_EMAIL_INVALIDO);
       return;
     }
@@ -184,7 +182,7 @@ export function FormCadastro() {
           <p className="text-2xl text-primary sm:text-3xl">Cadastre-se</p>
         </div>
 
-        {/* campos de nome, telefone, e-mail, senha e o checklist */}
+        {/* campos de nome, contato (telefone ou e-mail), senha e o checklist */}
         <div className="flex flex-col items-center gap-3">
           <Input
             type="text"
@@ -194,15 +192,9 @@ export function FormCadastro() {
           />
           <Input
             type="text"
-            placeholder="Digite seu telefone"
-            value={tel}
-            onChange={(e) => setTel(e.target.value)}
-          />
-          <Input
-            type="text"
-            placeholder="Digite seu e-mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Digite seu telefone ou e-mail"
+            value={contato}
+            onChange={(e) => setContato(e.target.value)}
           />
           <Input
             type="password"

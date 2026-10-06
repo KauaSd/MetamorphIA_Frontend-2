@@ -9,18 +9,18 @@ import { alunosDaTurma, turmaPorId } from "@/utils/data/types";
 import { createAluno, updateAluno, deleteAluno } from "@/utils/data/controller";
 import type { Resultado } from "@/utils/data/controller";
 import { ALERTAS } from "@/utils/alertas";
-import Estatistica from "@/components/app/CardEstatisticaTurma";
-import Resumo from "@/components/app/Resumo";
+// import Estatistica from "@/components/app/CardEstatisticaTurma";
+// import Resumo from "@/components/app/Resumo";
 import Button from "@/components/common/Button";
 import Toast, { useAlerta } from "@/components/common/Toast";
-import Engajamento from "@/components/app/Engajamento";
+// import Engajamento from "@/components/app/Engajamento";
 import Add from "@/public/add.svg";
 import Aluno from "@/components/app/Aluno";
 import { useState } from "react";
 import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma";
 
-const RESUMO_PADRAO_TURMA =
-  "A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA, Dislexia). A maioria responde bem a atividades visuais e instruções segmentadas. Recomenda-se uso de recursos multissensoriais e tempos flexíveis nas avaliações.";
+// const RESUMO_PADRAO_TURMA =
+// "A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA, Dislexia). A maioria responde bem a atividades visuais e instruções segmentadas. Recomenda-se uso de recursos multissensoriais e tempos flexíveis nas avaliações."
 
 export default function ConteudoDashboardTurma(){
     const [mostrarForm, setMostrarForm] = useState(false);
@@ -94,17 +94,6 @@ export default function ConteudoDashboardTurma(){
                     <div className="flex w-full flex-col">
                         <HeaderPag nomeTurma={turma?.nome} totalAlunos={alunosDaTurmaList.length} />
                     </div>
-                    {/* cards de estatistica */}
-                    <div className="flex flex-col gap-4">
-                        <p className="text-lg text-secondary font-semibold">Contextualização geral da turma</p>
-                        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                            <Estatistica tipo={1} valor={18} subtexto={3} />
-                            <Estatistica tipo={2} valor={5} subtexto={28} />
-                            <Estatistica tipo={3} valor={12} />
-                        </div>
-                    </div>
-                    <Resumo tipo={1} txt={resumo || RESUMO_PADRAO_TURMA} onSave={setResumo} />
-                    <Engajamento tipo={1} />
                     {/* lista de alunos */}
                     <div className="flex flex-col gap-7 pb-6">
                         <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">

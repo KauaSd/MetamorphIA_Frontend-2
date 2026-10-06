@@ -7,6 +7,7 @@ import { X, Sun, Moon, Stars} from "lucide-react";
 import engrenagem from "@/public/engrenagem.svg";
 import circulo_conta from "@/public/circulo_conta.svg";
 import cadeado from "@/public/cadeado.svg";
+import astroid from "@/public/astroid.svg";
 import { FormDeletaConta, FormDesconectaTodos, FormDesconecta, FormAlterarSenha, FormPlanos} from "@/components/app/forms/FormConta";
 import CampoEditavel from "@/components/app/CampoEditavel";
 import BarraAlteracoes from "@/components/app/BarraAlteracoes";
@@ -253,7 +254,7 @@ const ABAS = [
   { chave: "geral", rotulo: "Geral", icone: engrenagem },
   { chave: "conta", rotulo: "Conta", icone: circulo_conta },
   { chave: "privacidade", rotulo: "Privacidade", icone: cadeado },
-  { chave: "planos", rotulo: "Planos", icone: <Sun className="h-5 w-5" />},
+  { chave: "planos", rotulo: "Planos", icone: astroid },
 ];
 
 function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : SidebarProps) {

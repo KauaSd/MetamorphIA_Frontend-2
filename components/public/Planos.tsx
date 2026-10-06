@@ -99,7 +99,7 @@ export default function Planos({ tipo }: { tipo: PlanoId }) {
     const c = CONFIG_PLANOS[tipo] ?? CONFIG_PLANOS.basico;
 
     return (
-        <div className={`font-(family-name:--font-poppins) flex flex-col w-100 min-h-150 border-5 ${c.borda} bg-surface-base rounded-3xl px-7 py-7`}>
+        <div className={`font-(family-name:--font-poppins) flex flex-col w-full max-w-[400px] md:w-100 min-h-150 border-5 ${c.borda} bg-surface-base rounded-3xl px-7 py-7`}>
             <div className="flex flex-col gap-5">
                 <div className={`w-fit h-fit text-xs px-3 py-1 rounded-3xl ${c.tagBg}`}>
                     <span className={`font-bold ${c.tagTexto}`}>

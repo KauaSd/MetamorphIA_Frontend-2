@@ -121,6 +121,46 @@ export function conversasDoAluno(conversas: Conversa[], alunoId: string): Conver
     .sort((a, b) => dataOrdenavel(b.data) - dataOrdenavel(a.data));
 }
 
+/** Conversas da mais recente para a mais antiga, sem mexer na lista original */
+export function conversasRecentes(conversas: Conversa[]): Conversa[] {
+  return [...conversas].sort((a, b) => dataOrdenavel(b.data) - dataOrdenavel(a.data));
+}
+
+export type ResolucaoChat =
+  | { status: "sem-aluno" }
+  | { status: "ok"; aluno: Aluno; conversa?: Conversa; precisaCriar: boolean };
+
+/**
+ * Regra do chat: ele so existe quando ha um aluno para conversar.
+ *
+ * - `conversaId` valido resolve o aluno pela conversa;
+ * - `alunoId` valido ainda sem conversa pede a criacao da conversa;
+ * - qualquer outro caso (parametro ausente, id inexistente, conversa
+ *   orfa de um aluno removido) nao resolve aluno, e a tela sai da rota.
+ */
+export function resolverChat(
+  conversas: Conversa[],
+  alunos: Aluno[],
+  params: { conversaId: string | null; alunoId: string | null },
+): ResolucaoChat {
+  const { conversaId, alunoId } = params;
+
+  if (conversaId) {
+    const conversa = conversas.find((item) => item.id === conversaId);
+    const aluno = conversa ? alunoPorId(alunos, conversa.alunoId) : undefined;
+    if (!conversa || !aluno) return { status: "sem-aluno" };
+    return { status: "ok", aluno, conversa, precisaCriar: false };
+  }
+
+  if (alunoId) {
+    const aluno = alunoPorId(alunos, alunoId);
+    if (!aluno) return { status: "sem-aluno" };
+    return { status: "ok", aluno, precisaCriar: true };
+  }
+
+  return { status: "sem-aluno" };
+}
+
 export function primeiraNeuro(aluno: Aluno | null | undefined): string {
   return aluno?.neuro[0] ?? "Outro";
 }

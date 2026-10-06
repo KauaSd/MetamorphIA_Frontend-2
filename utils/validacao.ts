@@ -21,6 +21,12 @@ export function ehEmailOuTelefone(valor: string): boolean {
     : validarTelefone(trimmed);
 }
 
+// so digitos (com espaco, parenteses, + e -) parece telefone; qualquer letra
+// vira tentativa de e-mail, usado pelo cadastro pra escolher a mensagem certa
+export function pareceTelefone(valor: string): boolean {
+  return /^[\d\s()+-]+$/.test(valor.trim());
+}
+
 // cada regra de senha, usada pelo checklist RegrasSenha
 export interface RegraSenha {
   id: string;

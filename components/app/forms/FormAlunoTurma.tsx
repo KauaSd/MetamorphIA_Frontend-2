@@ -86,7 +86,7 @@ export function FormAluno( { turmas, onClose, onSalvar, modo = "criar", nomeInic
   return (
     <Blurfundo onClose={onClose}>
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-10 rounded-[40px] bg-surface-muted p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="flex w-full flex-col gap-10 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
             <p

@@ -6,7 +6,7 @@ import Icon from "@/public/icon.png";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { useData } from "@/components/app/state/DataProvider";
-import { turmaDoAluno } from "@/utils/data/types";
+import { conversasRecentes, turmaDoAluno } from "@/utils/data/types";
 import { corDoNome } from "@/utils/cores";
 
 const hrefTurmas = "/turmas";
@@ -108,7 +108,7 @@ export default function Menu() {
   }, [alunos]);
 
   const itensRecentes = React.useMemo(() => {
-    return conversas.slice(0, 3).map((conversa) => {
+    return conversasRecentes(conversas).slice(0, 3).map((conversa) => {
       const aluno = alunos.find((a) => a.id === conversa.alunoId);
       const turma = aluno ? turmaDoAluno(turmas, alunos, aluno.id) : undefined;
       return {

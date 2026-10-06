@@ -31,20 +31,15 @@ export const ALERTAS = {
     titulo: "Campo obrigatório",
     descricao: "Digite seu nome completo.",
   },
-  CAD_TEL_VAZIO: {
+  CAD_CONTATO_VAZIO: {
     tom: "danger",
     titulo: "Campo obrigatório",
-    descricao: "Digite seu telefone.",
+    descricao: "Digite seu telefone ou e-mail.",
   },
   CAD_TEL_INVALIDO: {
     tom: "danger",
     titulo: "Telefone inválido",
     descricao: "Verifique o número e tente novamente.",
-  },
-  CAD_EMAIL_VAZIO: {
-    tom: "danger",
-    titulo: "Campo obrigatório",
-    descricao: "Digite seu e-mail.",
   },
   CAD_EMAIL_INVALIDO: {
     tom: "danger",

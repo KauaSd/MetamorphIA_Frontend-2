@@ -3,11 +3,11 @@
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import BarraPesquisa from "@/components/common/Input";
 import Blurfundo from "@/components/common/Blurfundo";
-import { X, Sun, Moon } from "lucide-react";
+import { X, Sun, Moon, Stars} from "lucide-react";
 import engrenagem from "@/public/engrenagem.svg";
 import circulo_conta from "@/public/circulo_conta.svg";
 import cadeado from "@/public/cadeado.svg";
-import { FormDeletaConta, FormDesconecta } from "@/components/app/forms/FormConta";
+import { FormDeletaConta, FormDesconectaTodos, FormDesconecta, FormAlterarSenha, FormPlanos} from "@/components/app/forms/FormConta";
 import Link from "next/link";
 import {
   DEFAULT_THEME,
@@ -57,9 +57,6 @@ const ITENS_BUSCA: ItemBusca[] = [
   { id: "cfg-aba-geral", rotulo: "Geral", aba: "geral" },
   { id: "cfg-aba-conta", rotulo: "Conta", aba: "conta" },
   { id: "cfg-aba-privacidade", rotulo: "Privacidade", aba: "privacidade" },
-
-  { id: "cfg-avatar", rotulo: "Avatar", aba: "geral" },
-  { id: "cfg-nome-completo", rotulo: "Nome Completo", aba: "geral" },
   {
     id: "cfg-como-te-chamar",
     rotulo: "Como o MetamorphIA deveria te chamar",
@@ -75,11 +72,27 @@ const ITENS_BUSCA: ItemBusca[] = [
 
   {
     id: "cfg-desconectar",
+    rotulo: "Desconectar desse dispositivo",
+    aba: "conta",
+  },
+   {
+    id: "cfg-desconectar-todos",
     rotulo: "Desconectar de todos os dispositivos",
     aba: "conta",
   },
-  { id: "cfg-apagar-conta", rotulo: "Apagar sua conta", aba: "conta" },
-
+  {
+    id: "cfg-alterar-senha",
+    rotulo: "Alterar senha",
+    aba: "conta",
+  },
+  { id: "cfg-apagar-conta", 
+    rotulo: "Apagar sua conta", 
+    aba: "conta" 
+  },
+  { id: "cfg-planos", 
+    rotulo: "Planos", 
+    aba: "planos" 
+  },
   {
     id: "cfg-termos-privacidade",
     rotulo: "Termos de Privacidade",
@@ -93,6 +106,7 @@ const ROTULO_ABA: Record<string, string> = {
   geral: "Geral",
   conta: "Conta",
   privacidade: "Privacidade",
+  planos: "Planos",
 };
 
 // tira acento e caixa, usado pelo filtrar
@@ -158,6 +172,7 @@ export default function Configuracoes({
 function renderizarAba(aba : string, alvo: string | null) {
   if (aba === "conta") return <ContaConfig destaque={alvo} />;
   if (aba === "privacidade") return <PrivacidadeConfig destaque={alvo} />;
+  if (aba === "planos") return <PlanosConfig destaque={alvo} />;
   return <GeralConfig destaque={alvo} />;
 }
 
@@ -165,6 +180,7 @@ const ABAS = [
   { chave: "geral", rotulo: "Geral", icone: engrenagem },
   { chave: "conta", rotulo: "Conta", icone: circulo_conta },
   { chave: "privacidade", rotulo: "Privacidade", icone: cadeado },
+  { chave: "planos", rotulo: "Planos", icone: <Sun className="h-5 w-5" />},
 ];
 
 function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : SidebarProps) {
@@ -281,12 +297,7 @@ export function GeralConfig({ destaque }: { destaque: string | null }) {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Perfil</h2>
-        <div className="divide-y-2 divide-sunken">
-          <LinhaConfig id="cfg-avatar" destaque={destaque} label="Avatar">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full text-[18px] bg-surface-accent text-ink">
-              RS
-            </div>
-          </LinhaConfig>
+        <div className="divide-y-2 divide-sunken"> 
 
           <LinhaConfig id="cfg-nome-completo" destaque={destaque} label="Nome Completo">
             <CampoValor value="Rafaela Silva" />
@@ -331,17 +342,31 @@ export function GeralConfig({ destaque }: { destaque: string | null }) {
 
 export function ContaConfig({ destaque }: { destaque: string | null }) {
   const [mostrarFormDeleta, setMostrarFormDeleta] = useState(false);
+  const [mostrarFormDesconectaTodos, setMostrarFormDesconectaTodos] = useState(false);
   const [mostrarFormDesconecta, setMostrarFormDesconecta] = useState(false);
+  const [mostrarFormAlterarSenha, setMostrarFormAlterarSenha] = useState(false);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Conta</h2>
         <div className="divide-y-2 divide-sunken">
+          
+          <LinhaConfig id="cfg-alterar-senha" destaque={destaque} label="Alterar minha senha">
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormAlterarSenha(true)}>
+              Alterar senha
+            </button>
+          </LinhaConfig>
 
-          <LinhaConfig id="cfg-desconectar" destaque={destaque} label="Desconectar de todos os dispositivos">
+          <LinhaConfig id="cfg-desconectar" destaque={destaque} label="Desconectar desse dispositivo">
             <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormDesconecta(true)}>
               Sair
+            </button>
+          </LinhaConfig>
+
+          <LinhaConfig id="cfg-desconectar-todos" destaque={destaque} label="Desconectar de todos os dispositivo">
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormDesconectaTodos(true)}>
+              Desconectar todos
             </button>
           </LinhaConfig>
 
@@ -357,9 +382,19 @@ export function ContaConfig({ destaque }: { destaque: string | null }) {
           onClose={() => setMostrarFormDeleta(false)}
         />
       )}
+      {mostrarFormAlterarSenha && (
+        <FormAlterarSenha
+          onClose={() => setMostrarFormAlterarSenha(false)}
+        />
+      )}
       {mostrarFormDesconecta && (
         <FormDesconecta
           onClose={() => setMostrarFormDesconecta(false)}
+        />
+      )}
+      {mostrarFormDesconectaTodos && (
+        <FormDesconectaTodos
+          onClose={() => setMostrarFormDesconectaTodos(false)}
         />
       )}
     </div>
@@ -401,11 +436,36 @@ export function PrivacidadeConfig({ destaque }: { destaque: string | null }) {
   );
 }
 
+export function PlanosConfig({ destaque }: { destaque: string | null }) {
+  const [mostrarFormPlanos, setMostrarFormPlanos] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Conta</h2>
+        <div className="divide-y-2 divide-sunken">
+          
+          <LinhaConfig id="cfg-planos" destaque={destaque} label="Plano Atual: Gratuito">
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormPlanos(true)}>
+              Evoluir para PRO
+            </button>
+          </LinhaConfig>
+        </div>
+      </div>
+      {mostrarFormPlanos && (
+        <FormPlanos
+          onClose={() => setMostrarFormPlanos(false)}
+        />
+      )}
+    </div>
+  );
+}
+
 function LinhaConfig({ id, destaque, label, children } : LinhaConfigProps) {
   return (
     <div
       id={id}
-      className={`-mx-3 scroll-mt-6 rounded-lg px-3 transition-colors duration-300 ${
+      className={`-mx-3 scroll-mt-6 px-3 transition-colors duration-300 ${
         destaque === id ? "bg-surface-warning/40" : ""
       }`}
     >

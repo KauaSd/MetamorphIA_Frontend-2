@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, X } from "@phosphor-icons/react/dist/ssr";
+import { useState } from "react";
 import Input from "@/components/common/Input";
 import CheckBox from "@/components/common/CheckBox";
 import Toast from "@/components/common/Toast";
@@ -13,53 +12,12 @@ import { OTPInput, SlotProps } from "input-otp";
 import { ALERTAS, type MensagemAlerta } from "@/utils/alertas";
 import {
   ehEmailOuTelefone,
-  REGRAS_SENHA,
   validarEmail,
   validarSenha,
   validarTelefone,
 } from "@/utils/validacao";
+import { RegrasSenha } from "@/components/app/RegrasSenha";
 
-// encolhe o texto do checklist de senha em viewport baixa
-const TEXTO_CURTO = "[@media(max-height:960px)]:text-xs";
-
-// checklist das regras de senha, usado pelo FormCadastro
-function RegrasSenha({ senha }: { senha: string }) {
-  const pendentes = validarSenha(senha);
-
-  if (!senha || pendentes.length === 0) return null;
-
-  return (
-    <ul className={`mt-2 flex w-full flex-col gap-1.5 text-sm text-secondary ${TEXTO_CURTO}`}>
-      {REGRAS_SENHA.map((regra) => {
-        const cumprida = !pendentes.includes(regra.texto);
-
-        return (
-          <li key={regra.id} className="flex items-start gap-2">
-            {cumprida ? (
-              <Check
-                weight="bold"
-                size={16}
-                className="mt-0.5 shrink-0 text-primary"
-                aria-hidden
-              />
-            ) : (
-              <X
-                weight="bold"
-                size={16}
-                className="mt-0.5 shrink-0 text-secondary"
-                aria-hidden
-              />
-            )}
-
-            <span className={cumprida ? "text-primary" : undefined}>
-              {regra.texto}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
 
 export function FormLogin() {
   const router = useRouter();

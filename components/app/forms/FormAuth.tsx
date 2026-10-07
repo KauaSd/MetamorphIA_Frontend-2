@@ -308,7 +308,7 @@ export function FormToken() {
     }
 
     setAlerta(null);
-    router.push("/auth/recuperaSenha");
+    router.push("/auth/alterarSenha");
   }
 
   return (

@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import { Paperclip } from "lucide-react";
 
 import ChatTgAluno from "@/components/app/ChatTgAluno";
+import Conteudopei from "@/components/app/Conteudopei";
 import EditaPEI from "@/components/app/EditaPEI";
 import GeraPEI from "@/components/app/GeraPEI";
 import Toast, { useAlerta } from "@/components/common/Toast";
@@ -49,6 +50,8 @@ export default function ConteudoChat() {
   const [inputValue, setInputValue] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [arquivos, setArquivos] = useState<File[]>([]);
+  const [mostrarPainel, setMostrarPainel] = useState(false);
+  const [mostrarCriacao, setMostrarCriacao] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -238,40 +241,152 @@ export default function ConteudoChat() {
   // chat sem aluno nao existe: a rota so renderiza com aluno resolvido
   if (!hydrated || semAluno) return null;
 
+  // barra de escrita: fica sozinha no chat normal e entra dentro do painel de PEI
+  const barra = (
+    <form onSubmit={handleSendMessage}>
+      {arquivos.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-2 px-4">
+          {arquivos.map((arquivo, index) => (
+            <div
+              key={`${arquivo.name}-${index}`}
+              className="flex items-center gap-2 rounded-full bg-surface-inverse/10 px-3 py-1 text-xs sm:text-sm"
+            >
+              <span className="max-w-[150px] truncate">{arquivo.name}</span>
+              <button
+                type="button"
+                onClick={() => handleRemoveFile(index)}
+                className="cursor-pointer text-red-500 hover:text-red-600"
+                aria-label="Remover arquivo"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center w-full h-11 rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6">
+        <div className="flex w-full justify-between items-center">
+          <div className="flex gap-3 items-center shrink-0">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.pptx"
+              multiple
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="cursor-pointer flex items-center justify-center"
+              aria-label="Anexar arquivo ou imagem"
+            >
+              <Paperclip size={22} color="var(--primary)" />
+            </button>
+          </div>
+
+          <div className="flex-1 min-w-0 h-full">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder={hasStarted ? "" : "Digite uma mensagem..."}
+              className="w-full h-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 ml-4 caret-[var(--primary)] text-sm sm:text-base md:text-lg"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isThinking || !conversaId}
+            aria-label="Enviar mensagem"
+            className="w-10 h-10 rounded-[70px] bg-surface-inverse flex items-center justify-center cursor-pointer shrink-0 disabled:opacity-50"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clipPath="url(#clip0_924_1025)">
+                <path
+                  d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM9 11H7V9H9V11ZM13 11H11V9H13V11ZM17 11H15V9H17V11Z"
+                  fill="var(--inverse)"
+                />
+              </g>
+
+              <defs>
+                <clipPath id="clip0_924_1025">
+                  <rect width="24" height="24" fill="white" />
+                </clipPath>
+              </defs>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </form>
+  );
+
+  // editar/gerar: dentro do painel quando ele esta aberto, no chat quando fechado
+  const botoesPei = (
+    <div className="flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row sm:justify-center md:justify-end">
+      <EditaPEI ativado={true} desabilitado={mostrarPainel} />
+      <GeraPEI
+        ativado={true}
+        desabilitado={mostrarPainel}
+        onClick={() => setMostrarPainel(true)}
+      />
+    </div>
+  );
+
   return (
     // tela do chat
-    <div className="relative flex h-screen w-full overflow-hidden p-4 sm:p-6 md:p-11">
-      <div className="flex h-full flex-1">
-        <div className="absolute left-1/2 top-4 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-11 sm:top-11">
-          <ChatTgAluno
-            nome={aluno?.nome ?? "Aluno"}
-            neuro={aluno ? primeiraNeuro(aluno) : "—"}
-          />
-        </div>
+  <div className="relative flex h-screen w-full overflow-hidden p-4 sm:p-6 md:p-10">
+    <div className="flex h-full flex-1 flex-col">
+      <div className="flex w-full flex-col items-end">
+        <ChatTgAluno
+          nome={aluno?.nome ?? "Aluno"}
+          neuro={aluno ? primeiraNeuro(aluno) : "—"}
+        />
+      </div>
 
         <div className="relative flex h-full flex-1 items-center justify-center px-2">
-          <div
-            className={`absolute left-1/2 top-[30%] -translate-x-1/2 -translate-y-1/2 text-center transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-              hasStarted
-                ? "pointer-events-none top-[20%] -translate-y-8 opacity-0"
-                : "opacity-100"
-            }`}
-          >
-            <p className="whitespace-nowrap text-center text-3xl sm:text-4xl md:text-5xl">
-              Bom dia, Prof. {teacherName ?? ""}
-            </p>
-          </div>
+           <div
+             className={`absolute left-1/2 top-[30%] -translate-x-1/2 -translate-y-1/2 text-center transition-all duration-700 ease-out ${
+               hasStarted || mostrarPainel
+                 ? "pointer-events-none top-[20%] -translate-y-8 opacity-0 scale-95"
+                 : "opacity-100 scale-100"
+             }`}
+           >
+             <p className="whitespace-nowrap text-center text-3xl sm:text-4xl md:text-5xl">
+               {mostrarPainel ? "" : `Bom dia, Prof. ${teacherName ?? ""}`}
+             </p>
+           </div>
 
           {/* campo de mensagem e lista de conversa */}
           <div
-            className={`absolute left-0 w-full px-4 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-8 md:px-16 lg:px-24 ${
-              hasStarted ? "bottom-0" : "top-[52%] -translate-y-1/2"
+            className={`absolute left-0 w-full px-4 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-8 md:px-5 lg:px-20 ${
+              mostrarPainel
+                 ? "inset-x-0 top-8 sm:top-12 bottom-0 flex flex-col"
+                : hasStarted
+                  ? "bottom-0"
+                  : "top-[52%] -translate-y-1/2 opacity-100"
             }`}
           >
-            <div className="mx-auto flex w-full max-w-[64rem] flex-col gap-8">
+            <div
+              className={`relative mx-auto flex w-full flex-col gap-6 h-full ${
+              mostrarPainel ? "max-w-none h-full justify-center" : "max-w-[64rem]"
+            }`}
+            >
               {/* bolhas da conversa */}
               {hasStarted && (
-                <div className="flex max-h-[55vh] w-full flex-col gap-4 overflow-y-auto">
+                <div
+                  className={`flex flex-col gap-4 overflow-y-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    mostrarPainel
+                      ? "absolute left-0 right-0 top-0 z-10 w-full max-h-[55vh] opacity-0 translate-y-16 pointer-events-none"
+                      : "relative max-h-[55vh] w-full opacity-100 translate-y-0"
+                  }`}
+                >
                   {bolhas.map((bolha) => (
                     <div
                       key={bolha.id}
@@ -294,95 +409,28 @@ export default function ConteudoChat() {
                 </div>
               )}
 
-              {/* campo de escrita da mensagem */}
-              <form onSubmit={handleSendMessage}>
-                {arquivos.length > 0 && (
-                  <div className="mb-2 flex flex-wrap gap-2 px-4">
-                    {arquivos.map((arquivo, index) => (
-                      <div
-                        key={`${arquivo.name}-${index}`}
-                        className="flex items-center gap-2 rounded-full bg-surface-inverse/10 px-3 py-1 text-xs sm:text-sm"
-                      >
-                        <span className="max-w-[150px] truncate">{arquivo.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(index)}
-                          className="cursor-pointer text-red-500 hover:text-red-600"
-                          aria-label="Remover arquivo"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center w-full h-11 rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6">
-                  <div className="flex w-full justify-between items-center">
-                    <div className="flex gap-3 items-center shrink-0">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.pptx"
-                        multiple
-                        className="hidden"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="cursor-pointer flex items-center justify-center"
-                        aria-label="Anexar arquivo ou imagem"
-                      >
-                        <Paperclip size={22} color="var(--primary)" />
-                      </button>
-                    </div>
-
-                    <div className="flex-1 min-w-0 h-full">
-                      <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={hasStarted ? "" : "Digite uma mensagem..."}
-                        className="w-full h-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 ml-4 caret-[var(--primary)] text-sm sm:text-base md:text-lg"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isThinking || !conversaId}
-                      aria-label="Enviar mensagem"
-                      className="w-10 h-10 rounded-[70px] bg-surface-inverse flex items-center justify-center cursor-pointer shrink-0 disabled:opacity-50"
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_924_1025)">
-                          <path
-                            d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM9 11H7V9H9V11ZM13 11H11V9H13V11ZM17 11H15V9H17V11Z"
-                            fill="var(--inverse)"
-                          />
-                        </g>
-
-                        <defs>
-                          <clipPath id="clip0_924_1025">
-                            <rect width="24" height="24" fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                    </button>
-                  </div>
+              {/* painel de criacao/importacao do PEI, com a barra e os botoes dentro */}
+              {mostrarPainel ? (
+                <Conteudopei 
+                  className="animate-[painel-entrar_700ms_cubic-bezier(0.16,1,0.3,1)]"
+                  mostrarCriacao={mostrarCriacao}
+                  nomeAluno={aluno?.nome}
+                  professor={teacherName ?? undefined}
+                  onFechar={() => {
+                    setMostrarPainel(false);
+                    setMostrarCriacao(false);
+                  }}
+                  onCriarAgora={() => setMostrarCriacao(true)}
+                >
+                  {barra}
+                  {botoesPei}
+                </Conteudopei>
+              ) : (
+                <div className="animate-[chat-subir_700ms_cubic-bezier(0.16,1,0.3,1)] flex w-full flex-col gap-6">
+                  {barra}
+                  {botoesPei}
                 </div>
-              </form>
-
-              {/* botoes de editar e gerar pei */}
-              <div className="flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row sm:justify-center md:justify-end">
-                <EditaPEI ativado={true} />
-                <GeraPEI ativado={true} />
-              </div>
+              )}
             </div>
           </div>
         </div>

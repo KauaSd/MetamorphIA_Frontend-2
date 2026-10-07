@@ -160,6 +160,45 @@
   animation: caret-blink 1s steps(1) infinite;
 }
 
+/* painel de criacao do PEI subindo de baixo para cima */
+@keyframes painel-criar {
+  from {
+    opacity: 0;
+    transform: translateY(6rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* painel de PEI entrando em crossfade com o chat */
+@keyframes painel-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* o chat subindo de volta para a posicao normal apos fechar o painel */
+@keyframes chat-subir {
+  from {
+    opacity: 0;
+    transform: translateY(4rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* expoe os tokens como classes do tailwind */
 @theme inline {
   --color-surface-base: var(--surface-base);

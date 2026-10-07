@@ -8,6 +8,7 @@ import Input from "@/components/common/Input";
 import { useState } from "react";
 import Planos from "@/components/public/Planos";
 import ButtonLink from "@/components/common/ButtonLink";
+import { useRouter } from "next/navigation";
 
 interface FormProps {
   onClose: () => void;
@@ -107,11 +108,16 @@ export function FormDesconecta({onClose}: FormProps){
 }
 
 export function FormAlterarSenha({onClose}: Partial<FormProps>){
+  const router = useRouter();
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!onClose) {
+      router.push("/auth/senhaAlterada");
+    }
   };
 
   const formulario = (

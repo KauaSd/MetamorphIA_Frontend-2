@@ -7,6 +7,8 @@ import { RegrasSenha } from "@/components/app/RegrasSenha";
 import Input from "@/components/common/Input";
 import { useState } from "react";
 import Planos from "@/components/public/Planos";
+import ButtonLink from "@/components/common/ButtonLink";
+import { useRouter } from "next/navigation";
 
 interface FormProps {
   onClose: () => void;
@@ -105,51 +107,63 @@ export function FormDesconecta({onClose}: FormProps){
   );
 }
 
-export function FormAlterarSenha({onClose}: FormProps){
+export function FormAlterarSenha({onClose}: Partial<FormProps>){
+  const router = useRouter();
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!onClose) {
+      router.push("/auth/senhaAlterada");
+    }
   };
 
-  return (
-    <Blurfundo onClose={onClose}>
+  const formulario = (
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
         <div className="flex flex-col  gap-6">
-          <div className="flex items-center justify-between">
-          <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>Alterar Senha</p>
-          <BotaoFechar onClose={onClose} />
+          <div className={`flex items-center ${onClose ? "justify-between" : "justify-center"}`}>
+            <p className={onClose
+                ? "text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)"
+                : "text-2xl text-primary sm:text-3xl text-center"
+              }>Alterar Senha</p>
+            {onClose && <BotaoFechar onClose={onClose} />}
           </div>
           <div className="flex flex-col gap-3">
             <p className="text-md text-primary text-justify">Digite sua nova senha:</p>
-            <p className="text-xs text-secondary">Esta ação será permanente e não poderá ser revertida.</p>
-              <Input
-                type="password"
-                placeholder="Digite sua senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-              />
-              <RegrasSenha senha={senha} />
+            <p className="text-xs text-secondary"> Esta ação será permanente e não poderá ser revertida.</p>
+            <Input
+              type="password"
+              placeholder="Digite sua senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}  
+            />
+            <RegrasSenha senha={senha} />
             <p className="text-md text-primary text-justify">Confirme sua nova senha:</p>
-              <Input
-                type="password"
-                placeholder="Digite sua senha"
-                value={senha2}
-                onChange={(e) => setSenha2(e.target.value)}
-              />
+            <Input
+              type="password"
+              placeholder="Digite sua senha"
+              value={senha2}
+              onChange={(e) => setSenha2(e.target.value)}  
+            />
           </div>
         </div>
 
-        <div className="flex gap-5 self-end">
+        <div className={`flex gap-5 ${onClose ? "self-end" : "justify-center"}`}>
+          {onClose ? (
             <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">Cancelar</Button>
-            <Button type="button" className="bg-surface-danger text-ink">Salvar</Button>
+          ) : (
+            <ButtonLink href="/auth/token" className="bg-surface-inverse text-inverse">Cancelar</ButtonLink>
+          )}
+          <Button type="submit" className="bg-surface-danger text-ink">Salvar</Button>
         </div>
       </div>
     </form>
-    </Blurfundo>
   );
+
+  return onClose ? <Blurfundo onClose={onClose}>{formulario}</Blurfundo> : formulario;
 }
 
 export function FormPlanos({onClose}: FormProps){

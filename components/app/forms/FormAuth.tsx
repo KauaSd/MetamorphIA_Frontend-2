@@ -308,7 +308,7 @@ export function FormToken() {
     }
 
     setAlerta(null);
-    router.push("/auth/recuperaSenha");
+    router.push("/auth/alterarSenha");
   }
 
   return (
@@ -374,4 +374,24 @@ function Slot( props: SlotProps){
       )}
     </div>
     )
+}
+
+export function FormSenhaAlterada() {
+  return(
+      <div className="flex w-full max-w-md flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        {/* titulo e texto de instrucao */}
+        <div className="flex flex-col items-center text-center gap-6">
+          <p className="text-2xl text-primary sm:text-3xl">Senha alterada com sucesso!</p>
+          <p className="text-sm text-secondary">Sua nova senha já está valendo! Use-a para entrar na sua conta.</p>
+        </div>
+
+        {/* botoes voltar e proximo */}
+        <div className="flex gap-5">
+          <ButtonLink
+            href="/auth/login">
+            Ir para login
+          </ButtonLink>
+      </div>
+      </div>
+  )
 }

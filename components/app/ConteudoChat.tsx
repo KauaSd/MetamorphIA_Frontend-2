@@ -4,12 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Paperclip } from "lucide-react";
 
 import ChatTgAluno from "@/components/app/ChatTgAluno";
 import Conteudopei from "@/components/app/Conteudopei";
 import EditaPEI from "@/components/app/EditaPEI";
 import GeraPEI from "@/components/app/GeraPEI";
+import ChatInput from "@/components/app/pei/ChatInput";
 import Toast, { useAlerta } from "@/components/common/Toast";
 
 import { useData } from "@/components/app/state/DataProvider";
@@ -47,13 +47,10 @@ export default function ConteudoChat() {
 
   // o que o stream esta escrevendo agora; o que ja foi salvo vem do store
   const [rascunho, setRascunho] = useState<Bolha[]>([]);
-  const [inputValue, setInputValue] = useState("");
   const [isThinking, setIsThinking] = useState(false);
-  const [arquivos, setArquivos] = useState<File[]>([]);
   const [mostrarPainel, setMostrarPainel] = useState(false);
   const [mostrarCriacao, setMostrarCriacao] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // regra: chat sem aluno nao existe. Antes da hidratacao os dados ainda estao
   // vazios, entao nada e decidido nesse meio-tempo
@@ -123,36 +120,21 @@ export default function ConteudoChat() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length > 0) {
-      setArquivos((prev) => [...prev, ...files]);
-      e.target.value = "";
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setArquivos((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSendMessage = async (texto: string) => {
     // sem conversa criada ainda nao ha onde persistir a mensagem
     if (!conversaId) return;
 
-    const texto = inputValue.trim();
-    if (!texto && arquivos.length === 0) return;
+    const conteudo = texto.trim();
+    if (!conteudo) return;
     if (isThinking) return;
 
     const idDaMinha = `enviada-${Date.now()}`;
     const idDoBot = `${idDaMinha}-bot`;
 
-    setInputValue("");
     setIsThinking(true);
     setRascunho((prev) => [
       ...prev,
-      { id: idDaMinha, texto, autor: "professor" },
+      { id: idDaMinha, texto: conteudo, autor: "professor" },
       { id: idDoBot, texto: "", autor: "aluno", streaming: true },
     ]);
 
@@ -166,7 +148,7 @@ export default function ConteudoChat() {
       const response = await fetch(`${apiUrl}/mock/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensagem: texto }),
+        body: JSON.stringify({ mensagem: conteudo }),
         signal: controller.signal,
       });
       if (!response.body) {
@@ -209,7 +191,7 @@ export default function ConteudoChat() {
 
       // so grava depois que a resposta veio inteira, para nao duplicar se a
       // tela recarregar no meio da leitura
-      await persistir(texto, "professor");
+      await persistir(conteudo, "professor");
       if (respostaCompleta.trim()) {
         await persistir(respostaCompleta, "aluno");
       }
@@ -220,7 +202,7 @@ export default function ConteudoChat() {
 
       // a mensagem do professor foi enviada mesmo sem resposta: ela nao pode
       // sumir no proximo reload
-      await persistir(texto, "professor");
+      await persistir(conteudo, "professor");
 
       setRascunho((prev) =>
         prev.map((bolha) =>
@@ -243,88 +225,12 @@ export default function ConteudoChat() {
 
   // barra de escrita: fica sozinha no chat normal e entra dentro do painel de PEI
   const barra = (
-    <form onSubmit={handleSendMessage}>
-      {arquivos.length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-2 px-4">
-          {arquivos.map((arquivo, index) => (
-            <div
-              key={`${arquivo.name}-${index}`}
-              className="flex items-center gap-2 rounded-full bg-surface-inverse/10 px-3 py-1 text-xs sm:text-sm"
-            >
-              <span className="max-w-[150px] truncate">{arquivo.name}</span>
-              <button
-                type="button"
-                onClick={() => handleRemoveFile(index)}
-                className="cursor-pointer text-red-500 hover:text-red-600"
-                aria-label="Remover arquivo"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="flex items-center w-full h-11 rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6">
-        <div className="flex w-full justify-between items-center">
-          <div className="flex gap-3 items-center shrink-0">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.pptx"
-              multiple
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="cursor-pointer flex items-center justify-center"
-              aria-label="Anexar arquivo ou imagem"
-            >
-              <Paperclip size={22} color="var(--primary)" />
-            </button>
-          </div>
-
-          <div className="flex-1 min-w-0 h-full">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder={hasStarted ? "" : "Digite uma mensagem..."}
-              className="w-full h-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 ml-4 caret-[var(--primary)] text-sm sm:text-base md:text-lg"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isThinking || !conversaId}
-            aria-label="Enviar mensagem"
-            className="w-10 h-10 rounded-[70px] bg-surface-inverse flex items-center justify-center cursor-pointer shrink-0 disabled:opacity-50"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <g clipPath="url(#clip0_924_1025)">
-                <path
-                  d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM9 11H7V9H9V11ZM13 11H11V9H13V11ZM17 11H15V9H17V11Z"
-                  fill="var(--inverse)"
-                />
-              </g>
-
-              <defs>
-                <clipPath id="clip0_924_1025">
-                  <rect width="24" height="24" fill="white" />
-                </clipPath>
-              </defs>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </form>
+    <ChatInput
+      placeholder={hasStarted ? "" : "Digite uma mensagem..."}
+      disabled={isThinking}
+      enviarLabel="Enviar mensagem"
+      onSubmit={handleSendMessage}
+    />
   );
 
   // editar/gerar: dentro do painel quando ele esta aberto, no chat quando fechado
@@ -414,6 +320,7 @@ export default function ConteudoChat() {
                 <Conteudopei 
                   className="animate-[painel-entrar_700ms_cubic-bezier(0.16,1,0.3,1)]"
                   mostrarCriacao={mostrarCriacao}
+                  aluno={aluno ?? null}
                   nomeAluno={aluno?.nome}
                   professor={teacherName ?? undefined}
                   onFechar={() => {

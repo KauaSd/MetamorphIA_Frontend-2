@@ -25,13 +25,17 @@ export default function ChatInput({
   validarPrivacidade = false,
   maxAnexoBytes,
   enviarLabel = "Enviar mensagem",
-  anexos = [],
+  anexos,
   onAdicionarAnexos,
   onRemoverAnexo,
   onSubmit,
 }: ChatInputProps) {
   const [inputValue, setInputValue] = useState("");
+  const [anexosInternos, setAnexosInternos] = useState<Anexo[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const controlado = anexos !== undefined;
+  const listaAnexos: Anexo[] = anexos ?? anexosInternos;
 
   const avisoSensivel = validarPrivacidade && detectarDadosSensiveis(inputValue).length > 0;
 
@@ -40,14 +44,33 @@ export default function ChatInput({
     const permitidos = maxAnexoBytes
       ? Array.from(files).filter((arquivo) => arquivo.size <= maxAnexoBytes)
       : Array.from(files);
-    onAdicionarAnexos?.(permitidos);
+    if (onAdicionarAnexos) {
+      onAdicionarAnexos(permitidos);
+    } else if (!controlado) {
+      setAnexosInternos((prev) => [
+        ...prev,
+        ...permitidos.map((arquivo) => ({
+          name: arquivo.name,
+          type: arquivo.type,
+          size: arquivo.size,
+        })),
+      ]);
+    }
     if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function removerAnexo(nome: string) {
+    if (onRemoverAnexo) {
+      onRemoverAnexo(nome);
+    } else if (!controlado) {
+      setAnexosInternos((prev) => prev.filter((anexo) => anexo.name !== nome));
+    }
   }
 
   function enviar() {
     const texto = inputValue.trim();
-    if (!texto && anexos.length === 0) return;
-    onSubmit?.(texto, anexos);
+    if (!texto && listaAnexos.length === 0) return;
+    onSubmit?.(texto, listaAnexos);
     setInputValue("");
   }
 
@@ -59,9 +82,9 @@ export default function ChatInput({
       }}
       className="flex w-full flex-col gap-2"
     >
-      {anexos.length > 0 && (
+      {listaAnexos.length > 0 && (
         <div className="flex flex-wrap gap-2 px-4">
-          {anexos.map((anexo) => (
+          {listaAnexos.map((anexo) => (
             <div
               key={anexo.name}
               className="flex items-center gap-2 rounded-full bg-surface-inverse/10 px-3 py-1 text-xs sm:text-sm"
@@ -69,7 +92,7 @@ export default function ChatInput({
               <span className="max-w-[150px] truncate">{anexo.name}</span>
               <button
                 type="button"
-                onClick={() => onRemoverAnexo?.(anexo.name)}
+                onClick={() => removerAnexo(anexo.name)}
                 className="cursor-pointer text-red-500 hover:text-red-600"
                 aria-label="Remover arquivo"
               >
@@ -135,7 +158,7 @@ export default function ChatInput({
 
           <button
             type="submit"
-            disabled={disabled || (!inputValue.trim() && anexos.length === 0)}
+            disabled={disabled || (!inputValue.trim() && listaAnexos.length === 0)}
             aria-label={enviarLabel}
             className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[70px] bg-surface-inverse disabled:opacity-50"
           >

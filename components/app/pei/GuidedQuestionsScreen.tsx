@@ -14,11 +14,7 @@ export default function GuidedQuestionsScreen() {
     currentIndex,
     questions,
     respostaAtual,
-    anexosAtuais,
     selecionarOpcao,
-    confirmarTexto,
-    adicionarAnexos,
-    removerAnexo,
     voltar,
     avancar,
     tentarNovamente,
@@ -28,7 +24,7 @@ export default function GuidedQuestionsScreen() {
   if (!aluno || !pergunta) return null;
 
   return (
-    <div className="flex w-full flex-col gap-6">
+    <div className="flex w-full flex-col gap-3">
       <InfoNotice />
       <QuestionCard
         alunoNome={aluno.nome}
@@ -37,11 +33,7 @@ export default function GuidedQuestionsScreen() {
         index={currentIndex}
         resposta={respostaAtual}
         status={status}
-        anexos={anexosAtuais}
         onSelecionarOpcao={selecionarOpcao}
-        onConfirmarTexto={confirmarTexto}
-        onAdicionarAnexos={adicionarAnexos}
-        onRemoverAnexo={removerAnexo}
         onVoltar={voltar}
         onAvancar={avancar}
         onTentarNovamente={tentarNovamente}

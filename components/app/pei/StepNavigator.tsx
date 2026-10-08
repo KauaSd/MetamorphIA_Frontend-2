@@ -12,7 +12,7 @@ export interface StepNavigatorProps {
 }
 
 const BLOQUEADO =
-  "flex h-9 w-9 items-center justify-center rounded-full text-xl text-secondary transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40";
+  "flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-xl text-secondary transition-colors hover:bg-surface-base-hover disabled:cursor-not-allowed disabled:opacity-40";
 
 export default function StepNavigator({
   podeAvancar,
@@ -26,7 +26,7 @@ export default function StepNavigator({
   const podeAnterior = carregando ? false : Boolean(onAnterior);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center">
       <button
         type="button"
         onClick={onAnterior}

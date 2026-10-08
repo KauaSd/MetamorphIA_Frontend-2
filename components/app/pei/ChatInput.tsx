@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { MessageCircle, Paperclip } from "lucide-react";
+import { Paperclip } from "lucide-react";
 import type { Anexo } from "@/utils/pei/types";
 import { AVISO_DADOS_SENSIVEIS, detectarDadosSensiveis } from "@/utils/pei/dadosSensiveis";
 
@@ -149,6 +149,12 @@ export default function ChatInput({
                 type="text"
                 value={inputValue}
                 onChange={(evento) => setInputValue(evento.target.value)}
+                onKeyDown={(evento) => {
+                  if (evento.key === "Enter") {
+                    evento.preventDefault();
+                    enviar();
+                  }
+                }}
                 disabled={disabled}
                 placeholder={placeholder}
                 className="h-full w-full bg-transparent px-3 text-sm text-primary caret-[var(--primary)] outline-none focus:outline-none focus:ring-0 sm:text-base"
@@ -162,7 +168,26 @@ export default function ChatInput({
             aria-label={enviarLabel}
             className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[70px] bg-surface-inverse disabled:opacity-50"
           >
-            <MessageCircle size={20} color="var(--inverse)" />
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clipPath="url(#clip0_924_1025)">
+                <path
+                  d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM9 11H7V9H9V11ZM13 11H11V9H13V11ZM17 11H15V9H17V11Z"
+                  fill="var(--inverse)"
+                />
+              </g>
+
+              <defs>
+                <clipPath id="clip0_924_1025">
+                  <rect width="24" height="24" fill="white" />
+                </clipPath>
+              </defs>
+            </svg>
           </button>
         </div>
       </div>

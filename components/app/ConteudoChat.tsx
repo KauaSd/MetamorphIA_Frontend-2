@@ -329,8 +329,10 @@ export default function ConteudoChat() {
                   }}
                   onCriarAgora={() => setMostrarCriacao(true)}
                   onVoltar={() => setMostrarCriacao(false)}
+                  onEnviarChat={handleSendMessage}
+                  chatPlaceholder={hasStarted ? "" : "Digite uma mensagem..."}
+                  chatDisabled={isThinking}
                 >
-                  {barra}
                   {botoesPei}
                 </Conteudopei>
               ) : (

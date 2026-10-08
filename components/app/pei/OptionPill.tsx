@@ -25,7 +25,7 @@ export default function OptionPill({
       aria-checked={selecionado}
       disabled={desabilitado}
       onClick={onAlternar}
-      className={`flex w-full items-center gap-3 rounded-full px-5 py-4 text-left text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-base ${
+      className={`flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-left text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:text-base ${
         selecionado
           ? "bg-surface-accent text-ink"
           : "bg-surface-muted text-primary hover:bg-sunken"

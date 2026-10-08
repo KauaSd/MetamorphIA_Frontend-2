@@ -4,6 +4,7 @@ import Button from "@/components/common/Button"
 import DropDown from "@/components/common/DropDown"
 import { PeiFlowProvider, usePeiFlow } from "@/components/app/state/PeiFlowProvider"
 import GuidedQuestionsScreen from "@/components/app/pei/GuidedQuestionsScreen"
+import ChatInput from "@/components/app/pei/ChatInput"
 import { OPCOES_COMPONENTE, OPCOES_PERIODO } from "@/utils/pei/opcoes"
 import type { Aluno } from "@/utils/data/types"
 
@@ -17,6 +18,9 @@ interface ConteudopeiProps {
     children?: React.ReactNode
     aluno?: Aluno | null
     onVoltar?: () => void
+    onEnviarChat?: (texto: string) => void
+    chatPlaceholder?: string
+    chatDisabled?: boolean
 }
 
 export default function Conteudopei(props: ConteudopeiProps) {
@@ -30,15 +34,32 @@ export default function Conteudopei(props: ConteudopeiProps) {
 function ConteudopeiConteudo({
     onFechar,
     onCriarAgora,
-    mostrarCriacao,
+    mostrarCriacao = false,
     nomeAluno,
     professor,
     className,
     children,
     onVoltar,
+    onEnviarChat,
+    chatPlaceholder,
+    chatDisabled,
 }: ConteudopeiProps) {
-    const { passo, componente, periodo, setComponente, setPeriodo, irParaQuestoes, fluxoEmAndamento } = usePeiFlow()
+    const {
+        passo,
+        componente,
+        periodo,
+        status,
+        setComponente,
+        setPeriodo,
+        irParaQuestoes,
+        fluxoEmAndamento,
+        anexosAtuais,
+        adicionarAnexos,
+        removerAnexo,
+        confirmarTexto,
+    } = usePeiFlow()
     const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false)
+    const emQuestoes = passo === "questoes"
 
     function fechar() {
         if (fluxoEmAndamento) setMostrarConfirmacao(true)
@@ -47,7 +68,7 @@ function ConteudopeiConteudo({
 
     return (
         <>
-        <div className={`${className ?? ""} relative flex w-full h-full flex-col items-center gap-6 sm:gap-8 rounded-[70px] bg-surface-base/40 px-4 py-4 sm:px-8 sm:py-6 overflow-auto`}>
+        <div className={`${className ?? ""} relative flex w-full h-full flex-col items-center gap-3 sm:gap-4 rounded-[70px] bg-surface-base/40 px-4 py-3 sm:px-8 sm:py-4 overflow-auto`}>
             <button
                 type="button"
                 aria-label="Fechar painel"
@@ -57,21 +78,25 @@ function ConteudopeiConteudo({
                 ×
             </button>
 
-            <p className={`text-center text-3xl sm:text-4xl lg:text-5xl transition-all duration-500 ${mostrarCriacao ? "mt-8" : "mt-20"}`}>OK, vamos começar!</p>
+            {!emQuestoes && (
+                <>
+                <p className={`text-center text-3xl sm:text-4xl lg:text-5xl transition-all duration-500 ${mostrarCriacao ? "mt-8" : "mt-20"}`}>OK, vamos começar!</p>
 
-            <div className={`flex w-full flex-col items-center gap-4 justify-center sm:flex-row sm:gap-40 transition-all duration-500 ${mostrarCriacao ? "mt-6" : "mt-30"}`}>
-                <Button className="w-full bg-[#FEDA7A] text-[#433F3F] hover:bg-[#FEDA7A]/80 sm:w-80 px-8 py-3 text-base sm:text-lg">
-                    Importar PEI
-                </Button>
-                <Button
-                    onClick={onCriarAgora}
-                    className={`w-full sm:w-80 px-8 py-3 text-base sm:text-lg ${mostrarCriacao ? "opacity-50 cursor-not-allowed hover:bg-surface-accent" : ""}`}>Criar agora</Button>
-            </div>
+                <div className={`flex w-full flex-col items-center gap-4 justify-center sm:flex-row sm:gap-40 transition-all duration-500 ${mostrarCriacao ? "mt-6" : "mt-30"}`}>
+                    <Button className="w-full bg-[#FEDA7A] text-[#433F3F] hover:bg-[#FEDA7A]/80 sm:w-80 px-8 py-3 text-base sm:text-lg">
+                        Importar PEI
+                    </Button>
+                    <Button
+                        onClick={onCriarAgora}
+                        className={`w-full sm:w-80 px-8 py-3 text-base sm:text-lg ${mostrarCriacao ? "opacity-50 cursor-not-allowed hover:bg-surface-accent" : ""}`}>Criar agora</Button>
+                </div>
+                </>
+            )}
 
-            {mostrarCriacao && (
+            {(mostrarCriacao || emQuestoes) && (
                 <div className="flex w-full flex-1 flex-col items-center justify-center">
-                <div className="flex w-full flex-col gap-4 rounded-[70px] bg-surface-muted/50 px-4 py-4 sm:px-6 sm:py-6 max-w-[64rem] animate-[painel-criar_600ms_cubic-bezier(0.16,1,0.3,1)]">
-                    {passo === "questoes" ? (
+                <div className="flex w-full flex-col gap-3 rounded-[70px] bg-surface-muted/50 px-4 py-3 sm:px-6 sm:py-4 max-w-[64rem] animate-[painel-criar_600ms_cubic-bezier(0.16,1,0.3,1)]">
+                    {emQuestoes ? (
                         <GuidedQuestionsScreen />
                     ) : (
                         <>
@@ -152,11 +177,22 @@ function ConteudopeiConteudo({
             )}
 
             <div className="mt-auto flex w-full flex-col gap-4 justify-end">
-            {children && (
-                <div className="flex w-full flex-col gap-4 justify-end mx-auto max-w-[64rem]">
+                <div className="mx-auto flex w-full max-w-[64rem] flex-col gap-4">
+                    <ChatInput
+                        validarPrivacidade={emQuestoes}
+                        placeholder={emQuestoes ? "Se preferir, digite a resposta abaixo" : chatPlaceholder}
+                        enviarLabel={emQuestoes ? "Confirmar resposta" : "Enviar mensagem"}
+                        disabled={emQuestoes ? status === "carregando" : chatDisabled}
+                        anexos={emQuestoes ? anexosAtuais : undefined}
+                        onAdicionarAnexos={emQuestoes ? adicionarAnexos : undefined}
+                        onRemoverAnexo={emQuestoes ? removerAnexo : undefined}
+                        onSubmit={(texto) => {
+                            if (emQuestoes) confirmarTexto(texto)
+                            else onEnviarChat?.(texto)
+                        }}
+                    />
                     {children}
                 </div>
-            )}
             </div>
         </div>
 

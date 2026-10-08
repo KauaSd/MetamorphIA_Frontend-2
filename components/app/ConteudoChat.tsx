@@ -328,6 +328,7 @@ export default function ConteudoChat() {
                     setMostrarCriacao(false);
                   }}
                   onCriarAgora={() => setMostrarCriacao(true)}
+                  onVoltar={() => setMostrarCriacao(false)}
                 >
                   {barra}
                   {botoesPei}

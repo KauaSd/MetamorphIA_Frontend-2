@@ -3,13 +3,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-interface Option {
+export interface DropDownOption {
   value: string;
   label: string;
 }
 
 interface DropDownProps {
-  options: Option[];
+  options: DropDownOption[];
   small?: boolean;
   value?: string;
   placeholder?: string;
@@ -30,6 +30,8 @@ export default function DropDown({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -39,9 +41,19 @@ export default function DropDown({
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
 
   const handleSelect = (optionValue: string) => {
     if (value === undefined) {

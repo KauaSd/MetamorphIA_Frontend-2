@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import ConteudoDashboardTurma from "@/components/app/ConteudoDashboardTurma";
-import CarregandoDashboard from "@/components/app/CarregandoDashboard";
+import ConteudoDashboardTurma from "@/components/app/turmas/ConteudoDashboardTurma";
+import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 
 // useSearchParams roda so no cliente, entao o conteudo precisa de um boundary
 // de Suspense para a pagina continuar sendo prerenderizada

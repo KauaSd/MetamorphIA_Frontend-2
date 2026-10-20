@@ -40,7 +40,13 @@ interface ToastProps {
  */
 export default function Toast({ alerta, limpar }: ToastProps) {
   const [saindo, setSaindo] = useState(false);
+  const [alertaAnterior, setAlertaAnterior] = useState(alerta);
   const fecharRef = useRef(limpar);
+
+  if (alertaAnterior !== alerta) {
+    setAlertaAnterior(alerta);
+    setSaindo(false);
+  }
 
   useEffect(() => {
     fecharRef.current = limpar;

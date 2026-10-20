@@ -1,10 +1,18 @@
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NAO_DIGITOS_REGEX = /\D/g;
+const PARECE_TELEFONE_REGEX = /^[\d\s()+-]+$/;
+const NUMERO_REGEX = /[0-9]/;
+const MINUSCULA_REGEX = /[a-z]/;
+const MAIUSCULA_REGEX = /[A-Z]/;
+const ESPECIAL_REGEX = /[@#$%^&*+=!?._-]/;
+
 export function validarEmail(valor: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(valor.trim());
+  return EMAIL_REGEX.test(valor.trim());
 }
 
 // telefone fixo tem 10 digitos e celular 11, usado pelo cadastro e pelo login
 export function validarTelefone(valor: string): boolean {
-  const digitos = valor.replace(/\D/g, "");
+  const digitos = valor.replace(NAO_DIGITOS_REGEX, "");
 
   if (digitos.length !== 10 && digitos.length !== 11) return false;
   if (digitos.length === 11 && digitos[2] !== "9") return false;
@@ -24,7 +32,7 @@ export function ehEmailOuTelefone(valor: string): boolean {
 // so digitos (com espaco, parenteses, + e -) parece telefone; qualquer letra
 // vira tentativa de e-mail, usado pelo cadastro pra escolher a mensagem certa
 export function pareceTelefone(valor: string): boolean {
-  return /^[\d\s()+-]+$/.test(valor.trim());
+  return PARECE_TELEFONE_REGEX.test(valor.trim());
 }
 
 // cada regra de senha, usada pelo checklist RegrasSenha
@@ -43,22 +51,22 @@ export const REGRAS_SENHA: RegraSenha[] = [
   {
     id: "numero",
     texto: "Pelo menos um número",
-    atendida: (senha) => /[0-9]/.test(senha),
+    atendida: (senha) => NUMERO_REGEX.test(senha),
   },
   {
     id: "minuscula",
     texto: "Pelo menos uma letra minúscula",
-    atendida: (senha) => /[a-z]/.test(senha),
+    atendida: (senha) => MINUSCULA_REGEX.test(senha),
   },
   {
     id: "maiuscula",
     texto: "Pelo menos uma letra maiúscula",
-    atendida: (senha) => /[A-Z]/.test(senha),
+    atendida: (senha) => MAIUSCULA_REGEX.test(senha),
   },
   {
     id: "especial",
     texto: "Pelo menos um caractere especial",
-    atendida: (senha) => /[@#$%^&*+=!?._-]/.test(senha),
+    atendida: (senha) => ESPECIAL_REGEX.test(senha),
   },
 ];
 

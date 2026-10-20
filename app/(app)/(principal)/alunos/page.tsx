@@ -1,4 +1,4 @@
-import ConteudoAlunos from "@/components/app/ConteudoAlunos";
+import ConteudoAlunos from "@/components/app/alunos/ConteudoAlunos";
 
 // mesmo shell do dashboardTurma e da pagina de turmas
 export default function ViewAlunos(){

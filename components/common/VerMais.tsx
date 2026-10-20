@@ -10,6 +10,17 @@ interface VerMaisProps {
   onExcluir: () => void;
 }
 
+const CLASSE_ITEM = `
+  flex w-full items-center gap-2
+  rounded-full
+  px-3 py-1.5
+  text-left text-base leading-none
+  text-primary
+  transition-colors duration-150
+  cursor-pointer
+  hover:bg-surface-base
+`;
+
 export default function VerMais({ onEditar, onExcluir }: VerMaisProps) {
   // Começa "fechado" e abre logo após montar, para a transição rodar
   // (mesma animação do DropDown).
@@ -43,16 +54,7 @@ export default function VerMais({ onEditar, onExcluir }: VerMaisProps) {
           type="button"
           role="menuitem"
           onClick={onEditar}
-          className="
-            flex w-full items-center gap-2
-            rounded-full
-            px-3 py-1.5
-            text-left text-base leading-none
-            text-primary
-            transition-colors duration-150
-            cursor-pointer
-            hover:bg-surface-base
-          "
+          className={CLASSE_ITEM}
         >
           <Encaracolado src={Editar.src} className="h-[12px] w-[12px] shrink-0" />
           <span>Editar</span>
@@ -62,16 +64,7 @@ export default function VerMais({ onEditar, onExcluir }: VerMaisProps) {
           type="button"
           role="menuitem"
           onClick={onExcluir}
-          className="
-            flex w-full items-center gap-2
-            rounded-full
-            px-3 py-1.5
-            text-left text-base leading-none
-            text-primary
-            transition-colors duration-150
-            cursor-pointer
-            hover:bg-surface-base
-          "
+          className={CLASSE_ITEM}
         >
           <Encaracolado src={Deletar.src} className="h-[12px] w-[10px] shrink-0" />
           <span>Excluir</span>

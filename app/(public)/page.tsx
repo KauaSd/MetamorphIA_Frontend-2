@@ -8,40 +8,9 @@ import desenho1 from "@/public/desenho.svg";
 import desenho2 from "@/public/desenho2.svg";
 import desenho3 from "@/public/desenho3.svg";
 import fitacolorida from "@/public/FitaColoridahome.svg";
-import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import * as React from "react";
 import Planos from "@/components/public/Planos"
-
-type Testimonial = {
-  name: string;
-  role: string;
-  text: string;
-};
-
-const testimonials: Testimonial[] = [
-  {
-    name: "Rafaela Silva",
-    role: "Professora da Escola E. Vila Feliz",
-    text: "A MetamorphIA facilitou muito a minha vida!",
-  },
-  {
-    name: "Getúlio Alves",
-    role: "Professor da Escola Estudar",
-    text: "Não estava acreditando, mas definitivamente superou minhas expectativas.",
-  },
-  {
-    name: "Mariana Costa",
-    role: "Professora da Escola Novo Saber",
-    text: "Economizo horas de planejamento toda semana.",
-  },
-  {
-    name: "João Pereira",
-    role: "Professor da Escola Aprender+",
-    text: "Meus alunos com TEA se adaptaram muito melhor às atividades.",
-  },
-];
-
-const ITEMS_PER_PAGE = 2;
 
 export default function Home() {
   const [isOpenf1, setIsOpenf1] = React.useState(false);
@@ -249,7 +218,7 @@ export default function Home() {
           <div className="flex flex-col gap-2">
             <div
               className="flex w-full py-2 sm:py-0.5 bg-surface-secondary rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
-              onClick={() => setIsOpenf1(!isOpenf1)}
+              onClick={() => setIsOpenf1((prev) => !prev)}
             >
               <p className="font-(family-name:--font-text-me-one) text-inverse text-base sm:text-xl">
                 Quem pode usar a plataforma?
@@ -279,7 +248,7 @@ export default function Home() {
 
             <div
               className="flex w-full py-2 sm:py-0.5 bg-surface-secondary rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
-              onClick={() => setIsOpenf2(!isOpenf2)}
+              onClick={() => setIsOpenf2((prev) => !prev)}
             >
               <p className="font-(family-name:--font-text-me-one) text-inverse text-base sm:text-xl">
                 Funciona para qualquer diagnóstico?
@@ -310,7 +279,7 @@ export default function Home() {
 
             <div
               className="flex w-full py-2 sm:py-0.5 bg-surface-secondary rounded-[70px] px-5 sm:px-10 cursor-pointer select-none justify-between items-center gap-4"
-              onClick={() => setIsOpenf3(!isOpenf3)}
+              onClick={() => setIsOpenf3((prev) => !prev)}
             >
               <p className="font-(family-name:--font-text-me-one) text-inverse text-base sm:text-xl">
                 O uso é gratuito?

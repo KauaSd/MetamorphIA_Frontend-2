@@ -1,6 +1,6 @@
 import { twMerge } from "tailwind-merge";
 import { CheckCircle, Info, Warning, WarningCircle } from "@phosphor-icons/react/dist/ssr";
-import type { TomAlerta } from "@/utils/alertas";
+import type { MensagemAlerta, TomAlerta } from "@/utils/alertas";
 
 // icone de cada tom do alerta
 const Icones: Record<TomAlerta, typeof WarningCircle> = {
@@ -25,11 +25,7 @@ const Descricoes: Record<TomAlerta, string> = {
   info: "text-ink-muted",
 };
 
-interface AlertProps {
-  tom: TomAlerta;
-  titulo: string;
-  descricao?: string;
-  itens?: string[];
+interface AlertProps extends MensagemAlerta {
   className?: string;
 }
 
@@ -56,13 +52,13 @@ export default function Alert({
       <div className="flex min-w-0 flex-col gap-1">
         <span className="text-[18px] text-ink">{titulo}</span>
 
-        {descricao && (
+        {descricao ? (
           <span className={`text-sm ${Descricoes[tom]} text-justify`}>
             {descricao}
           </span>
-        )}
+        ) : null}
 
-        {itens && itens.length > 0 && (
+        {itens && itens.length > 0 ? (
           <ul
             className={`flex list-disc flex-col pl-4 text-sm ${Descricoes[tom]}`}
           >
@@ -70,7 +66,7 @@ export default function Alert({
               <li key={item}>{item}</li>
             ))}
           </ul>
-        )}
+        ) : null}
       </div>
     </div>
   );

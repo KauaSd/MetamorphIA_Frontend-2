@@ -1,3 +1,9 @@
+const FORMATADOR_DATA_CURTA = new Intl.DateTimeFormat("pt-BR", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 export function formatarData(data: string): string {
   const [dia, mes, ano] = data.split("/");
 
@@ -7,11 +13,5 @@ export function formatarData(data: string): string {
     Number(dia),
   );
 
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
-    .format(dataFormatada)
-    .replace(/ de /g, " ");
+  return FORMATADOR_DATA_CURTA.format(dataFormatada).replace(/ de /g, " ");
 }

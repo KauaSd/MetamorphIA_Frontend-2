@@ -1,0 +1,318 @@
+import { ChevronRight, ChevronLeft, X } from "lucide-react"
+import { useState } from "react"
+import Button from "@/components/common/Button"
+import DropDown from "@/components/common/DropDown"
+import { PeiFlowProvider, usePeiFlow } from "@/components/app/state/PeiFlowProvider"
+import GuidedQuestionsScreen from "@/components/app/pei/GuidedQuestionsScreen"
+import ChatInput from "@/components/app/pei/ChatInput"
+import { OPCOES_COMPONENTE, OPCOES_PERIODO } from "@/utils/pei/opcoes"
+import { letraDaOpcao } from "@/utils/pei/types"
+import type { Aluno } from "@/utils/data/types"
+
+interface ConteudopeiProps {
+    onFechar?: () => void
+    onCriarAgora?: () => void
+    onConcluirPei?: (mensagem: string) => void
+    mostrarCriacao?: boolean
+    nomeAluno?: string | null
+    professor?: string
+    className?: string
+    children?: React.ReactNode
+    aluno?: Aluno | null
+    onVoltar?: () => void
+    onEnviarChat?: (texto: string) => void
+    chatPlaceholder?: string
+    chatDisabled?: boolean
+}
+
+export default function Conteudopei(props: ConteudopeiProps) {
+    return (
+        <PeiFlowProvider aluno={props.aluno ?? null}>
+            <ConteudopeiConteudo {...props} />
+        </PeiFlowProvider>
+    )
+}
+
+function ConteudopeiConteudo({
+    onFechar,
+    onCriarAgora,
+    onConcluirPei,
+    mostrarCriacao = false,
+    nomeAluno,
+    professor,
+    className,
+    children,
+    onVoltar,
+    onEnviarChat,
+    chatPlaceholder,
+}: ConteudopeiProps) {
+    const {
+        passo,
+        componente,
+        periodo,
+        status,
+        questions,
+        respostas,
+        respostaAtual,
+        mostrarRevisao,
+        setMostrarRevisao,
+        setComponente,
+        setPeriodo,
+        irParaQuestoes,
+        avancar,
+        fluxoEmAndamento,
+        anexosAtuais,
+        adicionarAnexos,
+        removerAnexo,
+        confirmarTexto,
+        limpar,
+    } = usePeiFlow()
+    const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false)
+    const emQuestoes = passo === "questoes"
+
+    function fechar() {
+        if (fluxoEmAndamento) setMostrarConfirmacao(true)
+        else onFechar?.()
+    }
+
+    function confirmarPei() {
+        const linhas = questions.map((pergunta, idx) => {
+            const resp = respostas[pergunta.id]
+            const escolhidas = pergunta.options
+                .map((op, opIdx) =>
+                    resp?.selectedOptionIds.includes(op.id)
+                        ? `${letraDaOpcao(opIdx)}. ${op.text}`
+                        : null,
+                )
+                .filter(Boolean)
+            const textoLivre = resp?.freeText?.trim()
+            const itens = [
+                ...escolhidas.map((opcao) => `- **Resposta:** ${opcao}`),
+                ...(textoLivre ? [`- **Complemento:** ${textoLivre}`] : []),
+            ]
+            const corpoResposta =
+                itens.length > 0 ? itens.join("\n") : "- *Sem resposta*"
+            return `**${idx + 1}. ${pergunta.text}**\n\n${corpoResposta}`
+        })
+
+        const mensagem = `A criação do PEI foi um sucesso! 🎉\nAbaixo estão as respostas que defini para cada pergunta. Se quiser mudar alguma coisa, é só me pedir aqui no chat: posso reformular uma pergunta ou refazer a resposta por completo. Você também pode editar direto no documento que vou enviar.\n\n---\n\n${linhas.join("\n\n")}\n\n---\n\nSe estiver tudo certo, é só digitar "Documento" e eu envio o PEI para você!`
+
+        setMostrarRevisao(false)
+        limpar()
+        onConcluirPei?.(mensagem)
+    }
+
+    return (
+        <>
+        <div className={`${className ?? ""} relative flex w-full h-full flex-col items-center gap-3 sm:gap-4 rounded-[70px] bg-surface-base/40 px-4 py-3 sm:px-8 sm:py-4 overflow-auto`}>
+            <button
+                type="button"
+                aria-label="Fechar painel"
+                onClick={fechar}
+                className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-xl text-secondary cursor-pointer transition-colors hover:bg-surface-base-hover"
+            >
+                ×
+            </button>
+
+            {!emQuestoes && (
+                <>
+                <p className={`text-center text-3xl sm:text-4xl lg:text-5xl transition-all duration-500 ${mostrarCriacao ? "mt-8" : "mt-20"}`}>OK, vamos começar!</p>
+
+                <div className={`flex w-full flex-col items-center gap-4 justify-center sm:flex-row sm:gap-40 transition-all duration-500 ${mostrarCriacao ? "mt-6" : "mt-30"}`}>
+                    <Button className="w-full bg-[#FEDA7A] text-[#433F3F] hover:bg-[#FEDA7A]/80 sm:w-80 px-8 py-3 text-base sm:text-lg">
+                        Importar PEI
+                    </Button>
+                    <Button
+                        onClick={onCriarAgora}
+                        className={`w-full sm:w-80 px-8 py-3 text-base sm:text-lg ${mostrarCriacao ? "opacity-50 cursor-not-allowed hover:bg-surface-accent" : ""}`}>Criar agora</Button>
+                </div>
+                </>
+            )}
+
+            {(mostrarCriacao || emQuestoes) && (
+                <div className="flex w-full flex-1 flex-col items-center justify-center">
+                <div className="flex w-full flex-col gap-3 rounded-[70px] bg-surface-muted/50 px-4 py-3 sm:px-6 sm:py-4 max-w-[64rem] animate-[painel-criar_600ms_cubic-bezier(0.16,1,0.3,1)]">
+                    {emQuestoes ? (
+                        <GuidedQuestionsScreen />
+                    ) : (
+                        <>
+                        <div className="flex w-full items-center justify-between gap-2">
+                            <h2 className="text-lg sm:text-xl lg:text-2xl">
+                                Informações iniciais
+                            </h2>
+                            <div className="flex">
+                            <button
+                                type="button"
+                                onClick={() => onVoltar?.()}
+                                className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-xl text-secondary transition-colors hover:bg-surface-base-hover"
+                                aria-label="Voltar"
+                            >
+                                <ChevronLeft size={20} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => irParaQuestoes()}
+                                disabled={!componente || !periodo}
+                                className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-xl text-secondary transition-colors hover:bg-surface-base-hover disabled:cursor-not-allowed disabled:opacity-40"
+                                aria-label="Avancar"
+                            >
+                                <ChevronRight size={20} />
+                            </button></div>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-2 text-sm sm:text-base">
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-sm font-medium text-secondary sm:text-base">
+                                        Nome do Estudante: {nomeAluno ?? ""}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-sm font-medium text-secondary sm:text-base">
+                                        Nome do Professor Regente: {professor ?? ""}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-sm font-medium text-secondary sm:text-base">
+                                        Nome do Professor Especializado da Educação Especial: (se houver)
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <p className="text-sm font-medium text-secondary sm:text-base">
+                                        Componente curricular
+                                    </p>
+                                    <DropDown
+                                        options={OPCOES_COMPONENTE}
+                                        value={componente}
+                                        onChange={setComponente}
+                                        small
+                                        placeholder="Selecione o componente curricular"
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <p className="text-sm font-medium text-secondary sm:text-base">
+                                        Período
+                                    </p>
+                                    <DropDown
+                                        options={OPCOES_PERIODO}
+                                        small
+                                        value={periodo}
+                                        onChange={setPeriodo}
+                                        placeholder="Selecione o bimestre"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        </>
+                    )}
+                </div>
+                </div>
+            )}
+
+            <div className="mt-auto flex w-full flex-col gap-4 justify-end">
+                <div className="mx-auto flex w-full max-w-[64rem] flex-col gap-4">
+                    <ChatInput
+                        validarPrivacidade={emQuestoes}
+                        placeholder={emQuestoes ? "Se preferir, digite a resposta abaixo" : chatPlaceholder}
+                        enviarLabel={emQuestoes ? "Confirmar resposta" : "Enviar mensagem"}
+                        disabled={!emQuestoes || status === "carregando"}
+                        value={emQuestoes ? (respostaAtual.freeText ?? "") : undefined}
+                        limparAoEnviar={!emQuestoes}
+                        onChangeTexto={emQuestoes ? confirmarTexto : undefined}
+                        anexos={emQuestoes ? anexosAtuais : undefined}
+                        onAdicionarAnexos={emQuestoes ? adicionarAnexos : undefined}
+                        onRemoverAnexo={emQuestoes ? removerAnexo : undefined}
+                        onSubmit={(texto) => {
+                            if (emQuestoes) {
+                                confirmarTexto(texto)
+                                void avancar()
+                            } else {
+                                onEnviarChat?.(texto)
+                            }
+                        }}
+                    />
+                    {children}
+                </div>
+            </div>
+
+            {mostrarRevisao && (
+                <div
+                    className="absolute inset-0 z-50 flex items-center justify-center rounded-[70px] bg-surface-inverse/50 p-4"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setMostrarRevisao(false)
+                    }}
+                >
+                    <div className="w-full max-w-md">
+                        <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+                            <div className="flex flex-col gap-6">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)">
+                                        Revisar respostas
+                                    </p>
+                                    <button
+                                        type="button"
+                                        aria-label="Fechar"
+                                        className="cursor-pointer hover:text-secondary"
+                                        onClick={() => setMostrarRevisao(false)}
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    <p className="text-md text-primary text-justify">
+                                        Tem certeza de que essas são as respostas corretas e que todas foram revisadas?
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-5 self-end">
+                                <Button
+                                    type="button"
+                                    onClick={() => setMostrarRevisao(false)}
+                                    className="bg-surface-inverse text-inverse w-32"
+                                >
+                                    Não
+                                </Button>
+                                <Button
+                                    type="button"
+                                    onClick={confirmarPei}
+                                    className="w-32"
+                                >
+                                    Sim
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+
+        {mostrarConfirmacao && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-surface-inverse/50 px-4">
+                <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-[70px] bg-surface-base px-6 py-8 text-center">
+                    <p className="text-base text-primary sm:text-lg">
+                        Seu progresso foi salvo. Deseja sair?
+                    </p>
+                    <div className="flex gap-3">
+                        <Button onClick={() => setMostrarConfirmacao(false)} className="w-auto px-6">
+                            Continuar
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                setMostrarConfirmacao(false)
+                                onFechar?.()
+                            }}
+                            className="w-auto px-6"
+                        >
+                            Sair
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
+    )
+}

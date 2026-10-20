@@ -116,14 +116,12 @@ function dataOrdenavel(data: string): number {
  * pelo texto colocaria "08/05/2026" depois de "15/05/2026".
  */
 export function conversasDoAluno(conversas: Conversa[], alunoId: string): Conversa[] {
-  return conversas
-    .filter((conversa) => conversa.alunoId === alunoId)
-    .sort((a, b) => dataOrdenavel(b.data) - dataOrdenavel(a.data));
+  return conversasRecentes(conversas.filter((conversa) => conversa.alunoId === alunoId));
 }
 
 /** Conversas da mais recente para a mais antiga, sem mexer na lista original */
 export function conversasRecentes(conversas: Conversa[]): Conversa[] {
-  return [...conversas].sort((a, b) => dataOrdenavel(b.data) - dataOrdenavel(a.data));
+  return conversas.toSorted((a, b) => dataOrdenavel(b.data) - dataOrdenavel(a.data));
 }
 
 export type ResolucaoChat =

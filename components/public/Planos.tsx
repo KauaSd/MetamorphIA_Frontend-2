@@ -116,9 +116,9 @@ export default function Planos({ tipo }: { tipo: PlanoId }) {
                 </div>
                 <span className="text-3xl font-extrabold">
                     {c.valor}
-                    {c.periodo && (
+                    {c.periodo ? (
                         <span className="font-medium text-base"> {c.periodo}</span>
-                    )}
+                    ) : null}
                 </span>
                 <div className="bg-surface-muted w-full h-0.5" />
                 {/* lista de recursos do plano */}
@@ -131,13 +131,13 @@ export default function Planos({ tipo }: { tipo: PlanoId }) {
                     ))}
                 </div>
             </div>
-            {c.temBotao && (
+            {c.temBotao ? (
                 <div className="mt-auto mb-3 pt-5">
                     <ButtonLink className={`font-(family-name:--font-text-me-one) text-[12px] sm:text-[20px] ${c.botao.className ?? ""}`}>
                         {c.botao.texto}
                     </ButtonLink>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 }

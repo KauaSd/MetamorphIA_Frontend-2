@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Menu from "@/components/app/Menu";
-import Tutorial, { type tutId } from "@/components/app/Tutorial";
+import Menu from "@/components/app/layout/Menu";
+import Tutorial, { type tutId } from "@/components/app/layout/Tutorial";
 import { FormIdentificacao } from "@/components/app/forms/FormAlunoTurma";
 import { useData } from "@/components/app/state/DataProvider";
 

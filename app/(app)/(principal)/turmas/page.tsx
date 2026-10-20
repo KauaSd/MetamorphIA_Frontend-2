@@ -1,4 +1,4 @@
-import ConteudoTurmas from "@/components/app/ConteudoTurmas";
+import ConteudoTurmas from "@/components/app/turmas/ConteudoTurmas";
 
 // o padding horizontal acompanha o do dashboardTurma: md:px-64 deixava a
 // coluna util negativa, porque a sidebar ja ocupa md:w-72

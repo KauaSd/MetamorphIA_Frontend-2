@@ -22,9 +22,9 @@ export default function Input({
 
   return (
     <div className="relative flex items-center w-full">
-      {isSearch && (
+      {isSearch ? (
         <Search className="absolute left-3.5 w-5 h-5 text-secondary pointer-events-none" />
-      )}
+      ) : null}
       <input
         type={type}
         placeholder={placeholder}

@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import ChatTgAluno from "@/components/app/ChatTgAluno";
-import Conteudopei from "@/components/app/Conteudopei";
-import EditaPEI from "@/components/app/EditaPEI";
-import GeraPEI from "@/components/app/GeraPEI";
+import ChatTgAluno from "@/components/app/chat/ChatTgAluno";
+import Conteudopei from "@/components/app/pei/Conteudopei";
+import EditaPEI from "@/components/app/chat/EditaPEI";
+import GeraPEI from "@/components/app/chat/GeraPEI";
 import ChatInput from "@/components/app/pei/ChatInput";
 import Toast, { useAlerta } from "@/components/common/Toast";
 
@@ -113,16 +113,36 @@ export default function ConteudoChat() {
 
   /** grava no store; sem `conversaId` a conversa so vive nesta sessao */
   async function persistir(texto: string, autor: "professor" | "aluno") {
-    if (!conversaId) return;
-    const resultado = await addMessage(conversaId, texto, autor);
+    const idAlvo = conversaId ?? conversa?.id;
+    if (!idAlvo) return;
+    const resultado = await addMessage(idAlvo, texto, autor);
     if (!resultado.ok) {
       mostrar(resultado.erro);
     }
   }
 
+  const handleConcluirPei = async (mensagemPei: string) => {
+    setMostrarPainel(false);
+    setMostrarCriacao(false);
+
+    const idDoBot = `pei-${Date.now()}-bot`;
+    setIsThinking(true);
+    setRascunho((prev) => [
+      ...prev,
+      { id: idDoBot, texto: "", autor: "aluno", streaming: true },
+    ]);
+
+    await new Promise((resolver) => setTimeout(resolver, 1500));
+
+    await persistir(mensagemPei, "aluno");
+    await recarregar();
+    setRascunho([]);
+    setIsThinking(false);
+  };
+
   const handleSendMessage = async (texto: string) => {
     // sem conversa criada ainda nao ha onde persistir a mensagem
-    if (!conversaId) return;
+    if (!conversaId && !conversa?.id) return;
 
     const conteudo = texto.trim();
     if (!conteudo) return;
@@ -301,14 +321,42 @@ export default function ConteudoChat() {
                       }`}
                     >
                       <div
-                        className={`max-w-[75%] break-words rounded-t-[70px] px-5 py-3 ${
+                        className={`max-w-[75%] break-words rounded-t-[36px] px-6 py-4 ${
                           bolha.autor === "professor"
-                            ? "rounded-bl-[70px] bg-sunken"
-                            : "rounded-br-[70px] bg-surface-base"
+                            ? "rounded-bl-[36px] bg-sunken"
+                            : "rounded-br-[36px] bg-surface-base"
                         }`}
                       >
                         {bolha.streaming && !bolha.texto && <Dots />}
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{bolha.texto}</ReactMarkdown>
+                        <div className="flex flex-col gap-3 text-sm leading-relaxed sm:text-base">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              p: ({ children }) => (
+                                <p className="whitespace-pre-line">{children}</p>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className="ml-5 flex list-disc flex-col gap-1 text-secondary">
+                                  {children}
+                                </ul>
+                              ),
+                              ol: ({ children }) => (
+                                <ol className="ml-5 flex list-decimal flex-col gap-1 text-secondary">
+                                  {children}
+                                </ol>
+                              ),
+                              li: ({ children }) => <li className="pl-1">{children}</li>,
+                              strong: ({ children }) => (
+                                <strong className="font-semibold text-primary">
+                                  {children}
+                                </strong>
+                              ),
+                              hr: () => <hr className="my-1 border-sunken" />,
+                            }}
+                          >
+                            {bolha.texto}
+                          </ReactMarkdown>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -328,6 +376,7 @@ export default function ConteudoChat() {
                     setMostrarCriacao(false);
                   }}
                   onCriarAgora={() => setMostrarCriacao(true)}
+                  onConcluirPei={handleConcluirPei}
                   onVoltar={() => setMostrarCriacao(false)}
                   onEnviarChat={handleSendMessage}
                   chatPlaceholder={hasStarted ? "" : "Digite uma mensagem..."}

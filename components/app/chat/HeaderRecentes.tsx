@@ -1,14 +1,14 @@
 import DropDown from "@/components/common/DropDown";
 import BarraPesquisa from "@/components/common/Input";
 
-export default function HeaderRecentes(){
-    const OpcoesDropDown = [
-        {value: "data", label: "Data"},
-        {value: "aluno", label: "Aluno"},
-        {value: "turma", label: "Turma"},
-        {value: "neuro", label: "Neurodivergência"}
-    ]
+const OPCOES_DROPDOWN = [
+    {value: "data", label: "Data"},
+    {value: "aluno", label: "Aluno"},
+    {value: "turma", label: "Turma"},
+    {value: "neuro", label: "Neurodivergência"}
+]
 
+export default function HeaderRecentes(){
     return(
         <div className="flex flex-col gap-4 sm:gap-[15px] w-full">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between w-full gap-4">
@@ -16,7 +16,7 @@ export default function HeaderRecentes(){
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-[13px] sm:items-center w-full lg:w-auto">
                     <div className="flex flex-row gap-2 items-center shrink-0">
                         <span className="hidden sm:inline text-sm text-secondary whitespace-nowrap">Ordenar por</span>
-                        <DropDown options={OpcoesDropDown} small />
+                        <DropDown options={OPCOES_DROPDOWN} small />
                     </div>
                     <BarraPesquisa type="search" placeholder="Procurar mês, ano..." className="w-full sm:w-[220px] lg:w-[305px]" />
                 </div>

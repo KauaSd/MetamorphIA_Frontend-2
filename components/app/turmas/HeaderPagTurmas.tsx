@@ -5,12 +5,12 @@ interface HeaderPagTurmasProps {
     onCriarTurma: () => void;
 }
 
-export default function HeaderPagTurmas({ onCriarTurma }: HeaderPagTurmasProps){
-    const OpcoesDropDown = [
-        {value: "az", label: "A-Z"},
-        {value: "recente", label: "Atividade"}
-    ]
+const OPCOES_DROPDOWN = [
+    {value: "az", label: "A-Z"},
+    {value: "recente", label: "Atividade"}
+]
 
+export default function HeaderPagTurmas({ onCriarTurma }: HeaderPagTurmasProps){
     return(
         <div className="flex flex-col gap-[15px] w-full">
             <div className="flex flex-row items-center justify-between w-full gap-3">
@@ -18,7 +18,7 @@ export default function HeaderPagTurmas({ onCriarTurma }: HeaderPagTurmasProps){
 
                 <div className="flex flex-row gap-2 sm:gap-[13px] items-center shrink-0">
                     <span className="hidden sm:inline text-sm text-secondary whitespace-nowrap">Ordenar por</span>
-                    <DropDown options={OpcoesDropDown} small />
+                    <DropDown options={OPCOES_DROPDOWN} small />
 
                     <button type="button" onClick={onCriarTurma} aria-label="Criar Turma" className="flex w-8 h-8 sm:w-9 sm:h-9 bg-surface-accent rounded-full justify-center items-center cursor-pointer hover:bg-surface-accent-strong shrink-0">
                         <img src={GroupAdd.src} className="flex w-5 h-5 sm:w-6 sm:h-6" alt="" />

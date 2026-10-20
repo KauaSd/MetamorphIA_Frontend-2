@@ -1,40 +1,40 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useData } from "@/components/app/state/DataProvider";
-import { alunoPorId, alunosDaTurma, turmaPorId } from "@/utils/data/types";
-import { createAluno, updateAluno, deleteAluno, openChatWith } from "@/utils/data/controller";
-import type { Resultado } from "@/utils/data/controller";
+import { alunoPorId, conversasDoAluno as filtrarConversasDoAluno, turmaPorId } from "@/utils/data/types";
+import { updateAluno, deleteAluno, openChatWith, type Resultado } from "@/utils/data/controller";
 import { ALERTAS } from "@/utils/alertas";
-import Resumo from "@/components/app/Resumo";
+import Resumo from "@/components/app/alunos/Resumo";
 import Toast, { useAlerta } from "@/components/common/Toast";
-import Engajamento from "@/components/app/Engajamento";
-import HistoricoTags from "@/components/app/HistoricoTags";
-import Button from "@/components/common/Button";
-import Add from "@/public/add.svg";
+import Engajamento from "@/components/app/alunos/Engajamento";
+import HistoricoTags from "@/components/app/chat/HistoricoTags";
 import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma";
-import CarregandoDashboard from "@/components/app/CarregandoDashboard";
-import HeaderPag from "@/components/app/HeaderDashAl";
-import { useState } from "react";
-import BoxSemConversa from "@/components/app/BoxSemConversa";
-import Estatistica from "@/components/app/CardEstatisticaAluno";
+import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
+import HeaderPag from "@/components/app/alunos/HeaderDashAl";
+import BoxSemConversa from "@/components/app/chat/BoxSemConversa";
+import Estatistica from "@/components/app/alunos/CardEstatisticaAluno";
 
 export default function ConteudoDashboardAluno() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const alunoId = searchParams.get("id");
   const { alunos, turmas, conversas, recarregar, hydrated } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
 
-  const [mostrarForm, setMostrarForm] = useState(false);
   const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
   const [idEmExclusao, setIdEmExclusao] = useState<string | null>(null);
+  const [abrindoChat, setAbrindoChat] = useState(false);
 
   const aluno = alunoId ? alunoPorId(alunos, alunoId) : undefined;
   const turma = aluno ? turmaPorId(turmas, aluno.turmaId) : undefined;
-  const conversasDoAluno = alunoId ? conversas.filter((c) => c.alunoId === alunoId) : [];
+  const conversasDoAluno = alunoId ? filtrarConversasDoAluno(conversas, alunoId) : [];
 
-  const turmasParaForm = turmas.map((t) => ({ value: t.id, label: t.nome }));
+  const turmasParaForm = useMemo(
+    () => turmas.map((t) => ({ value: t.id, label: t.nome })),
+    [turmas],
+  );
   const alunoEmEdicao = idEmEdicao ? alunos.find((a) => a.id === idEmEdicao) : undefined;
   const alunoEmExclusao = idEmExclusao ? alunos.find((a) => a.id === idEmExclusao) : undefined;
 
@@ -50,14 +50,6 @@ export default function ConteudoDashboardAluno() {
       mostrar(resultado.erro);
     }
     return resultado;
-  }
-
-  async function aoCriar(dados: DadosAluno): Promise<Resultado> {
-    const resultado = await createAluno(dados);
-    if (resultado.ok) {
-      await recarregar();
-    }
-    return tentar(resultado);
   }
 
   async function aoEditar(dados: DadosAluno): Promise<Resultado> {
@@ -82,20 +74,17 @@ export default function ConteudoDashboardAluno() {
     return tentar(resultado);
   }
 
-  const [abrindoChat, setAbrindoChat] = useState(false);
-  const [mostrarPei, setMostrarPei] = useState(false);
-
-  const router = useRouter();
-
   async function handleBatePapo() {
     if (!alunoId) return;
     setAbrindoChat(true);
     const resultado = await openChatWith(alunoId);
-    setAbrindoChat(false);
     if (!resultado.ok) {
+      setAbrindoChat(false);
       mostrar(resultado.erro);
       return;
     }
+    await recarregar();
+    setAbrindoChat(false);
     if (resultado.conversaId) {
       router.push(`/chat?conversaId=${resultado.conversaId}`);
     }
@@ -113,7 +102,7 @@ export default function ConteudoDashboardAluno() {
     return (
       <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
         <p className="text-center text-secondary">Aluno não encontrado</p>
-        {alerta && <Toast alerta={alerta} limpar={limpar} />}
+        {alerta ? <Toast alerta={alerta} limpar={limpar} /> : null}
       </div>
     );
   }
@@ -169,16 +158,7 @@ export default function ConteudoDashboardAluno() {
           </div>
         )}
 
-        {mostrarForm && (
-          <FormAluno
-            turmas={turmasParaForm}
-            turmaIdInicial={aluno.turmaId}
-            onClose={() => setMostrarForm(false)}
-            onSalvar={aoCriar}
-          />
-        )}
-
-        {alunoEmEdicao && (
+        {alunoEmEdicao ? (
           <FormAluno
             turmas={turmasParaForm}
             modo="editar"
@@ -189,18 +169,18 @@ export default function ConteudoDashboardAluno() {
             onClose={() => setIdEmEdicao(null)}
             onSalvar={aoEditar}
           />
-        )}
+        ) : null}
 
-        {alunoEmExclusao && (
+        {alunoEmExclusao ? (
           <FormDeletaAluno
             nomeAluno={alunoEmExclusao.nome}
             onClose={() => setIdEmExclusao(null)}
             onExcluir={confirmarExclusao}
           />
-        )}
+        ) : null}
       </div>
 
-      {alerta && <Toast alerta={alerta} limpar={limpar} />}
+      {alerta ? <Toast alerta={alerta} limpar={limpar} /> : null}
     </div>
   );
 }

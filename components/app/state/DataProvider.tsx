@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { repository } from "@/utils/data/dataRepository";
+import { carregarDados } from "@/utils/data/controller";
 import { dadosVazios, type AppData } from "@/utils/data/types";
 
 export interface DataContextValue extends AppData {
@@ -23,14 +23,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   const recarregar = useCallback(async () => {
-    const [turmas, alunos, conversas, teacherName] = await Promise.all([
-      repository.listTurmas(),
-      repository.listAlunos(),
-      repository.listConversas(),
-      repository.getTeacherName(),
-    ]);
-
-    setDados({ turmas, alunos, conversas, teacherName });
+    const proximo = await carregarDados();
+    setDados(proximo);
   }, []);
 
   // a leitura acontece depois da hidratacao: no primeiro render o estado e o de servidor,
@@ -39,8 +33,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     let cancelado = false;
 
     async function hidratar() {
-      await recarregar();
+      const proximo = await carregarDados();
       if (cancelado) return;
+      setDados(proximo);
       setHydrated(true);
     }
 
@@ -49,7 +44,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelado = true;
     };
-  }, [recarregar]);
+  }, []);
 
   const valor = useMemo<DataContextValue>(
     () => ({ ...dados, hydrated, recarregar }),

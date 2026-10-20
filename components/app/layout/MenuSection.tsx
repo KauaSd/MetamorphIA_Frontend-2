@@ -69,27 +69,27 @@ export default function MenuSection({
 
         <p
           className={`text-inverse-muted text-xl ${
-            !isSidebarOpen && "hidden"
+            !isSidebarOpen ? "hidden" : ""
           }`}
         >
           {label}
           </p>
         </div>
 
-        {hasItems && (
+        {hasItems ? (
           <ChevronDown
             className={`relative z-10 w-7.5 h-7.5 text-inverse shrink-0 transition-transform duration-200 ${
-              !isSidebarOpen && "hidden"
+              !isSidebarOpen ? "hidden" : ""
             } ${expanded ? "rotate-180" : "rotate-0"}`}
           />
-        )}
+        ) : null}
 
-        {carregando && (
+        {carregando ? (
           <span
             aria-hidden
-            className={`h-4 w-10 shrink-0 rounded-[70px] bg-surface-inverse-hover ${!isSidebarOpen && "hidden"}`}
+            className={`h-4 w-10 shrink-0 rounded-[70px] bg-surface-inverse-hover ${!isSidebarOpen ? "hidden" : ""}`}
           />
-        )}
+        ) : null}
     </>
   );
 

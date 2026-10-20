@@ -1,38 +1,43 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import HeaderPagAl from "@/components/app/HeaderPagAl";
+import HeaderPagAl from "@/components/app/alunos/HeaderPagAl";
 import BarraPesquisa from "@/components/common/Input";
-import Aluno from "@/components/app/Aluno";
-import BoxSemAluno from "@/components/app/BoxSemAluno";
+import Aluno from "@/components/app/alunos/Aluno";
+import BoxSemAluno from "@/components/app/alunos/BoxSemAluno";
 import Toast, { useAlerta } from "@/components/common/Toast";
-import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma"
+import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma";
 import { useData } from "@/components/app/state/DataProvider";
-import { createAluno, updateAluno, deleteAluno } from "@/utils/data/controller";
-import type { Resultado } from "@/utils/data/controller";
+import { updateAluno, deleteAluno, type Resultado } from "@/utils/data/controller";
 import { ALERTAS } from "@/utils/alertas";
-import { turmaDoAluno } from "@/utils/data/types";
 
 export default function ConteudoAlunos(){
     const { turmas, alunos, recarregar } = useData();
     const [busca, setBusca] = useState("");
     const [ordenacao, setOrdenacao] = useState("az");
-    const [mostrarForm, setMostrarForm] = useState(false);
     const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
     const [idEmExclusao, setIdEmExclusao] = useState<string | null>(null);
     const { alerta, mostrar, limpar } = useAlerta();
 
-    const turmasParaForm = turmas.map((turma) => ({ value: turma.id, label: turma.nome }));
+    const turmasParaForm = useMemo(
+        () => turmas.map((turma) => ({ value: turma.id, label: turma.nome })),
+        [turmas],
+    );
+
+    const nomeTurmaPorId = useMemo(
+        () => new Map(turmas.map((turma) => [turma.id, turma.nome])),
+        [turmas],
+    );
 
     const alunosFiltrados = useMemo(() => {
         const termo = busca.trim().toLowerCase();
         const filtrados = termo
             ? alunos.filter((aluno) => aluno.nome.toLowerCase().includes(termo))
-            : [...alunos];
+            : alunos;
 
         // "recente" cai para a-z: o dado de atividade nao esta no modelo ainda
         const descending = ordenacao === "za";
-        return filtrados.sort((a, b) =>
+        return filtrados.toSorted((a, b) =>
             descending ? b.nome.localeCompare(a.nome, "pt-BR") : a.nome.localeCompare(b.nome, "pt-BR")
         );
     }, [alunos, busca, ordenacao]);
@@ -48,14 +53,6 @@ export default function ConteudoAlunos(){
             mostrar(resultado.erro);
         }
         return resultado;
-    }
-
-    async function aoCriar(dados: DadosAluno): Promise<Resultado> {
-        const resultado = await createAluno(dados);
-        if (resultado.ok) {
-            await recarregar();
-        }
-        return tentar(resultado);
     }
 
     async function aoEditar(dados: DadosAluno): Promise<Resultado> {
@@ -98,7 +95,7 @@ export default function ConteudoAlunos(){
                             key={aluno.id}
                             nome={aluno.nome}
                             neuros={aluno.neuro}
-                            Turma={turmaDoAluno(turmas, alunos, aluno.id)?.nome ?? ""}
+                            Turma={nomeTurmaPorId.get(aluno.turmaId) ?? ""}
                             href={`/dashboardAluno?id=${aluno.id}`}
                             onEditar={() => setIdEmEdicao(aluno.id)}
                             onExcluir={() => setIdEmExclusao(aluno.id)}
@@ -116,15 +113,7 @@ export default function ConteudoAlunos(){
                 </div>
             )}
 
-            {mostrarForm && (
-                <FormAluno
-                    turmas={turmasParaForm}
-                    onClose={() => setMostrarForm(false)}
-                    onSalvar={aoCriar}
-                />
-            )}
-
-            {alunoEmEdicao && (
+            {alunoEmEdicao ? (
                 <FormAluno
                     turmas={turmasParaForm}
                     modo="editar"
@@ -135,17 +124,17 @@ export default function ConteudoAlunos(){
                     onClose={() => setIdEmEdicao(null)}
                     onSalvar={aoEditar}
                 />
-            )}
+            ) : null}
 
-            {alunoEmExclusao && (
+            {alunoEmExclusao ? (
                 <FormDeletaAluno
                     nomeAluno={alunoEmExclusao.nome}
                     onClose={() => setIdEmExclusao(null)}
                     onExcluir={confirmarExclusao}
                 />
-            )}
+            ) : null}
 
-            {alerta && <Toast alerta={alerta} limpar={limpar} />}
+            {alerta ? <Toast alerta={alerta} limpar={limpar} /> : null}
         </div>
     );
 }

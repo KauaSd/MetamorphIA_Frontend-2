@@ -3,14 +3,14 @@
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import BarraPesquisa from "@/components/common/Input";
 import Blurfundo from "@/components/common/Blurfundo";
-import { X, Sun, Moon, Stars} from "lucide-react";
+import { X, Sun, Moon } from "lucide-react";
 import engrenagem from "@/public/engrenagem.svg";
 import circulo_conta from "@/public/circulo_conta.svg";
 import cadeado from "@/public/cadeado.svg";
 import astroid from "@/public/astroid.svg";
 import { FormDeletaConta, FormDesconectaTodos, FormDesconecta, FormAlterarSenha, FormPlanos} from "@/components/app/forms/FormConta";
-import CampoEditavel from "@/components/app/CampoEditavel";
-import BarraAlteracoes from "@/components/app/BarraAlteracoes";
+import CampoEditavel from "@/components/app/configuracoes/CampoEditavel";
+import BarraAlteracoes from "@/components/app/configuracoes/BarraAlteracoes";
 import { useData } from "@/components/app/state/DataProvider";
 import { saveTeacherName } from "@/utils/data/controller";
 import Link from "next/link";
@@ -264,6 +264,8 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
 
   // fecha a lista de resultados ao clicar fora dela
   useEffect(() => {
+    if (!searchingAberto) return;
+
     function clicar(event: MouseEvent) {
       if (buscaRef.current && !buscaRef.current.contains(event.target as Node)) {
         setTermo("");
@@ -271,7 +273,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
     }
     document.addEventListener("mousedown", clicar);
     return () => document.removeEventListener("mousedown", clicar);
-  }, [setTermo]);
+  }, [searchingAberto, setTermo]);
 
   return (
     <div className="flex w-[210px] shrink-0 flex-col gap-2 bg-surface-inverse px-5 py-5 text-inverse-muted">
@@ -331,7 +333,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
             } text-inverse-muted`}
             onClick={() => setAbaAtiva(aba.chave)}
           >
-            <img src={aba.icone.src} />
+            <img src={aba.icone.src} alt="" className="h-5 w-5 shrink-0 object-contain" />
             {aba.rotulo}
           </div>
         ))}

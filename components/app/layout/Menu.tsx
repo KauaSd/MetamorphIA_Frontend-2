@@ -1,12 +1,12 @@
 "use client";
 
-import Configuracoes from "@/components/app/Configuracoes";
-import MenuSection from "@/components/app/MenuSection";
+import Configuracoes from "@/components/app/configuracoes/Configuracoes";
+import MenuSection from "@/components/app/layout/MenuSection";
 import Icon from "@/public/icon.png";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { useData } from "@/components/app/state/DataProvider";
-import { conversasRecentes, turmaDoAluno } from "@/utils/data/types";
+import { conversasRecentes } from "@/utils/data/types";
 import { corDoNome } from "@/utils/cores";
 
 const hrefTurmas = "/turmas";
@@ -108,16 +108,16 @@ export default function Menu() {
   }, [alunos]);
 
   const itensRecentes = React.useMemo(() => {
+    const alunosPorId = new Map(alunos.map((a) => [a.id, a]));
     return conversasRecentes(conversas).slice(0, 3).map((conversa) => {
-      const aluno = alunos.find((a) => a.id === conversa.alunoId);
-      const turma = aluno ? turmaDoAluno(turmas, alunos, aluno.id) : undefined;
+      const aluno = alunosPorId.get(conversa.alunoId);
       return {
         neuros: aluno ? aluno.neuro : [],
         nome: `${aluno?.nome ?? "Aluno"} - ${conversa.titulo}`,
         href: `/chat?conversaId=${conversa.id}`,
       };
     });
-  }, [conversas, alunos, turmas]);
+  }, [conversas, alunos]);
 
   const [isOpen, setIsOpen] = React.useState(true);
   // depois que a pessoa colapsa a sidebar na mao, o resize para de decidir por ela
@@ -153,9 +153,10 @@ export default function Menu() {
   };
 
   React.useEffect(() => {
+    if (preferenciaRecolhida) return;
+
     const handleResize = () => {
-      const telaLarga = window.innerWidth >= 1280;
-      setIsOpen((atual) => (preferenciaRecolhida ? atual : telaLarga));
+      setIsOpen(window.innerWidth >= 1280);
     };
 
     handleResize();
@@ -246,7 +247,7 @@ export default function Menu() {
 
                 <h1
                   className={`truncate text-2xl text-inverse font-(family-name:--font-text-me-one) select-none md:text-3xl ${
-                    !isOpen && "hidden"
+                    !isOpen ? "hidden" : ""
                   }`}
                 >
                   MetamorphIA
@@ -254,7 +255,7 @@ export default function Menu() {
               </div>
 
               <div
-                className={`shrink-0 cursor-pointer p-2 -m-2 ${!isOpen && "hidden"}`}
+                className={`shrink-0 cursor-pointer p-2 -m-2 ${!isOpen ? "hidden" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   recolher();
@@ -295,7 +296,7 @@ export default function Menu() {
                 isSidebarOpen={isOpen}
                 carregando={!hydrated}
                 onToggle={() => {
-                  if (itensTurmas.length > 0) setIsTurmaOpen(!isTurmaOpen);
+                  if (itensTurmas.length > 0) setIsTurmaOpen((prev) => !prev);
                 }}
               />
 
@@ -310,7 +311,7 @@ export default function Menu() {
                 isSidebarOpen={isOpen}
                 carregando={!hydrated}
                 onToggle={() => {
-                  if (itensAlunos.length > 0) setIsAlunoOpen(!isAlunoOpen);
+                  if (itensAlunos.length > 0) setIsAlunoOpen((prev) => !prev);
                 }}
               />
 
@@ -328,7 +329,7 @@ export default function Menu() {
                 isSidebarOpen={isOpen}
                 carregando={!hydrated}
                 onToggle={() => {
-                  if (itensRecentes.length > 0) setIsRecentesOpen(!isRecentesOpen);
+                  if (itensRecentes.length > 0) setIsRecentesOpen((prev) => !prev);
                 }}
               />
             </div>
@@ -365,7 +366,7 @@ export default function Menu() {
 
                   <p
                     className={`text-inverse-muted text-xl ${
-                      !isOpen && "hidden"
+                      !isOpen ? "hidden" : ""
                     } select-none`}
                   >
                     Configurações

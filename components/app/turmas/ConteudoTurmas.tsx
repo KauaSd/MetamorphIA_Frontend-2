@@ -1,17 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import HeaderPag from "@/components/app/HeaderPagTurmas";
+import HeaderPag from "@/components/app/turmas/HeaderPagTurmas";
 import BarraPesquisa from "@/components/common/Input";
-import Turma from "@/components/app/Turma";
-import BoxSemTurma from "@/components/app/BoxSemTurma";
+import Turma, { type AlunoTag } from "@/components/app/turmas/Turma";
+import BoxSemTurma from "@/components/app/turmas/BoxSemTurma";
 import Toast, { useAlerta } from "@/components/common/Toast";
 import { FormTurma, FormDeletaTurma } from "@/components/app/forms/FormAlunoTurma";
 import { useData } from "@/components/app/state/DataProvider";
-import { createTurma, deleteTurma, updateTurma } from "@/utils/data/controller";
-import type { Resultado } from "@/utils/data/controller";
+import { createTurma, deleteTurma, updateTurma, type Resultado } from "@/utils/data/controller";
 import { ALERTAS } from "@/utils/alertas";
-import { alunosDaTurma } from "@/utils/data/types";
 
 export default function ConteudoTurmas() {
   const { turmas, alunos, recarregar } = useData();
@@ -27,6 +25,16 @@ export default function ConteudoTurmas() {
   const turmaEmExclusao = idEmExclusao
     ? turmas.find((turma) => turma.id === idEmExclusao)
     : undefined;
+
+  const alunosPorTurmaId = useMemo(() => {
+    const mapa = new Map<string, AlunoTag[]>();
+    for (const aluno of alunos) {
+      const lista = mapa.get(aluno.turmaId) ?? [];
+      lista.push({ id: aluno.id, nome: aluno.nome, neuros: aluno.neuro });
+      mapa.set(aluno.turmaId, lista);
+    }
+    return mapa;
+  }, [alunos]);
 
   /** o form fica aberto e o toast aparece quando o controller recusa */
   async function tentar(resultado: Resultado): Promise<Resultado> {
@@ -90,24 +98,16 @@ export default function ConteudoTurmas() {
       {temResultado ? (
         <div className="w-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 xl:gap-8 mt-6 sm:mt-10 w-full">
-            {turmasFiltradas.map((turma) => {
-              const daTurma = alunosDaTurma(alunos, turma.id);
-
-              return (
-                <Turma
-                  key={turma.id}
-                  nomeTurma={turma.nome}
-                  alunos={daTurma.map((aluno) => ({
-                    id: aluno.id,
-                    nome: aluno.nome,
-                    neuros: aluno.neuro,
-                  }))}
-                  href={`/dashboardTurma?id=${turma.id}`}
-                  onEditar={() => setIdEmEdicao(turma.id)}
-                  onExcluir={() => setIdEmExclusao(turma.id)}
-                />
-              );
-            })}
+            {turmasFiltradas.map((turma) => (
+              <Turma
+                key={turma.id}
+                nomeTurma={turma.nome}
+                alunos={alunosPorTurmaId.get(turma.id) ?? []}
+                href={`/dashboardTurma?id=${turma.id}`}
+                onEditar={() => setIdEmEdicao(turma.id)}
+                onExcluir={() => setIdEmExclusao(turma.id)}
+              />
+            ))}
           </div>
         </div>
       ) : temTurma ? (
@@ -121,28 +121,28 @@ export default function ConteudoTurmas() {
         </div>
       )}
 
-      {mostrarForm && (
+      {mostrarForm ? (
         <FormTurma onClose={() => setMostrarForm(false)} onSalvar={aoCriar} />
-      )}
+      ) : null}
 
-      {turmaEmEdicao && (
+      {turmaEmEdicao ? (
         <FormTurma
           modo="editar"
           nomeInicial={turmaEmEdicao.nome}
           onClose={() => setIdEmEdicao(null)}
           onSalvar={aoEditar}
         />
-      )}
+      ) : null}
 
-      {turmaEmExclusao && (
+      {turmaEmExclusao ? (
         <FormDeletaTurma
           nomeTurma={turmaEmExclusao.nome}
           onClose={() => setIdEmExclusao(null)}
           onExcluir={confirmarExclusao}
         />
-      )}
+      ) : null}
 
-      {alerta && <Toast alerta={alerta} limpar={limpar} />}
+      {alerta ? <Toast alerta={alerta} limpar={limpar} /> : null}
     </div>
   );
 }

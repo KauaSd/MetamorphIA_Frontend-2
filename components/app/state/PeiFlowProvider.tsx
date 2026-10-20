@@ -40,6 +40,8 @@ export interface PeiFlowContext {
   currentIndex: number;
   questions: Question[];
   respostas: Record<string, Answer>;
+  mostrarRevisao: boolean;
+  setMostrarRevisao: (valor: boolean) => void;
   setComponente: (valor: string) => void;
   setPeriodo: (valor: string) => void;
   irParaQuestoes: () => void;
@@ -67,7 +69,18 @@ function lerFluxoSalvo(aluno: Aluno | null): FluxoSalvo | null {
     if (!bruto) return null;
     const salvo = JSON.parse(bruto) as FluxoSalvo;
     if (salvo.alunoId !== aluno.id) return null;
-    return salvo;
+    const questions = (salvo.questions ?? []).map((q) => ({
+      ...q,
+      selectionMode: "single" as const,
+    }));
+    const respostas: Record<string, Answer> = {};
+    for (const [chave, resp] of Object.entries(salvo.respostas ?? {})) {
+      respostas[chave] = {
+        ...resp,
+        selectedOptionIds: (resp.selectedOptionIds ?? []).slice(0, 1),
+      };
+    }
+    return { ...salvo, questions, respostas };
   } catch {
     return null;
   }
@@ -99,6 +112,7 @@ export function PeiFlowProvider({
   const [respostas, setRespostas] = useState<Record<string, Answer>>(
     salvoInicial?.respostas ?? {},
   );
+  const [mostrarRevisao, setMostrarRevisao] = useState(false);
 
   const carregarPerguntas = useCallback(async () => {
     if (!aluno || !componente || !periodo) return;
@@ -149,33 +163,40 @@ export function PeiFlowProvider({
   }, [currentIndex, irParaForm]);
 
   const avancar = useCallback(async () => {
-    if (!podeAvancar) return;
-    if (status === "carregando" || status === "salvando") return;
+    if (!podeAvancar || status === "salvando") return;
+    const atual = questions[currentIndex];
+    if (!atual?.hasNext) {
+      setMostrarRevisao(true);
+      return;
+    }
     setStatus("salvando");
     await new Promise((resolver) => setTimeout(resolver, 350));
-    const atual = questions[currentIndex];
-    if (atual?.hasNext) {
-      setCurrentIndex((indice) => indice + 1);
-    }
+    setCurrentIndex((indice) => indice + 1);
     setStatus("pronto");
   }, [podeAvancar, status, questions, currentIndex]);
 
   const selecionarOpcao = useCallback(
     (opcaoId: string) => {
       const pergunta = questions[currentIndex];
-      if (!pergunta) return;
+      if (!pergunta || status === "salvando" || status === "carregando") return;
+      const atual = respostas[pergunta.id] ?? respostaVazia(pergunta.id);
+      const primeiraVez =
+        atual.selectedOptionIds.length === 0 && !atual.freeText?.trim();
+
       setRespostas((prev) => {
-        const atual = prev[pergunta.id] ?? respostaVazia(pergunta.id);
-        const ids =
-          pergunta.selectionMode === "single"
-            ? [opcaoId]
-            : atual.selectedOptionIds.includes(opcaoId)
-              ? atual.selectedOptionIds.filter((id) => id !== opcaoId)
-              : [...atual.selectedOptionIds, opcaoId];
-        return { ...prev, [pergunta.id]: { ...atual, selectedOptionIds: ids } };
+        const resp = prev[pergunta.id] ?? respostaVazia(pergunta.id);
+        return { ...prev, [pergunta.id]: { ...resp, selectedOptionIds: [opcaoId] } };
       });
+
+      if (primeiraVez) {
+        if (pergunta.hasNext) {
+          setCurrentIndex((indice) => indice + 1);
+        } else {
+          setMostrarRevisao(true);
+        }
+      }
     },
-    [questions, currentIndex],
+    [questions, currentIndex, status, respostas],
   );
 
   const confirmarTexto = useCallback(
@@ -247,6 +268,7 @@ export function PeiFlowProvider({
     setCurrentIndex(0);
     setQuestions([]);
     setRespostas({});
+    setMostrarRevisao(false);
     if (aluno && typeof window !== "undefined") {
       localStorage.removeItem(`${CHAVE_PEI}:${aluno.id}`);
     }
@@ -262,6 +284,8 @@ export function PeiFlowProvider({
       currentIndex,
       questions,
       respostas,
+      mostrarRevisao,
+      setMostrarRevisao,
       setComponente,
       setPeriodo,
       irParaQuestoes,
@@ -288,6 +312,7 @@ export function PeiFlowProvider({
       currentIndex,
       questions,
       respostas,
+      mostrarRevisao,
       irParaQuestoes,
       irParaForm,
       tentarNovamente,

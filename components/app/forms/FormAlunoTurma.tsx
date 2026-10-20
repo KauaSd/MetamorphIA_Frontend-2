@@ -5,16 +5,15 @@ import { saveTeacherName } from "@/utils/data/controller";
 import type { Resultado } from "@/utils/data/controller";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
-import { X } from "lucide-react";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { X, ChevronUp, ChevronDown } from "lucide-react";
 import CheckBoxAluno from "@/components/common/CheckBoxAl";
-import  DropDown  from "@/components/common/DropDown";
+import DropDown, { type DropDownOption } from "@/components/common/DropDown";
 import Blurfundo from "@/components/common/Blurfundo";
 
-interface turma{
-  value : string
-  label: string
-}
+const COLUNAS_NEURO = [
+  ["TEA", "TDAH", "Dislexia"],
+  ["Discalculia", "AH/SD", "Outro"],
+] as const;
 
 /** o que o form entrega para o handler salvar */
 export interface DadosAluno {
@@ -25,7 +24,7 @@ export interface DadosAluno {
 }
 
 interface turmasprops{
-  turmas: turma[]
+  turmas: DropDownOption[]
   onClose: () => void
   /** obrigatorio: sem ele o botao salvar nao teria para onde enviar os dados */
   onSalvar: (dados: DadosAluno) => Promise<Resultado>
@@ -38,7 +37,7 @@ interface turmasprops{
 
 export function FormAluno( { turmas, onClose, onSalvar, modo = "criar", nomeInicial="", idadeInicial=null, neuroInicial=[], turmaIdInicial="" } : turmasprops) {
     const [neuro, setNeuro] = useState<string[]>(neuroInicial);
-    const [Nome, setNome] = useState(nomeInicial);
+    const [nome, setNome] = useState(nomeInicial);
     const [idade, setIdade] = useState(idadeInicial === null ? "" : String(idadeInicial));
     const [turmaId, setTurmaId] = useState(turmaIdInicial || (turmas[0]?.value ?? ""));
     const [salvando, setSalvando] = useState(false);
@@ -67,7 +66,7 @@ export function FormAluno( { turmas, onClose, onSalvar, modo = "criar", nomeInic
     setSalvando(true);
     try {
       const resultado = await onSalvar({
-        nome: Nome,
+        nome,
         idade: idade === "" ? null : Number(idade),
         neuro,
         turmaId,
@@ -110,7 +109,7 @@ export function FormAluno( { turmas, onClose, onSalvar, modo = "criar", nomeInic
           <Input
             type="text"
             placeholder="Nome do aluno"
-            value={Nome}
+            value={nome}
             onChange={(e) => setNome(e.target.value)}
           />
           <div className="relative flex items-center justify-between w-1/4 rounded-[70px] bg-sunken px-[0.7rem] py-[0.55rem]">
@@ -147,42 +146,20 @@ export function FormAluno( { turmas, onClose, onSalvar, modo = "criar", nomeInic
           </div>
             <p className="text-sm text-primary text-justify">Neurodivergência</p>
             <div className="flex justify-center items-center gap-10">
-              <div className="flex flex-col gap-1">
-                <CheckBoxAluno 
-                    label="TEA" 
-                    checked={neuro.includes("TEA")} 
-                    onChange={() => handleToggleNeuro('TEA')} 
+              {COLUNAS_NEURO.map((coluna, idx) => (
+                <div key={idx} className="flex flex-col gap-1">
+                  {coluna.map((rotulo) => (
+                    <CheckBoxAluno
+                      key={rotulo}
+                      label={rotulo}
+                      checked={neuro.includes(rotulo)}
+                      onChange={() => handleToggleNeuro(rotulo)}
                     />
-                <CheckBoxAluno 
-                    label="TDAH" 
-                    checked={neuro.includes('TDAH')} 
-                    onChange={() => handleToggleNeuro('TDAH')} 
-                    />
-                <CheckBoxAluno 
-                    label="Dislexia" 
-                    checked={neuro.includes('Dislexia')} 
-                    onChange={() => handleToggleNeuro('Dislexia')} 
-                    />
-              </div>
-              <div className="flex flex-col gap-1">
-                <CheckBoxAluno 
-                    label="Discalculia" 
-                    checked={neuro.includes('Discalculia')} 
-                    onChange={() => handleToggleNeuro('Discalculia')} 
-                    />
-                <CheckBoxAluno 
-                    label="AH/SD" 
-                    checked={neuro.includes('AH/SD')} 
-                    onChange={() => handleToggleNeuro('AH/SD')} 
-                    />
-                <CheckBoxAluno 
-                    label="Outro" 
-                    checked={neuro.includes('Outro')} 
-                    onChange={() => handleToggleNeuro('Outro')} 
-                    />
-              </div>
+                  ))}
+                </div>
+              ))}
             </div>
-            <DropDown options={turmas} value={turmaId} onChange={(v: string) => setTurmaId(v)} />
+            <DropDown options={turmas} value={turmaId} onChange={setTurmaId} />
         </div>
 
         {/* botoes cancelar e salvar */}
@@ -210,7 +187,6 @@ interface FormTurmaProps{
 export function FormTurma({
   onClose,
   onSalvar,
-  modo = "criar",
   nomeInicial = "",
 }: FormTurmaProps) {
   const [nomeTurma, setNomeTurma] = useState(nomeInicial);
@@ -272,15 +248,24 @@ interface FormIdentificacaoProps {
 }
 
 export function FormIdentificacao({ onSalvar }: FormIdentificacaoProps) {
-  const [Nome, setNome] = useState("");
+  const [nome, setNome] = useState("");
+  const [salvando, setSalvando] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const nomeTrim = Nome.trim();
+    if (salvando) return;
+
+    const nomeTrim = nome.trim();
     if (nomeTrim.length === 0) return;
-    const resultado = await saveTeacherName(nomeTrim);
-    if (resultado.ok && onSalvar) {
-      await onSalvar();
+
+    setSalvando(true);
+    try {
+      const resultado = await saveTeacherName(nomeTrim);
+      if (resultado.ok && onSalvar) {
+        await onSalvar();
+      }
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -296,11 +281,11 @@ export function FormIdentificacao({ onSalvar }: FormIdentificacaoProps) {
         </div>
 
         <div className="flex flex-col items-center">
-          <Input type="text" placeholder="Digite seu nome completo" value={Nome} onChange={(e) => setNome(e.target.value)} />
+          <Input type="text" placeholder="Digite seu nome completo" value={nome} onChange={(e) => setNome(e.target.value)} />
         </div>
 
         <div className="flex gap-5">
-        <Button type="submit">Salvar</Button>
+        <Button type="submit" disabled={salvando}>Salvar</Button>
       </div>
       </div>
     </form>
@@ -308,14 +293,13 @@ export function FormIdentificacao({ onSalvar }: FormIdentificacaoProps) {
   );
 }
 
-interface FormDeletaAlunoProps{
+interface ModalConfirmarExclusaoProps {
+  pergunta: string;
   onClose: () => void;
-  /** obrigatorio: sem ele o botao excluir nao teria o que confirmar */
   onExcluir: () => Promise<Resultado>;
-  nomeAluno?: string;
 }
 
-export function FormDeletaAluno({onClose, onExcluir, nomeAluno}: FormDeletaAlunoProps) {
+function ModalConfirmarExclusao({ pergunta, onClose, onExcluir }: ModalConfirmarExclusaoProps) {
   const [excluindo, setExcluindo] = useState(false);
 
   const handleExcluir = async () => {
@@ -348,9 +332,7 @@ export function FormDeletaAluno({onClose, onExcluir, nomeAluno}: FormDeletaAluno
           </button>
           </div>
           <div className="flex flex-col gap-3">
-            <p className="text-md text-primary text-justify">
-              {nomeAluno ? `Tem certeza de que deseja excluir ${nomeAluno}?` : "Tem certeza de que deseja excluir o aluno?"}
-            </p>
+            <p className="text-md text-primary text-justify">{pergunta}</p>
             <p className="text-xs text-secondary">Esta ação será permanente e não poderá ser revertida.</p>
           </div>
         </div>
@@ -367,6 +349,23 @@ export function FormDeletaAluno({onClose, onExcluir, nomeAluno}: FormDeletaAluno
   );
 }
 
+interface FormDeletaAlunoProps{
+  onClose: () => void;
+  /** obrigatorio: sem ele o botao excluir nao teria o que confirmar */
+  onExcluir: () => Promise<Resultado>;
+  nomeAluno?: string;
+}
+
+export function FormDeletaAluno({onClose, onExcluir, nomeAluno}: FormDeletaAlunoProps) {
+  return (
+    <ModalConfirmarExclusao
+      pergunta={nomeAluno ? `Tem certeza de que deseja excluir ${nomeAluno}?` : "Tem certeza de que deseja excluir o aluno?"}
+      onClose={onClose}
+      onExcluir={onExcluir}
+    />
+  );
+}
+
 interface FormDeletaTurmaProps{
   onClose: () => void;
   /** obrigatorio: sem ele o botao excluir nao teria o que confirmar */
@@ -375,53 +374,11 @@ interface FormDeletaTurmaProps{
 }
 
 export function FormDeletaTurma({onClose, onExcluir, nomeTurma}:FormDeletaTurmaProps) {
-  const [excluindo, setExcluindo] = useState(false);
-
-  const handleExcluir = async () => {
-    if (excluindo) return;
-    setExcluindo(true);
-    try {
-      const resultado = await onExcluir();
-      if (resultado.ok) {
-        onClose();
-      }
-    } finally {
-      setExcluindo(false);
-    }
-  };
-
   return (
-    <Blurfundo onClose={onClose}>
-    <div className="w-full max-w-md">
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
-        <div className="flex flex-col  gap-6">
-          <div className="flex items-center justify-between">
-          <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>Excluir</p>
-          <button
-          type="button"
-          aria-label="Fechar"
-          className="cursor-pointer"
-          onClick={onClose}
-          >
-            <X className="w-6 h-6"/>
-          </button>
-          </div>
-          <div className="flex flex-col gap-3">
-            <p className="text-md text-primary text-justify">
-              {nomeTurma ? `Tem certeza de que deseja excluir a turma ${nomeTurma}?` : "Tem certeza de que deseja excluir a turma?"}
-            </p>
-            <p className="text-xs text-secondary">Esta ação será permanente e não poderá ser revertida.</p>
-          </div>
-        </div>
-
-        <div className="flex gap-5 self-end">
-          <Button type="button" disabled={excluindo} className="bg-surface-inverse text-inverse w-32" onClick={onClose}>Cancelar</Button>
-          <Button type="button" disabled={excluindo} onClick={handleExcluir} className="bg-surface-danger text-ink w-32 whitespace-nowrap">
-            {excluindo ? "Excluindo..." : "Excluir"}
-          </Button>
-      </div>
-      </div>
-    </div>
-    </Blurfundo>
+    <ModalConfirmarExclusao
+      pergunta={nomeTurma ? `Tem certeza de que deseja excluir a turma ${nomeTurma}?` : "Tem certeza de que deseja excluir a turma?"}
+      onClose={onClose}
+      onExcluir={onExcluir}
+    />
   );
 }

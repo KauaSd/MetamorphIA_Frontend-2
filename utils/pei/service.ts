@@ -25,7 +25,7 @@ function perguntasLorem(): Question[] {
     id: `q${indice + 1}`,
     order: indice + 1,
     text: TEXTO_LOREM,
-    selectionMode: indice % 2 === 0 ? "multiple" : "single",
+    selectionMode: "single",
     options: OPCOES_LOREM.map((texto, o) => ({
       id: `q${indice + 1}o${o + 1}`,
       text: `${texto} ${letraDaOpcao(o)}`,

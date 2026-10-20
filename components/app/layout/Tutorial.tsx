@@ -71,7 +71,7 @@ export default function Tutorial( { tipo, onClose }: TutorialProps ) {
             ) : (
                 <div className="flex w-60 gap-5 self-end">
                     <Button type="button" className="bg-surface-base border border-surface-accent text-surface-accent hover:bg-surface-accent hover:text-ink" onClick={() => setPasso("5")}>Pular</Button>
-                    <Button type="button" onClick={() => setPasso(proximo[passo])}>Próximo</Button>
+                    <Button type="button" onClick={() => setPasso((atual) => proximo[atual])}>Próximo</Button>
                 </div>
             )}
         </div>

@@ -1,26 +1,19 @@
-"use client"
+"use client";
 
-import HeaderPag from "@/components/app/HeaderDashTurma";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import BoxSemAlunoTurma from "@/components/app/BoxSemAlunoTurma";
-import CarregandoDashboard from "@/components/app/CarregandoDashboard";
+import HeaderPag from "@/components/app/turmas/HeaderDashTurma";
+import BoxSemAlunoTurma from "@/components/app/turmas/BoxSemAlunoTurma";
+import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import { useData } from "@/components/app/state/DataProvider";
 import { alunosDaTurma, turmaPorId } from "@/utils/data/types";
-import { createAluno, updateAluno, deleteAluno } from "@/utils/data/controller";
-import type { Resultado } from "@/utils/data/controller";
+import { createAluno, updateAluno, deleteAluno, type Resultado } from "@/utils/data/controller";
 import { ALERTAS } from "@/utils/alertas";
-// import Estatistica from "@/components/app/CardEstatisticaTurma";
-// import Resumo from "@/components/app/Resumo";
 import Button from "@/components/common/Button";
 import Toast, { useAlerta } from "@/components/common/Toast";
-// import Engajamento from "@/components/app/Engajamento";
 import Add from "@/public/add.svg";
-import Aluno from "@/components/app/Aluno";
-import { useState } from "react";
+import Aluno from "@/components/app/alunos/Aluno";
 import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma";
-
-// const RESUMO_PADRAO_TURMA =
-// "A turma apresenta perfil heterogêneo de aprendizagem. 5 alunos possuem laudos ou suspeitas de neurodivergência (TDAH, TEA, Dislexia). A maioria responde bem a atividades visuais e instruções segmentadas. Recomenda-se uso de recursos multissensoriais e tempos flexíveis nas avaliações."
 
 export default function ConteudoDashboardTurma(){
     const [mostrarForm, setMostrarForm] = useState(false);
@@ -33,16 +26,18 @@ export default function ConteudoDashboardTurma(){
     const { alerta, mostrar, limpar } = useAlerta();
 
     const turma = turmaId ? turmaPorId(turmas, turmaId) : undefined;
-    const alunosDaTurmaList = turmaId ? alunosDaTurma(alunos, turmaId) : [];
+    const alunosDaTurmaList = useMemo(
+        () => (turmaId ? alunosDaTurma(alunos, turmaId) : []),
+        [alunos, turmaId],
+    );
     const temAlunos = alunosDaTurmaList.length > 0;
 
-    const turmasParaForm = turmas.map((t) => ({ value: t.id, label: t.nome }));
+    const turmasParaForm = useMemo(
+        () => turmas.map((t) => ({ value: t.id, label: t.nome })),
+        [turmas],
+    );
     const alunoEmEdicao = idEmEdicao ? alunosDaTurmaList.find((a) => a.id === idEmEdicao) : undefined;
     const alunoEmExclusao = idEmExclusao ? alunosDaTurmaList.find((a) => a.id === idEmExclusao) : undefined;
-
-    // o Resumo e editavel; enquanto nao houver edicao vale o textoPadrao,
-    // depois passa a valer o que foi salvo
-    const [resumo, setResumo] = useState("");
 
     /** o form fica aberto e o toast aparece quando o controller recusa */
     async function tentar(resultado: Resultado): Promise<Resultado> {
@@ -103,11 +98,11 @@ export default function ConteudoDashboardTurma(){
                                 <span className="whitespace-nowrap">Novo Aluno</span>
                             </Button>
                         </div>
-                        {!temAlunos && (
+                        {!temAlunos ? (
                             <div className="flex w-full flex-1 items-center justify-center">
                                 <BoxSemAlunoTurma onCriarAluno={() => setMostrarForm(true)} />
                             </div>
-                        )}
+                        ) : null}
                         <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
                         {alunosDaTurmaList.map((aluno) => (
                             <Aluno
@@ -123,16 +118,16 @@ export default function ConteudoDashboardTurma(){
                         </div>
 
                         {/* forms de criar, editar e excluir aluno */}
-                        {mostrarForm && (
+                        {mostrarForm ? (
                             <FormAluno
                                 turmas={turmasParaForm}
                                 turmaIdInicial={turmaId ?? ""}
                                 onClose={() => setMostrarForm(false)}
                                 onSalvar={aoCriar}
                             />
-                        )}
+                        ) : null}
 
-                        {alunoEmEdicao && (
+                        {alunoEmEdicao ? (
                             <FormAluno
                                 turmas={turmasParaForm}
                                 modo="editar"
@@ -143,18 +138,18 @@ export default function ConteudoDashboardTurma(){
                                 onClose={() => setIdEmEdicao(null)}
                                 onSalvar={aoEditar}
                             />
-                        )}
+                        ) : null}
 
-                        {alunoEmExclusao && (
+                        {alunoEmExclusao ? (
                             <FormDeletaAluno
                                 nomeAluno={alunoEmExclusao.nome}
                                 onClose={() => setIdEmExclusao(null)}
                                 onExcluir={confirmarExclusao}
                             />
-                        )}
+                        ) : null}
                     </div>
 
-                    {alerta && <Toast alerta={alerta} limpar={limpar} />}
+                    {alerta ? <Toast alerta={alerta} limpar={limpar} /> : null}
                 </div>
     )
 }

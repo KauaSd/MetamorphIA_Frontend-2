@@ -17,12 +17,12 @@ import {
   validarSenha,
   validarTelefone,
 } from "@/utils/validacao";
-import { RegrasSenha } from "@/components/app/RegrasSenha";
+import { RegrasSenha } from "@/components/app/auth/RegrasSenha";
 
 
 export function FormLogin() {
   const router = useRouter();
-  const [identificador, setIdentificar] = useState("");
+  const [identificador, setIdentificador] = useState("");
   const [senha, setSenha] = useState("");
   const [alerta, setAlerta] = useState<MensagemAlerta | null>(null);
 
@@ -51,13 +51,13 @@ export function FormLogin() {
   return (
     // formulario de login
     <form onSubmit={login} className="w-full max-w-md">
-      {alerta && (
+      {alerta ? (
         <Toast
           key={`${alerta.titulo}-${alerta.descricao ?? ""}`}
           alerta={alerta}
           limpar={setAlerta}
         />
-      )}
+      ) : null}
 
       {/* card do formulario */}
       <div className="flex w-full flex-col gap-5 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
@@ -73,7 +73,7 @@ export function FormLogin() {
             type="text"
             placeholder="Digite seu telefone ou e-mail"
             value={identificador}
-            onChange={(e) => setIdentificar(e.target.value)}
+            onChange={(e) => setIdentificador(e.target.value)}
           />
           <Input
             type="password"
@@ -365,13 +365,12 @@ export function FormToken() {
 function Slot( props: SlotProps){
     return(
     <div
-      className={`w-10 h-14 flex items-center justify-center text-xl font-semibold bg-sunken rounded-full
-      }`}
+      className="w-10 h-14 flex items-center justify-center text-xl font-semibold bg-sunken rounded-full"
     >
       {props.char}
-      {props.hasFakeCaret &&(
+      {props.hasFakeCaret ? (
         <div className="absolute w-0.5 h-5 bg-surface-inverse animate-caret-blink" />
-      )}
+      ) : null}
     </div>
     )
 }

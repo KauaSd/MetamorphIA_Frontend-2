@@ -6,6 +6,12 @@ interface CheckBoxAlunoprops {
   onChange: (checked: boolean) => void
 }
 
+const ICONE_CHECK = (
+  <svg className="w-3.5 h-3.5 text-inverse-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+)
+
 export default function CheckBoxAluno({ label, checked, onChange }: CheckBoxAlunoprops) {
   return (
     <label className="inline-flex items-center gap-2.5 rounded-full bg-surface-muted px-4 py-2 cursor-pointer select-none hover:bg-surface-base-hover transition-colors w-42">
@@ -21,11 +27,7 @@ export default function CheckBoxAluno({ label, checked, onChange }: CheckBoxAlun
           checked ? 'bg-surface-secondary border-secondary' : 'border-secondary bg-transparent'
         }`}
       >
-        {checked && (
-          <svg className="w-3.5 h-3.5 text-inverse-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        )}
+        {checked ? ICONE_CHECK : null}
       </div>
 
       <span className="text-sm font-medium text-tertiary">{label}</span>

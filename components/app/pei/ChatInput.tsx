@@ -12,6 +12,9 @@ export interface ChatInputProps {
   validarPrivacidade?: boolean;
   maxAnexoBytes?: number;
   enviarLabel?: string;
+  value?: string;
+  limparAoEnviar?: boolean;
+  onChangeTexto?: (texto: string) => void;
   anexos?: Anexo[];
   onAdicionarAnexos?: (files: File[]) => void;
   onRemoverAnexo?: (nome: string) => void;
@@ -25,6 +28,9 @@ export default function ChatInput({
   validarPrivacidade = false,
   maxAnexoBytes,
   enviarLabel = "Enviar mensagem",
+  value,
+  limparAoEnviar = true,
+  onChangeTexto,
   anexos,
   onAdicionarAnexos,
   onRemoverAnexo,
@@ -34,13 +40,23 @@ export default function ChatInput({
   const [anexosInternos, setAnexosInternos] = useState<Anexo[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const textoControlado = value !== undefined;
+  const textoAtual = textoControlado ? value : inputValue;
+
   const controlado = anexos !== undefined;
   const listaAnexos: Anexo[] = anexos ?? anexosInternos;
 
-  const avisoSensivel = validarPrivacidade && detectarDadosSensiveis(inputValue).length > 0;
+  const avisoSensivel = validarPrivacidade && detectarDadosSensiveis(textoAtual).length > 0;
+
+  function atualizarTexto(novoTexto: string) {
+    if (!textoControlado) {
+      setInputValue(novoTexto);
+    }
+    onChangeTexto?.(novoTexto);
+  }
 
   function escolherArquivos(files: FileList | null) {
-    if (!files) return;
+    if (!files || disabled) return;
     const permitidos = maxAnexoBytes
       ? Array.from(files).filter((arquivo) => arquivo.size <= maxAnexoBytes)
       : Array.from(files);
@@ -60,6 +76,7 @@ export default function ChatInput({
   }
 
   function removerAnexo(nome: string) {
+    if (disabled) return;
     if (onRemoverAnexo) {
       onRemoverAnexo(nome);
     } else if (!controlado) {
@@ -68,10 +85,13 @@ export default function ChatInput({
   }
 
   function enviar() {
-    const texto = inputValue.trim();
+    if (disabled) return;
+    const texto = textoAtual.trim();
     if (!texto && listaAnexos.length === 0) return;
     onSubmit?.(texto, listaAnexos);
-    setInputValue("");
+    if (limparAoEnviar) {
+      atualizarTexto("");
+    }
   }
 
   return (
@@ -80,7 +100,10 @@ export default function ChatInput({
         evento.preventDefault();
         enviar();
       }}
-      className="flex w-full flex-col gap-2"
+      aria-disabled={disabled}
+      className={`flex w-full flex-col gap-2 ${
+        disabled ? "pointer-events-none select-none opacity-60" : ""
+      }`}
     >
       {listaAnexos.length > 0 && (
         <div className="flex flex-wrap gap-2 px-4">
@@ -92,6 +115,7 @@ export default function ChatInput({
               <span className="max-w-[150px] truncate">{anexo.name}</span>
               <button
                 type="button"
+                disabled={disabled}
                 onClick={() => removerAnexo(anexo.name)}
                 className="cursor-pointer text-red-500 hover:text-red-600"
                 aria-label="Remover arquivo"
@@ -113,6 +137,7 @@ export default function ChatInput({
             <input
               type="file"
               ref={fileInputRef}
+              disabled={disabled}
               onChange={(evento) => escolherArquivos(evento.target.files)}
               accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.pptx"
               multiple
@@ -120,8 +145,9 @@ export default function ChatInput({
             />
             <button
               type="button"
+              disabled={disabled}
               onClick={() => fileInputRef.current?.click()}
-              className="flex cursor-pointer items-center justify-center"
+              className="flex cursor-pointer items-center justify-center disabled:cursor-not-allowed"
               aria-label="Anexar arquivo ou imagem"
             >
               <Paperclip size={22} color="var(--primary)" />
@@ -131,8 +157,8 @@ export default function ChatInput({
           <div className="h-full min-w-0 flex-1">
             {multiline ? (
               <textarea
-                value={inputValue}
-                onChange={(evento) => setInputValue(evento.target.value)}
+                value={textoAtual}
+                onChange={(evento) => atualizarTexto(evento.target.value)}
                 onKeyDown={(evento) => {
                   if (evento.key === "Enter" && !evento.shiftKey) {
                     evento.preventDefault();
@@ -142,13 +168,13 @@ export default function ChatInput({
                 disabled={disabled}
                 placeholder={placeholder}
                 rows={1}
-                className="max-h-32 min-h-[2.75rem] w-full resize-none bg-transparent px-3 text-sm text-primary outline-none focus:outline-none focus:ring-0 sm:text-base"
+                className="max-h-32 min-h-[2.75rem] w-full resize-none bg-transparent px-3 text-sm text-primary outline-none focus:outline-none focus:ring-0 sm:text-base disabled:cursor-not-allowed"
               />
             ) : (
               <input
                 type="text"
-                value={inputValue}
-                onChange={(evento) => setInputValue(evento.target.value)}
+                value={textoAtual}
+                onChange={(evento) => atualizarTexto(evento.target.value)}
                 onKeyDown={(evento) => {
                   if (evento.key === "Enter") {
                     evento.preventDefault();
@@ -157,16 +183,16 @@ export default function ChatInput({
                 }}
                 disabled={disabled}
                 placeholder={placeholder}
-                className="h-full w-full bg-transparent px-3 text-sm text-primary caret-[var(--primary)] outline-none focus:outline-none focus:ring-0 sm:text-base"
+                className="h-full w-full bg-transparent px-3 text-sm text-primary caret-[var(--primary)] outline-none focus:outline-none focus:ring-0 sm:text-base disabled:cursor-not-allowed"
               />
             )}
           </div>
 
           <button
             type="submit"
-            disabled={disabled || (!inputValue.trim() && listaAnexos.length === 0)}
+            disabled={disabled || (!textoAtual.trim() && listaAnexos.length === 0)}
             aria-label={enviarLabel}
-            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[70px] bg-surface-inverse disabled:opacity-50"
+            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[70px] bg-surface-inverse disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               width="20"

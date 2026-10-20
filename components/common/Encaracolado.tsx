@@ -6,20 +6,26 @@ interface EncaracoladoProps {
   style?: CSSProperties;
 }
 
+const ESTILO_MASCARA_BASE: CSSProperties = {
+  WebkitMaskRepeat: "no-repeat",
+  maskRepeat: "no-repeat",
+  WebkitMaskPosition: "center",
+  maskPosition: "center",
+  WebkitMaskSize: "contain",
+  maskSize: "contain",
+};
+
 export default function Encaracolado({ src, className, style }: EncaracoladoProps) {
+  const maskImage = `url(${src})`;
+
   return (
     <span
       aria-hidden
       className={`pointer-events-none select-none bg-primary ${className ?? ""}`}
       style={{
-        WebkitMaskImage: `url(${src})`,
-        maskImage: `url(${src})`,
-        WebkitMaskRepeat: "no-repeat",
-        maskRepeat: "no-repeat",
-        WebkitMaskPosition: "center",
-        maskPosition: "center",
-        WebkitMaskSize: "contain",
-        maskSize: "contain",
+        ...ESTILO_MASCARA_BASE,
+        WebkitMaskImage: maskImage,
+        maskImage,
         ...style,
       }}
     />

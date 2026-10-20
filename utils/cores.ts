@@ -109,6 +109,34 @@ export const TW_COLOR_MAP = {
   "inverse-muted": "text-inverse-muted",
 } as const;
 
+const CORES_SUPERFICIE = [
+  "bg-surface-accent",
+  "bg-surface-danger",
+  "bg-surface-warning",
+  "bg-surface-success",
+  "bg-surface-info",
+  "bg-surface-positive",
+  "bg-surface-tag-other",
+] as const;
+
+const CORES_SUPERFICIE_CSS = [
+  "var(--surface-accent)",
+  "var(--surface-danger)",
+  "var(--surface-warning)",
+  "var(--surface-success)",
+  "var(--surface-info)",
+  "var(--surface-positive)",
+  "var(--surface-tag-other)",
+] as const;
+
+function indiceCorDoNome(nome: string, total: number): number {
+  let hash = 0;
+  for (let i = 0; i < nome.length; i++) {
+    hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash) % total;
+}
+
 /**
  * Retorna uma classe Tailwind de cor de superfície baseada no nome (determinística).
  * Útil para avatares/bolinhas com fundo colorido consistente.
@@ -116,23 +144,7 @@ export const TW_COLOR_MAP = {
  */
 export function corDoNome(nome: string): string {
   if (!nome) return "bg-surface-muted";
-
-  let hash = 0;
-  for (let i = 0; i < nome.length; i++) {
-    hash = nome.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const cores = [
-    "bg-surface-accent",
-    "bg-surface-danger",
-    "bg-surface-warning",
-    "bg-surface-success",
-    "bg-surface-info",
-    "bg-surface-positive",
-    "bg-surface-tag-other",
-  ];
-
-  return cores[Math.abs(hash) % cores.length];
+  return CORES_SUPERFICIE[indiceCorDoNome(nome, CORES_SUPERFICIE.length)];
 }
 
 /**
@@ -140,23 +152,7 @@ export function corDoNome(nome: string): string {
  */
 export function corDoNomeCSS(nome: string): string {
   if (!nome) return "var(--surface-muted)";
-
-  let hash = 0;
-  for (let i = 0; i < nome.length; i++) {
-    hash = nome.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const cores = [
-    "var(--surface-accent)",
-    "var(--surface-danger)",
-    "var(--surface-warning)",
-    "var(--surface-success)",
-    "var(--surface-info)",
-    "var(--surface-positive)",
-    "var(--surface-tag-other)",
-  ];
-
-  return cores[Math.abs(hash) % cores.length];
+  return CORES_SUPERFICIE_CSS[indiceCorDoNome(nome, CORES_SUPERFICIE_CSS.length)];
 }
 
 /**

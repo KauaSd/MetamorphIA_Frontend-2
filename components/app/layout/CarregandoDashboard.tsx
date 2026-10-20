@@ -1,5 +1,3 @@
-"use client";
-
 export default function CarregandoDashboard() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">

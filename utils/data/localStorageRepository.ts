@@ -6,7 +6,6 @@ import {
   type Aluno,
   type AppData,
   type ClassInsights,
-  type Conversa,
   type EngajamentoMateria,
   type StudentInsights,
   type Turma,
@@ -42,7 +41,11 @@ function ler(): AppData {
 }
 
 function gravar(dados: AppData): void {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+  } catch {}
 }
 
 export const localStorageRepository: DataRepository = {
@@ -77,14 +80,16 @@ export const localStorageRepository: DataRepository = {
     }
 
     // cascata: sem isso sobraria aluno apontando para turma que nao existe mais
-    const alunosDaTurmaRemovida = alunosDaTurma(dados.alunos, id).map((aluno) => aluno.id);
+    const alunosDaTurmaRemovida = new Set(
+      alunosDaTurma(dados.alunos, id).map((aluno) => aluno.id),
+    );
 
     gravar({
       ...dados,
       turmas: dados.turmas.filter((turma) => turma.id !== id),
       alunos: dados.alunos.filter((aluno) => aluno.turmaId !== id),
       conversas: dados.conversas.filter(
-        (conversa) => !alunosDaTurmaRemovida.includes(conversa.alunoId),
+        (conversa) => !alunosDaTurmaRemovida.has(conversa.alunoId),
       ),
     });
   },

@@ -29,6 +29,8 @@ export default function Turma( props:TurmaProps) {
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        if (!isOpen) return;
+
         function clicarFora(event: MouseEvent) {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)){
                 setIsOpen(false);
@@ -48,7 +50,7 @@ export default function Turma( props:TurmaProps) {
             document.removeEventListener("mousedown", clicarFora);
             document.removeEventListener("keydown", fecharComEsc);
         };
-    }, []);
+    }, [isOpen]);
 
     function handleEditar(){
         setIsOpen(false);
@@ -152,16 +154,16 @@ export default function Turma( props:TurmaProps) {
                     aria-haspopup="menu"
                     aria-expanded={isOpen}
                     className="cursor-pointer"
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={() => setIsOpen((prev) => !prev)}
                 >
                     <EllipsisVertical height={"25px"} />
                 </button>
 
-                {isOpen && (
+                {isOpen ? (
                     <div className="absolute right-0 top-full mt-2 z-20">
                         <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
                     </div>
-                )}
+                ) : null}
             </div>
         </div>
     );

@@ -21,10 +21,10 @@ export default function Home() {
     // pagina inicial da landing
     <main className="flex flex-1 mt-10 font-(family-name:--font-poppins)">
       <div className="flex flex-col w-full px-5 sm:px-8 md:px-12 lg:px-20 gap-30 lg:gap-50">
-        <div className="flex flex-col lg:flex-row w-full justify-between items-center mt-8 lg:mt-14 px-2 sm:px-5 gap-12 lg:gap-0">
+        <div className="flex flex-col min-[1162px]:flex-row w-full max-w-7xl min-[1600px]:max-w-[1360px] mx-auto justify-center min-[1162px]:justify-between items-center mt-4 sm:mt-6 lg:mt-8 min-[1600px]:mt-12 gap-8 sm:gap-10 min-[1162px]:gap-8 xl:gap-10">
           {/* texto principal */}
-          <div className="w-full max-w-xl flex flex-col gap-8 lg:gap-10">
-            <h1 className="text-3xl sm:text-4xl text-center leading-normal self-center text-primary">
+          <div className="w-full min-[1162px]:w-[48%] max-w-lg min-[1600px]:max-w-2xl flex flex-col items-center gap-6 sm:gap-7 min-[1600px]:gap-9">
+            <h1 className="text-3xl sm:text-4xl min-[1600px]:text-5xl text-center leading-snug sm:leading-normal text-primary">
               Cada criança aprende
               <br />
               <span className="relative inline-block">
@@ -42,36 +42,40 @@ export default function Home() {
               </span>
             </h1>
 
-            <p className="text-secondary text-sm text-center px-2">
+            <p className="text-secondary text-sm min-[1600px]:text-base text-center max-w-md min-[1600px]:max-w-xl leading-relaxed">
               Nossa IA transforma qualquer atividade pedagógica em uma versão
               feita sob medida para crianças neurodivergentes — em segundos, sem
               precisar de formação especializada.
             </p>
             
             {/* botoes de adaptacao e como funciona */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 lg:gap-20 px-2 sm:px-8 justify-center w-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 min-[1600px]:gap-6 w-full sm:w-auto">
               <ButtonLink
                 href="../auth/cadastro"
-                className="py-1 font-(family-name:--font-text-me-one) text-base w-auto"
+                className="py-1 px-5 min-[1600px]:py-1.5 min-[1600px]:px-6 font-(family-name:--font-text-me-one) text-base min-[1600px]:text-lg w-full sm:w-auto whitespace-nowrap"
               >
                 Adaptar uma atividade
               </ButtonLink>
 
               <ButtonLink
-                href="#ComoFunciona"
-                className="py-1 text-primary hover:text-ink bg-surface-base/10 border border-surface-accent hover:bg-surface-accent font-(family-name:--font-text-me-one) text-base w-auto"
+                onClick={() =>
+                  document
+                    .getElementById("ComoFunciona")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+                className="py-1 px-5 min-[1600px]:py-1.5 min-[1600px]:px-6 text-primary hover:text-ink bg-surface-base/10 border border-surface-accent hover:bg-surface-accent font-(family-name:--font-text-me-one) text-base min-[1600px]:text-lg w-full sm:w-auto whitespace-nowrap"
               >
                 Como funciona?
               </ButtonLink>
             </div>
           </div>
 
-          <div className="hidden lg:flex justify-center">
-            <img
-              src={ImgHome.src}
-              alt=""
-              width={500}
-              className="w-[500px] h-auto"
+          <div className="hidden min-[1162px]:flex w-full min-[1162px]:w-[52%] justify-center min-[1162px]:justify-end">
+            <Image
+              src={ImgHome}
+              alt="Professora em sala de aula com alunos"
+              priority
+              className="w-full max-w-[480px] xl:max-w-[540px] min-[1600px]:max-w-[640px] h-auto object-contain select-none"
             />
           </div>
         </div>

@@ -1,14 +1,28 @@
+"use client";
+
 import Logo from "@/public/icon.png";
 import ButtonLink from "@/components/common/ButtonLink";
 import elipse1 from "@/public/ElipseHome1.svg";
 import fitacolorida from "@/public/FitaColoridahome.svg";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+
+  const irParaSecao = (id: string) => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.scrollIntoView({ behavior: "smooth" });
+    } else {
+      router.push(`/#${id}`);
+    }
+  };
+
   return (
     <div data-theme="light" className="relative isolate font-(family-name:--font-poppins) min-h-screen flex flex-col overflow-x-hidden px-5 sm:px-10 md:px-16 lg:px-23 pt-5 sm:pt-7 md:pt-10 bg-surface-base text-primary">
       {/* header com logo e botoes de cadastro e login */}
@@ -105,18 +119,22 @@ export default function RootLayout({
             Página
           </p>
 
-          <div>
-            <Link href="#ComoFunciona">
-            <p className="text-secondary text-sm underline cursor-pointer">
+          <div className="flex flex-col items-start">
+            <button
+              type="button"
+              onClick={() => irParaSecao("ComoFunciona")}
+              className="text-secondary text-sm underline cursor-pointer"
+            >
               Como funciona?
-            </p>
-            </Link>
+            </button>
 
-            <Link href="#FAQ">
-            <p className="text-secondary text-sm underline cursor-pointer">
+            <button
+              type="button"
+              onClick={() => irParaSecao("FAQ")}
+              className="text-secondary text-sm underline cursor-pointer"
+            >
               FAQ
-            </p>
-            </Link>
+            </button>
           </div>
         </div>
 

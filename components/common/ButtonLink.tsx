@@ -3,12 +3,14 @@ import { twMerge } from "tailwind-merge";
 
 interface ButtonLinkProps {
   href?: string;
+  onClick?: () => void;
   className?: string;
   children: React.ReactNode;
 }
 
 export default function ButtonLink({
   href,
+  onClick,
   className,
   children,
 }: ButtonLinkProps) {
@@ -19,11 +21,11 @@ export default function ButtonLink({
 
   if (!href) {
     return (
-      <button type="button" className={classes}>
+      <button type="button" onClick={onClick} className={classes}>
         {children}
       </button>
     );
   }
 
-  return <Link href={href} className={classes}>{children}</Link>;
+  return <Link href={href} onClick={onClick} className={classes}>{children}</Link>;
 }

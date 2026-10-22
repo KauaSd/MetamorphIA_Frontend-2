@@ -41,6 +41,7 @@ export default function VerMais({ onEditar, onExcluir }: VerMaisProps) {
         shadow-lg
         p-1
         origin-top
+        relative z-50
         transition-all duration-200 ease-out
         ${
           visivel

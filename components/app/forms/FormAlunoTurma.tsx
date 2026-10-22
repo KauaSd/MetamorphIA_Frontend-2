@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { saveTeacherName } from "@/utils/data/controller";
 import type { Resultado } from "@/utils/data/controller";
 import Input from "@/components/common/Input";
@@ -9,6 +9,7 @@ import { X, ChevronUp, ChevronDown } from "lucide-react";
 import CheckBoxAluno from "@/components/common/CheckBoxAl";
 import DropDown, { type DropDownOption } from "@/components/common/DropDown";
 import Blurfundo from "@/components/common/Blurfundo";
+import { useData } from "@/components/app/state/DataProvider";
 
 const COLUNAS_NEURO = [
   ["TEA", "TDAH", "Dislexia"],
@@ -231,10 +232,12 @@ export function FormAluno({
 
 interface FormTurmaProps {
   onClose: () => void;
-  onSalvar: (nome: string, componentes?: string[]) => Promise<Resultado>;
+  onSalvar: (nome: string, componentes?: string[], escolaId?: string) => Promise<Resultado>;
   modo?: "criar" | "editar";
   nomeInicial?: string;
   componentesIniciais?: string[];
+  escolaIdInicial?: string;
+  escolas?: DropDownOption[];
 }
 
 export function FormTurma({
@@ -243,10 +246,29 @@ export function FormTurma({
   modo = "criar",
   nomeInicial = "",
   componentesIniciais = [],
+  escolaIdInicial = "",
+  escolas: escolasProp,
 }: FormTurmaProps) {
+  const { escolas: escolasData } = useData();
   const [nomeTurma, setNomeTurma] = useState(nomeInicial);
   const [componentes, setComponentes] = useState<string[]>(componentesIniciais);
+  const [escolaId, setEscolaId] = useState(escolaIdInicial);
   const [salvando, setSalvando] = useState(false);
+
+  const listaEscolas = useMemo(() => {
+    if (escolasProp) return escolasProp;
+    return (escolasData ?? []).map((e) => ({ value: e.id, label: e.nome }));
+  }, [escolasProp, escolasData]);
+
+  const opcoesEscolas: DropDownOption[] = useMemo(() => {
+    if (listaEscolas.length === 0) {
+      return [{ value: "", label: "Sem escola" }];
+    }
+    return [
+      { value: "", label: "Sem escola" },
+      ...listaEscolas,
+    ];
+  }, [listaEscolas]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -255,7 +277,11 @@ export function FormTurma({
     setSalvando(true);
     try {
       // quem valida o nome vazio e o controller; o form so fecha se der ok
-      const resultado = await onSalvar(nomeTurma.trim(), componentes);
+      const resultado = await onSalvar(
+        nomeTurma.trim(),
+        componentes,
+        escolaId || undefined
+      );
       if (resultado.ok) {
         onClose();
       }
@@ -312,6 +338,16 @@ export function FormTurma({
               textSize="text-[15px]"
               itemHeight={32}
               itemGap={2}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-primary">Escola</p>
+            <DropDown
+              options={opcoesEscolas}
+              value={escolaId}
+              onChange={setEscolaId}
+              placeholder="Sem escola"
             />
           </div>
 

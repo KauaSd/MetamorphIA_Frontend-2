@@ -9,9 +9,27 @@ import { useData } from "@/components/app/state/DataProvider";
 import { conversasRecentes } from "@/utils/data/types";
 import { corDoNome } from "@/utils/cores";
 
+const hrefEscolas = "/escolas";
 const hrefTurmas = "/turmas";
 const hrefAlunos = "/alunos";
 const hrefRecentes = "/recentes";
+
+const iconEscolas = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <g clipPath="url(#clip0_1679_2123)">
+      <path
+        d="M15 11V5.82998C15 5.29998 14.79 4.78998 14.41 4.41998L12.7 2.70998C12.31 2.31998 11.68 2.31998 11.29 2.70998L9.59 4.40998C9.21 4.78998 9 5.29998 9 5.82998V6.99998H5C3.9 6.99998 3 7.89998 3 8.99998V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V13C21 11.9 20.1 11 19 11H15ZM7 19H5V17H7V19ZM7 15H5V13H7V15ZM7 11H5V8.99998H7V11ZM13 19H11V17H13V19ZM13 15H11V13H13V15ZM13 11H11V8.99998H13V11ZM13 6.99998H11V4.99998H13V6.99998ZM19 19H17V17H19V19ZM19 15H17V13H19V15Z"
+        fill="var(--inverse)"
+      />
+    </g>
+
+    <defs>
+      <clipPath id="clip0_1679_2123">
+        <rect width="24" height="24" fill="var(--muted)" />
+      </clipPath>
+    </defs>
+  </svg>
+);
 
 const iconTurmas = (
   <svg width="24" height="24" viewBox="0 0 30 30" fill="none">
@@ -85,7 +103,16 @@ const iconRecentes = (
 
 export default function Menu() {
   const pathname = usePathname();
-  const { turmas, alunos, conversas, hydrated } = useData();
+  const { escolas, turmas, alunos, conversas, hydrated } = useData();
+
+  const itensEscolas = React.useMemo(() => {
+    return (escolas ?? []).slice(0, 3).map((escola) => ({
+      cor: corDoNome(escola.nome),
+      neuros: [],
+      nome: escola.nome,
+      href: `/dashboardEscola?id=${escola.id}`,
+    }));
+  }, [escolas]);
 
   const itensTurmas = React.useMemo(() => {
     // a cor da turma nasce do nome dela, e nao dos alunos cadastrados nela
@@ -100,7 +127,8 @@ export default function Menu() {
   const itensAlunos = React.useMemo(() => {
     return alunos.slice(0, 3).map((aluno) => {
       return {
-        neuros: aluno.neuro,
+        cor: corDoNome(aluno.nome),
+        neuros: [],
         nome: aluno.nome,
         href: `/dashboardAluno?id=${aluno.id}`,
       };
@@ -112,7 +140,8 @@ export default function Menu() {
     return conversasRecentes(conversas).slice(0, 3).map((conversa) => {
       const aluno = alunosPorId.get(conversa.alunoId);
       return {
-        neuros: aluno ? aluno.neuro : [],
+        cor: aluno ? corDoNome(aluno.nome) : undefined,
+        neuros: [],
         nome: `${aluno?.nome ?? "Aluno"} - ${conversa.titulo}`,
         href: `/chat?conversaId=${conversa.id}`,
       };
@@ -122,6 +151,9 @@ export default function Menu() {
   const [isOpen, setIsOpen] = React.useState(true);
   // depois que a pessoa colapsa a sidebar na mao, o resize para de decidir por ela
   const [preferenciaRecolhida, setPreferenciaRecolhida] = React.useState(false);
+  const [isEscolaOpen, setIsEscolaOpen] = React.useState(
+    pathname === hrefEscolas
+  );
   const [isAlunoOpen, setIsAlunoOpen] = React.useState(
     pathname === hrefAlunos
   );
@@ -135,6 +167,7 @@ export default function Menu() {
   const [rotaAnterior, setRotaAnterior] = React.useState(pathname);
 
   const fecharDropdowns = () => {
+    setIsEscolaOpen(false);
     setIsAlunoOpen(false);
     setIsTurmaOpen(false);
     setIsRecentesOpen(false);
@@ -172,17 +205,25 @@ export default function Menu() {
   if (rotaAnterior !== pathname) {
     setRotaAnterior(pathname);
 
-    if (pathname === hrefTurmas) {
+    if (pathname === hrefEscolas) {
+      setIsTurmaOpen(false);
       setIsAlunoOpen(false);
+      setIsRecentesOpen(false);
+      setIsEscolaOpen(true);
+    } else if (pathname === hrefTurmas) {
+      setIsEscolaOpen(false);
+    setIsAlunoOpen(false);
       setIsRecentesOpen(false);
       setIsTurmaOpen(true);
     } else if (pathname === hrefAlunos) {
+      setIsEscolaOpen(false);
       setIsTurmaOpen(false);
       setIsRecentesOpen(false);
       setIsAlunoOpen(true);
     } else if (pathname === hrefRecentes) {
       setIsTurmaOpen(false);
-      setIsAlunoOpen(false);
+      setIsEscolaOpen(false);
+    setIsAlunoOpen(false);
       setIsRecentesOpen(true);
     }
   }
@@ -285,6 +326,21 @@ export default function Menu() {
 
             {/* secoes do menu */}
             <div className="flex flex-col min-w-0 gap-5">
+              {/* escolas */}
+              <MenuSection
+                id="escolas"
+                label="Escolas"
+                icon={iconEscolas}
+                href={hrefEscolas}
+                items={itensEscolas}
+                isOpen={isEscolaOpen}
+                isSidebarOpen={isOpen}
+                carregando={!hydrated}
+                onToggle={() => {
+                  if (itensEscolas.length > 0) setIsEscolaOpen((prev) => !prev);
+                }}
+              />
+
               {/* turmas */}
               <MenuSection
                 id="turmas"

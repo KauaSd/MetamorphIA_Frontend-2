@@ -176,14 +176,14 @@ export default function HeaderDashAl({
             </Button>
 
             {isPeiOpen ? (
-              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-20">
+              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-50">
                 <MenuPei onCriar={handleCriarPei} onBaixar={handleBaixarPei} />
               </div>
             ) : null}
           </div>
 
           {/* menu de acoes do aluno - mesma linguagem do card Aluno */}
-          <div className="relative shrink-0" ref={menuRef}>
+          <div className={`relative shrink-0 ${isOpen ? "z-50" : "z-20"}`} ref={menuRef}>
             <button
               type="button"
               aria-label={`Opcoes de ${aluno.nome}`}
@@ -199,7 +199,7 @@ export default function HeaderDashAl({
             </button>
 
             {isOpen ? (
-              <div className="absolute right-0 top-full mt-2 z-20">
+              <div className="absolute right-0 top-full mt-2 z-50">
                 <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
               </div>
             ) : null}

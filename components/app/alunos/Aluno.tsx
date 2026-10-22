@@ -85,7 +85,7 @@ export default function Aluno( props: AlunoProps) {
     );
 
     return (
-        <div className="relative flex min-h-[84px] w-full items-center rounded-[50px] bg-surface-base pr-12 sm:rounded-[90px] sm:pr-16">
+        <div className={`relative flex min-h-[84px] w-full items-center rounded-[50px] bg-surface-base pr-12 sm:rounded-[90px] sm:pr-16 ${isOpen ? "z-40" : "z-0"}`}>
             {props.href ? (
                 <Link
                     href={props.href}
@@ -100,7 +100,7 @@ export default function Aluno( props: AlunoProps) {
             )}
 
             <div
-                className="absolute right-4 top-1/2 -translate-y-1/2 sm:right-6"
+                className={`absolute right-4 top-1/2 -translate-y-1/2 sm:right-6 ${isOpen ? "z-50" : "z-20"}`}
                 ref={menuRef}
                 onClick={(event) => event.stopPropagation()}
             >
@@ -116,7 +116,7 @@ export default function Aluno( props: AlunoProps) {
                 </button>
 
                 {isOpen ? (
-                    <div className="absolute right-0 top-full mt-2 z-20">
+                    <div className="absolute right-0 top-full mt-2 z-50">
                         <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
                     </div>
                 ) : null}

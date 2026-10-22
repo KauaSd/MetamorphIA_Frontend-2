@@ -123,7 +123,7 @@ export default function Turma( props:TurmaProps) {
     );
 
     return (
-        <div className="relative w-full">
+        <div className={`relative w-full ${isOpen ? "z-40" : "z-0"}`}>
             {props.href ? (
                 <Link
                     href={props.href}
@@ -147,7 +147,7 @@ export default function Turma( props:TurmaProps) {
             )}
 
             <div
-                className="absolute right-5 top-5 z-20"
+                className={`absolute right-5 top-5 ${isOpen ? "z-50" : "z-20"}`}
                 ref={menuRef}
             >
                 <button
@@ -162,7 +162,7 @@ export default function Turma( props:TurmaProps) {
                 </button>
 
                 {isOpen ? (
-                    <div className="absolute right-0 top-full mt-2 z-20">
+                    <div className="absolute right-0 top-full mt-2 z-50">
                         <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
                     </div>
                 ) : null}

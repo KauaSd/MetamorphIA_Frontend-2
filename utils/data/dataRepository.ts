@@ -1,10 +1,16 @@
-import type { Aluno, ClassInsights, Conversa, StudentInsights, Turma } from "./types";
+import type { Aluno, ClassInsights, Conversa, Escola, StudentInsights, Turma } from "./types";
 
 export interface DataRepository {
+  // escolas
+  listEscolas(): Promise<Escola[]>;
+  createEscola(input: { nome: string }): Promise<Escola>;
+  updateEscola(id: string, input: { nome: string }): Promise<Escola>;
+  deleteEscola(id: string): Promise<void>;
+
   // turmas
   listTurmas(): Promise<Turma[]>;
-  createTurma(input: { nome: string }): Promise<Turma>;
-  updateTurma(id: string, input: { nome: string }): Promise<Turma>;
+  createTurma(input: { nome: string; escolaId?: string }): Promise<Turma>;
+  updateTurma(id: string, input: { nome: string; escolaId?: string }): Promise<Turma>;
   deleteTurma(id: string): Promise<void>;
 
   // alunos
@@ -35,7 +41,3 @@ export interface DataRepository {
 import { localStorageRepository } from "./localStorageRepository";
 
 export const repository: DataRepository = localStorageRepository;
-
-// vira esta linha quando o backend existir:
-// import { httpRepository } from "./httpRepository";
-// export const repository: DataRepository = httpRepository;

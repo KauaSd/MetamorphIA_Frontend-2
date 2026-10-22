@@ -1,8 +1,14 @@
 // ---------- entidades de dominio ----------
 
+export interface Escola {
+  id: string;
+  nome: string;
+}
+
 export interface Turma {
   id: string;
   nome: string;
+  escolaId?: string;
 }
 
 export interface Aluno {
@@ -32,6 +38,7 @@ export interface Conversa {
 // teacherName e a unica chave em ingles: e identidade do usuario logado, nao entidade de dominio
 export interface AppData {
   teacherName: string | null;
+  escolas: Escola[];
   turmas: Turma[];
   alunos: Aluno[];
   conversas: Conversa[];
@@ -67,18 +74,26 @@ export interface StudentInsights {
 export const STORAGE_KEY = "metamorphia:dados:v1";
 
 export function dadosVazios(): AppData {
-  return { teacherName: null, turmas: [], alunos: [], conversas: [] };
+  return { teacherName: null, escolas: [], turmas: [], alunos: [], conversas: [] };
 }
 
 // ---------- ids ----------
 
-export function gerarId(prefixo: "tur" | "alu" | "con" | "msg"): string {
+export function gerarId(prefixo: "esc" | "tur" | "alu" | "con" | "msg"): string {
   const tempo = Date.now().toString(36);
   const sorteio = Math.random().toString(36).slice(2, 8);
   return `${prefixo}_${tempo}${sorteio}`;
 }
 
 // ---------- seletores ----------
+
+export function turmasDaEscola(turmas: Turma[], escolaId: string): Turma[] {
+  return turmas.filter((turma) => turma.escolaId === escolaId);
+}
+
+export function escolaPorId(escolas: Escola[], id: string): Escola | undefined {
+  return escolas.find((escola) => escola.id === id);
+}
 
 export function alunosDaTurma(alunos: Aluno[], turmaId: string): Aluno[] {
   return alunos.filter((aluno) => aluno.turmaId === turmaId);

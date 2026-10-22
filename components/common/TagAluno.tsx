@@ -1,4 +1,4 @@
-import { gradienteNeuro } from "@/utils/cores";
+import { gradienteNeuro, corDoNome } from "@/utils/cores";
 
 interface TagProps {
   nome: string
@@ -10,13 +10,14 @@ interface TagProps {
 }
 
 export default function TagAluno({ nome, neuros, ismenu, cor }: TagProps) {
+  const corFinal = ismenu ? (cor ?? corDoNome(nome)) : cor;
   return (
     <span className="flex gap-2 items-center w-full min-w-0">
       {/* `cor` e uma classe do Tailwind (vem de corDoNome), entao vai no
           className; o gradiente das neurodivergencias e um valor CSS e vai no style */}
       <div
-        className={`h-3 w-3 shrink-0 rounded-full ${cor ?? ""}`}
-        style={cor ? undefined : { background: gradienteNeuro(neuros) }}
+        className={`h-3 w-3 shrink-0 rounded-full ${corFinal ?? ""}`}
+        style={corFinal ? undefined : { background: gradienteNeuro(neuros) }}
       />
       <p className={`text-[10px] sm:text-xs truncate min-w-0 ${ismenu ? "text-inverse" : "text-secondary"}`}>
         {nome}

@@ -5,6 +5,7 @@ export type ButtonVariant =
   | "inverse"
   | "danger"
   | "warning"
+  | "success"
   | "sunken"
   | "outline"
   | "base";
@@ -18,6 +19,8 @@ const VARIANT_STYLES: Record<ButtonVariant, string> = {
     "bg-surface-danger text-ink hover:bg-surface-danger/80 disabled:hover:bg-surface-danger",
   warning:
     "bg-surface-warning text-ink hover:bg-surface-warning-strong disabled:hover:bg-surface-warning",
+  success:
+    "bg-surface-success text-ink hover:bg-surface-success-strong disabled:hover:bg-surface-success",
   sunken:
     "bg-sunken text-primary hover:bg-sunken-hover disabled:hover:bg-sunken",
   outline:
@@ -30,14 +33,9 @@ function inferVariant(className?: string): ButtonVariant {
   if (!className) return "default";
   if (className.includes("bg-surface-danger")) return "danger";
   if (className.includes("bg-surface-inverse")) return "inverse";
-  if (
-    className.includes("bg-surface-warning") ||
-    className.includes("bg-[#FEDA7A]") ||
-    className.includes("bg-[#FFD279]")
-  )
-    return "warning";
-  if (className.includes("bg-sunken") || className.includes("bg-[#D9D9D9]"))
-    return "sunken";
+  if (className.includes("bg-surface-warning")) return "warning";
+  if (className.includes("bg-surface-success")) return "success";
+  if (className.includes("bg-sunken")) return "sunken";
   if (
     className.includes("bg-surface-base") &&
     className.includes("border-surface-accent")

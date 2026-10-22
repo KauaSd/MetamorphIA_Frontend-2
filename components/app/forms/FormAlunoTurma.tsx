@@ -176,7 +176,7 @@ export function FormAluno({
             </div>
             <p className="text-sm text-primary">
               Neurodivergência{" "}
-              <span className="text-[10px] text-[#797979] font-normal">
+              <span className="text-[10px] text-secondary font-normal">
                 (selecione todas que se apliquem)
               </span>
             </p>
@@ -197,7 +197,7 @@ export function FormAluno({
             <DropDown options={turmas} value={turmaId} onChange={setTurmaId} />
             <p className="text-sm text-primary">
               Professor de Educação Especializada{" "}
-              <span className="text-[10px] text-[#797979] font-normal">
+              <span className="text-[10px] text-secondary font-normal">
                 (se houver)
               </span>
             </p>
@@ -297,7 +297,7 @@ export function FormTurma({
           <div className="flex flex-col gap-2">
             <p className="text-sm text-primary">
               Componente curricular{" "}
-              <span className="text-[10px] text-[#797979] font-normal">
+              <span className="text-[10px] text-secondary font-normal">
                 (selecione todos que leciona)
               </span>
             </p>

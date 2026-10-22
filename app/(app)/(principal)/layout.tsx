@@ -5,6 +5,7 @@ import Menu from "@/components/app/layout/Menu";
 import Tutorial, { type tutId } from "@/components/app/layout/Tutorial";
 import { FormIdentificacao } from "@/components/app/forms/FormAlunoTurma";
 import { useData } from "@/components/app/state/DataProvider";
+import StatusPlano from "@/components/app/layout/StatusPlano";
 
 export default function PrincipalLayout({ children }: { children: React.ReactNode }) {
   const { hydrated, teacherName, recarregar } = useData();
@@ -23,6 +24,7 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-screen w-full flex-row">
       <Menu />
       <main className="flex flex-1 min-w-0 flex-col">{children}</main>
+      <StatusPlano tipo="pro" />
       {precisaIdentificar && <FormIdentificacao onSalvar={handleSalvar} />}
       {passoTutorial && (
         <Tutorial tipo={passoTutorial} onClose={() => setPassoTutorial(null)} />

@@ -117,7 +117,7 @@ export default function ChatInput({
                 type="button"
                 disabled={disabled}
                 onClick={() => removerAnexo(anexo.name)}
-                className="cursor-pointer text-red-500 hover:text-red-600"
+                className="cursor-pointer text-surface-danger-strong hover:opacity-80"
                 aria-label="Remover arquivo"
               >
                 ×

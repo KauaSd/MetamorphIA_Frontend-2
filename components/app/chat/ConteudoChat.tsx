@@ -41,6 +41,7 @@ export default function ConteudoChat() {
   const router = useRouter();
   const conversaId = searchParams.get("conversaId");
   const alunoId = searchParams.get("alunoId");
+  const deveAbrirPei = searchParams.get("gerarPei") === "true" || searchParams.get("pei") === "true";
 
   const { conversas, alunos, teacherName, hydrated, recarregar } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
@@ -48,7 +49,7 @@ export default function ConteudoChat() {
   // o que o stream esta escrevendo agora; o que ja foi salvo vem do store
   const [rascunho, setRascunho] = useState<Bolha[]>([]);
   const [isThinking, setIsThinking] = useState(false);
-  const [mostrarPainel, setMostrarPainel] = useState(false);
+  const [mostrarPainel, setMostrarPainel] = useState(deveAbrirPei);
   const [mostrarCriacao, setMostrarCriacao] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -63,6 +64,12 @@ export default function ConteudoChat() {
   const conversa = resolucao.status === "ok" ? resolucao.conversa : undefined;
   const precisaCriar = resolucao.status === "ok" && resolucao.precisaCriar;
   const idDoAluno = resolucao.status === "ok" ? resolucao.aluno.id : null;
+
+  useEffect(() => {
+    if (deveAbrirPei) {
+      setMostrarPainel(true);
+    }
+  }, [deveAbrirPei]);
 
   useEffect(() => {
     if (semAluno) router.replace("/alunos");
@@ -80,7 +87,7 @@ export default function ConteudoChat() {
       if (cancelado) return;
 
       if (resultado.ok && resultado.conversaId) {
-        router.replace(`/chat?conversaId=${resultado.conversaId}`);
+        router.replace(`/chat?conversaId=${resultado.conversaId}${deveAbrirPei ? "&gerarPei=true" : ""}`);
       } else if (!resultado.ok) {
         // so falha quando o aluno nao existe mais: ai o chat sai da rota
         mostrar(resultado.erro);

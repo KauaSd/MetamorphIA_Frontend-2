@@ -68,7 +68,7 @@ export default function Turma( props:TurmaProps) {
     // a area clicavel e o link; o botao de tres pontinhos fica fora dele para
     // nao aninhar um botao dentro de uma ancora
     const conteudo = (
-        <>
+        <div className="flex flex-col gap-2 sm:gap-2.5">
             <div className="flex items-center justify-between pr-8">
                 <p className="
                     truncate text-xl sm:text-2xl
@@ -78,24 +78,26 @@ export default function Turma( props:TurmaProps) {
                 </p>
             </div>
 
-            <div className="grid grid-cols-[auto_auto] justify-start gap-x-3 gap-y-0.5">
-                {visiveis.map((aluno, index) =>(
-                    <TagAluno
-                        key={aluno.id || index}
-                        nome={aluno.nome}
-                        neuros={aluno.neuros}
-                    />
-                ))}
-            </div>
+            <div className="flex flex-col gap-0.5">
+                <div className="grid grid-cols-[auto_auto] justify-start gap-x-2.5 gap-y-0.5">
+                    {visiveis.map((aluno, index) =>(
+                        <TagAluno
+                            key={aluno.id || index}
+                            nome={aluno.nome}
+                            neuros={aluno.neuros}
+                        />
+                    ))}
+                </div>
 
-            {restantes > 0 && (
-                <p className="text-xs text-secondary">+{restantes} aluno{restantes > 1 ? "s" : ""}</p>
-            )}
-        </>
+                {restantes > 0 ? (
+                    <p className="text-xs text-secondary pl-0.5 mt-0.5">+{restantes} aluno{restantes > 1 ? "s" : ""}</p>
+                ) : null}
+            </div>
+        </div>
     );
 
     const area = (
-        <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col">
             {conteudo}
         </div>
     );
@@ -105,18 +107,18 @@ export default function Turma( props:TurmaProps) {
     // dentro de um link e invalido e dispararia a navegacao
     const superficie = `
         relative flex w-full flex-col
-        min-h-28 sm:min-h-25
+        min-h-[130px] sm:min-h-[135px]
         bg-surface-base
-        rounded-[60px]
-        px-8
-        py-4
+        rounded-[50px]
+        px-7 sm:px-8
+        py-3.5
         transition-colors
     `;
 
     const enfeite = (
         <Encaracolado
             src={EncaracoladoSvg.src}
-            className="pointer-events-none absolute left-[-10px] top-1/2 -translate-y-1/2 w-[36px] aspect-[36/118]"
+            className="pointer-events-none absolute left-[-10px] top-1/2 -translate-y-1/2 w-[32px] aspect-[36/118]"
         />
     );
 

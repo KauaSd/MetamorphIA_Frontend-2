@@ -61,7 +61,7 @@ export default function Resumo(props : ResumoProps) {
                         <button
                             type="button"
                             onClick={cancelarEdicao}
-                            className="bg-[#D9D9D9] cursor-pointer rounded-[70px] py-1 px-3 hover:bg-sunken-hover">
+                            className="bg-sunken cursor-pointer rounded-[70px] py-1 px-3 hover:bg-sunken-hover">
                                 Cancelar
                             </button>
 
@@ -77,7 +77,7 @@ export default function Resumo(props : ResumoProps) {
                     <button
                         type="button"
                         onClick={iniciarEdicao}
-                        className="bg-[#D9D9D9] cursor-pointer rounded-[100%] p-1 hover:bg-sunken-hover">
+                        className="bg-sunken cursor-pointer rounded-[100%] p-1 hover:bg-sunken-hover">
                         <img src={Lapis.src} aria-hidden="true" />
                     </button>
                 )}
@@ -92,7 +92,7 @@ export default function Resumo(props : ResumoProps) {
                             if (e.key === "Escape") cancelarEdicao();
                         }}
                         rows={5}
-                        className="min-h-28 w-full resize-y rounded-2xl border border-[#D9D9D9] bg-transparent p-2 font-(family-name:--font-poppins) text-secondary text-sm text-justify outline-none focus:border-primary"
+                        className="min-h-28 w-full resize-y rounded-2xl border border-sunken bg-transparent p-2 font-(family-name:--font-poppins) text-secondary text-sm text-justify outline-none focus:border-primary"
                     />
                 ) : (
                     <p className="font-(family-name:--font-poppins) text-secondary text-sm text-justify">{props.txt}</p>

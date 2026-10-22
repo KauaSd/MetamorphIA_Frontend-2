@@ -5,10 +5,11 @@ import { EllipsisVertical } from "lucide-react";
 import Seta from "@/public/seta.svg";
 import Button from "@/components/common/Button";
 import Add from "@/public/add.svg";
-import Download from "@/public/file_download.svg";
+import FilePEIIcon from "@/public/filePEI.svg";
 import Link from "next/link";
 import TagNeuro from "@/components/common/TagNeuro";
 import VerMais from "@/components/common/VerMais";
+import MenuPei from "@/components/app/alunos/MenuPei";
 import { pegainicial } from "@/utils/pegariniciais";
 import { corDoNome } from "@/utils/cores";
 import type { Aluno } from "@/utils/data/types";
@@ -19,7 +20,10 @@ interface HeaderDashAlProps {
   /** id da turma do proprio aluno, para o link de voltar */
   turmaId: string;
   onBatePapo: () => void;
-  onGerarPei: () => void;
+  onCriarPei?: () => void;
+  onBaixarPei?: () => void;
+  /** retrocompatibilidade com onGerarPei */
+  onGerarPei?: () => void;
   abrindoChat: boolean;
   onEditar?: () => void;
   onExcluir?: () => void;
@@ -30,6 +34,8 @@ export default function HeaderDashAl({
   nomeTurma,
   turmaId,
   onBatePapo,
+  onCriarPei,
+  onBaixarPei,
   onGerarPei,
   abrindoChat,
   onEditar,
@@ -38,20 +44,27 @@ export default function HeaderDashAl({
   const corAvatar = corDoNome(aluno.nome);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isPeiOpen, setIsPeiOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuPeiRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen && !isPeiOpen) return;
 
     function clicarFora(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (menuRef.current && !menuRef.current.contains(target)) {
         setIsOpen(false);
+      }
+      if (menuPeiRef.current && !menuPeiRef.current.contains(target)) {
+        setIsPeiOpen(false);
       }
     }
 
     function fecharComEsc(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setIsOpen(false);
+        setIsPeiOpen(false);
       }
     }
 
@@ -62,7 +75,7 @@ export default function HeaderDashAl({
       document.removeEventListener("mousedown", clicarFora);
       document.removeEventListener("keydown", fecharComEsc);
     };
-  }, [isOpen]);
+  }, [isOpen, isPeiOpen]);
 
   function handleEditar() {
     setIsOpen(false);
@@ -72,6 +85,20 @@ export default function HeaderDashAl({
   function handleExcluir() {
     setIsOpen(false);
     onExcluir?.();
+  }
+
+  function handleCriarPei() {
+    setIsPeiOpen(false);
+    if (onCriarPei) {
+      onCriarPei();
+    } else {
+      onGerarPei?.();
+    }
+  }
+
+  function handleBaixarPei() {
+    setIsPeiOpen(false);
+    onBaixarPei?.();
   }
 
   return (
@@ -122,40 +149,57 @@ export default function HeaderDashAl({
             type="button"
             onClick={onBatePapo}
             disabled={abrindoChat}
-            className="flex w-auto flex-row items-center justify-center gap-1.5 px-3 py-2"
+            className="flex w-auto flex-row items-center justify-center gap-1.5 px-3 py-1 sm:py-1 bg-surface-success text-ink hover:bg-surface-success-strong"
           >
-            <img src={Add.src} className="h-4 w-4 shrink-0 sm:h-6 sm:w-6" alt="" />
+            <img src={Add.src} className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" alt="" />
             <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-xs sm:text-xl">
-              {abrindoChat ? "Abrindo..." : "Bate-Papo"}
+              {abrindoChat ? "Abrindo..." : "Chat"}
             </p>
           </Button>
 
-          <Button
-            type="button"
-            onClick={onGerarPei}
-            className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-warning px-3 py-2"
-          >
-            <img src={Download.src} className="h-4 w-4 shrink-0 sm:h-6 sm:w-6" alt="" />
-            <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-xs sm:text-xl">
-              Gerar PEI
-            </p>
-          </Button>
+          {/* menu de acoes do PEI */}
+          <div className="relative shrink-0" ref={menuPeiRef}>
+            <Button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                setIsPeiOpen((prev) => !prev);
+              }}
+              aria-haspopup="menu"
+              aria-expanded={isPeiOpen}
+              className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-warning text-ink hover:bg-surface-warning-strong px-3 py-1 sm:py-1"
+            >
+              <img src={FilePEIIcon.src} className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" alt="" />
+              <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-xs sm:text-xl">
+                PEI
+              </p>
+            </Button>
+
+            {isPeiOpen ? (
+              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-50">
+                <MenuPei onCriar={handleCriarPei} onBaixar={handleBaixarPei} />
+              </div>
+            ) : null}
+          </div>
 
           {/* menu de acoes do aluno - mesma linguagem do card Aluno */}
-          <div className="relative shrink-0" ref={menuRef}>
+          <div className={`relative shrink-0 ${isOpen ? "z-50" : "z-20"}`} ref={menuRef}>
             <button
               type="button"
               aria-label={`Opcoes de ${aluno.nome}`}
               aria-haspopup="menu"
               aria-expanded={isOpen}
               className="flex h-full w-auto cursor-pointer items-center justify-center rounded-[70px] px-1 text-secondary transition-colors hover:bg-surface-muted"
-              onClick={() => setIsOpen((prev) => !prev)}
+              onClick={() => {
+                setIsPeiOpen(false);
+                setIsOpen((prev) => !prev);
+              }}
             >
               <EllipsisVertical height={"28px"} />
             </button>
 
             {isOpen ? (
-              <div className="absolute right-0 top-full mt-2 z-20">
+              <div className="absolute right-0 top-full mt-2 z-50">
                 <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
               </div>
             ) : null}

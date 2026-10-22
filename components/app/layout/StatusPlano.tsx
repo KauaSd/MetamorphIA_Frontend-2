@@ -1,0 +1,80 @@
+"use client";
+
+import { twMerge } from "tailwind-merge";
+import AstroidIcon from "@/public/astroid.svg";
+
+export type TipoPlanoStatus = "basico" | "pro" | "institucional";
+
+export interface StatusPlanoProps {
+  tipo?: TipoPlanoStatus;
+  className?: string;
+  iconeCor?: string;
+  ariaLabel?: string;
+}
+
+const CONFIG_PLANO: Record<
+  TipoPlanoStatus,
+  {
+    bg: string;
+    iconeCor: string;
+    label: string;
+  }
+> = {
+  basico: {
+    bg: "bg-ink",
+    iconeCor: "var(--inverse)",
+    label: "Plano Básico",
+  },
+  pro: {
+    bg: "bg-surface-accent",
+    iconeCor: "var(--inverse)",
+    label: "Plano Pro",
+  },
+  institucional: {
+    bg: "bg-surface-warning",
+    iconeCor: "var(--inverse)",
+    label: "Plano Institucional",
+  },
+};
+
+export default function StatusPlano({
+  tipo = "basico",
+  className,
+  iconeCor,
+  ariaLabel,
+}: StatusPlanoProps) {
+  const config = CONFIG_PLANO[tipo] ?? CONFIG_PLANO.basico;
+  const corDoIcone = iconeCor ?? config.iconeCor;
+
+  return (
+    <div
+      aria-label={ariaLabel ?? config.label}
+      className={twMerge(
+        "fixed bottom-[24px] right-[52px] z-30 flex h-[60px] w-[60px] pointer-events-none select-none items-center justify-center rounded-full shadow-lg",
+        config.bg,
+        className
+      )}
+    >
+      <svg
+        width="28"
+        height="28"
+        viewBox="0 0 31 31"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="pointer-events-none select-none"
+        aria-hidden="true"
+      >
+        <path
+          d="M15.5 0C16.5656 0 16.8562 0.775 17.0887 1.97625C18.3675 8.1375 22.8625 12.6325 29.0237 13.9113C30.225 14.1438 31 14.4344 31 15.5C31 16.5656 30.225 16.8562 29.0237 17.0887C22.8625 18.3675 18.3675 22.8625 17.0887 29.0237C16.8562 30.225 16.5656 31 15.5 31C14.4344 31 14.1438 30.225 13.9113 29.0237C12.6325 22.8625 8.1375 18.3675 1.97625 17.0887C0.775 16.8562 0 16.5656 0 15.5C0 14.4344 0.775 14.1438 1.97625 13.9113C8.1375 12.6325 12.6325 8.1375 13.9113 1.97625C14.1438 0.775 14.4344 0 15.5 0Z"
+          fill={corDoIcone}
+        />
+        <path
+          d="M26.3497 0C26.6694 0 26.7566 0.2325 26.8263 0.592875C27.21 2.44125 28.5585 3.78975 30.4068 4.17337C30.7672 4.24312 30.9997 4.33031 30.9997 4.65C30.9997 4.96969 30.7672 5.05687 30.4068 5.12662C28.5585 5.51025 27.21 6.85875 26.8263 8.70712C26.7566 9.0675 26.6694 9.3 26.3497 9.3C26.03 9.3 25.9428 9.0675 25.8731 8.70712C25.4895 6.85875 24.141 5.51025 22.2926 5.12662C21.9322 5.05687 21.6997 4.96969 21.6997 4.65C21.6997 4.33031 21.9322 4.24312 22.2926 4.17337C24.141 3.78975 25.4895 2.44125 25.8731 0.592875C25.9428 0.2325 26.03 0 26.3497 0Z"
+          fill={corDoIcone}
+        />
+      </svg>
+    </div>
+  );
+}
+
+export { StatusPlano as statusplano };

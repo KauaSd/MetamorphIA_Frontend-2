@@ -12,12 +12,17 @@ import { createTurma, deleteTurma, updateTurma, type Resultado } from "@/utils/d
 import { ALERTAS } from "@/utils/alertas";
 
 export default function ConteudoTurmas() {
-  const { turmas, alunos, recarregar } = useData();
+  const { turmas, alunos, escolas, recarregar } = useData();
   const [mostrarForm, setMostrarForm] = useState(false);
   const [busca, setBusca] = useState("");
   const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
   const [idEmExclusao, setIdEmExclusao] = useState<string | null>(null);
   const { alerta, mostrar, limpar } = useAlerta();
+
+  const escolasParaForm = useMemo(
+    () => escolas.map((escola) => ({ value: escola.id, label: escola.nome })),
+    [escolas],
+  );
 
   const turmaEmEdicao = idEmEdicao
     ? turmas.find((turma) => turma.id === idEmEdicao)
@@ -44,19 +49,19 @@ export default function ConteudoTurmas() {
     return resultado;
   }
 
-  async function aoCriar(nome: string): Promise<Resultado> {
-    const resultado = await createTurma({ nome });
+  async function aoCriar(nome: string, _comp?: string[], escolaId?: string): Promise<Resultado> {
+    const resultado = await createTurma({ nome, escolaId: escolaId || undefined });
     if (resultado.ok) {
       await recarregar();
     }
     return tentar(resultado);
   }
 
-  async function aoEditar(nome: string): Promise<Resultado> {
+  async function aoEditar(nome: string, _comp?: string[], escolaId?: string): Promise<Resultado> {
     if (!idEmEdicao) {
       return tentar({ ok: false, erro: ALERTAS.TURMA_NAO_ENCONTRADA });
     }
-    const resultado = await updateTurma(idEmEdicao, { nome });
+    const resultado = await updateTurma(idEmEdicao, { nome, escolaId: escolaId || undefined });
     if (resultado.ok) {
       await recarregar();
     }
@@ -122,13 +127,16 @@ export default function ConteudoTurmas() {
       )}
 
       {mostrarForm ? (
-        <FormTurma onClose={() => setMostrarForm(false)} onSalvar={aoCriar} />
+        <FormTurma escolas={escolasParaForm} onClose={() => setMostrarForm(false)} onSalvar={aoCriar} />
       ) : null}
 
       {turmaEmEdicao ? (
         <FormTurma
+          key={turmaEmEdicao.id}
           modo="editar"
           nomeInicial={turmaEmEdicao.nome}
+          escolaIdInicial={turmaEmEdicao.escolaId ?? ""}
+          escolas={escolasParaForm}
           onClose={() => setIdEmEdicao(null)}
           onSalvar={aoEditar}
         />

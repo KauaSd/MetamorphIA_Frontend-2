@@ -119,7 +119,7 @@ function ConteudopeiConteudo({
                 <p className={`text-center text-3xl sm:text-4xl lg:text-5xl transition-all duration-500 ${mostrarCriacao ? "mt-8" : "mt-20"}`}>OK, vamos começar!</p>
 
                 <div className={`flex w-full flex-col items-center gap-4 justify-center sm:flex-row sm:gap-40 transition-all duration-500 ${mostrarCriacao ? "mt-6" : "mt-30"}`}>
-                    <Button className="w-full bg-[#FEDA7A] text-[#433F3F] hover:bg-[#FEDA7A]/80 sm:w-80 px-8 py-3 text-base sm:text-lg">
+                    <Button className="w-full bg-surface-warning text-ink hover:bg-warning sm:w-80 px-8 py-3 text-base sm:text-lg">
                         Importar PEI
                     </Button>
                     <Button
@@ -272,7 +272,7 @@ function ConteudopeiConteudo({
                                 <Button
                                     type="button"
                                     onClick={() => setMostrarRevisao(false)}
-                                    className="bg-surface-inverse text-inverse w-32"
+                                    className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover w-32"
                                 >
                                     Não
                                 </Button>

@@ -3,12 +3,15 @@ import {
   addMessage,
   carregarDados,
   createAluno,
+  createEscola,
   createTurma,
   deleteAluno,
+  deleteEscola,
   deleteTurma,
   openChatWith,
   saveTeacherName,
   updateAluno,
+  updateEscola,
   updateTurma,
 } from "./controller";
 import {
@@ -17,6 +20,7 @@ import {
   percentualNeurodivergentes,
   resolverChat,
   STORAGE_KEY,
+  turmasDaEscola,
   type Conversa,
 } from "./types";
 
@@ -63,6 +67,48 @@ describe("utils/data", () => {
     expect(ordenada.map((c) => c.id)).toEqual(["c2", "c1"]);
     expect(lista.map((c) => c.id)).toEqual(["c1", "c2"]);
     expect(conversasDoAluno(lista, "a1").map((c) => c.id)).toEqual(["c2", "c1"]);
+  });
+
+  it("gerencia escolas e vincula turmas", async () => {
+    expect((await createEscola("   ")).ok).toBe(false);
+    expect((await createEscola("Escola Modelo")).ok).toBe(true);
+
+    let dados = await carregarDados();
+    expect(dados.escolas).toHaveLength(1);
+    const escolaId = dados.escolas[0].id;
+
+    expect((await updateEscola(escolaId, "Escola Modelo Atualizada")).ok).toBe(true);
+
+    const turmaRes = await createTurma({ nome: "1º Ano A", escolaId });
+    expect(turmaRes.ok).toBe(true);
+
+    dados = await carregarDados();
+    expect(dados.turmas).toHaveLength(1);
+    expect(dados.turmas[0].escolaId).toBe(escolaId);
+    expect(turmasDaEscola(dados.turmas, escolaId)).toHaveLength(1);
+
+    const turmaSemEscola = await createTurma({ nome: "Turma Geral" });
+    expect(turmaSemEscola.ok).toBe(true);
+
+    expect((await deleteEscola(escolaId)).ok).toBe(true);
+    dados = await carregarDados();
+    expect(dados.escolas).toHaveLength(0);
+    // a turma vinculada a escolaId foi removida em cascata; a turma sem escola permanece
+    expect(dados.turmas).toHaveLength(1);
+    expect(dados.turmas[0].nome).toBe("Turma Geral");
+
+    // Permite reatribuir a outra escola e desvincular novamente ("Sem escola")
+    const turmaId = dados.turmas[0].id;
+    expect((await createEscola("Escola Nova")).ok).toBe(true);
+    dados = await carregarDados();
+    const novaEscolaId = dados.escolas[0].id;
+    expect((await updateTurma(turmaId, { nome: "Turma Geral", escolaId: novaEscolaId })).ok).toBe(true);
+    dados = await carregarDados();
+    expect(dados.turmas[0].escolaId).toBe(novaEscolaId);
+
+    expect((await updateTurma(turmaId, { nome: "Turma Geral", escolaId: undefined })).ok).toBe(true);
+    dados = await carregarDados();
+    expect(dados.turmas[0].escolaId).toBeUndefined();
   });
 
   it("executa fluxo completo no controller e cascata de exclusao", async () => {

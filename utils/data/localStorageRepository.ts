@@ -7,6 +7,7 @@ import {
   type AppData,
   type ClassInsights,
   type EngajamentoMateria,
+  type Escola,
   type StudentInsights,
   type Turma,
 } from "./types";
@@ -31,6 +32,7 @@ function ler(): AppData {
     // cada lista tem fallback proprio: um storage de versao antiga nao pode estourar a tela
     return {
       teacherName: guardado.teacherName ?? null,
+      escolas: guardado.escolas ?? [],
       turmas: guardado.turmas ?? [],
       alunos: guardado.alunos ?? [],
       conversas: guardado.conversas ?? [],
@@ -49,13 +51,67 @@ function gravar(dados: AppData): void {
 }
 
 export const localStorageRepository: DataRepository = {
+  // escolas
+  async listEscolas() {
+    return ler().escolas;
+  },
+
+  async createEscola(input) {
+    const dados = ler();
+    const escola: Escola = { id: gerarId("esc"), nome: input.nome };
+    gravar({ ...dados, escolas: [...dados.escolas, escola] });
+    return escola;
+  },
+
+  async updateEscola(id, input) {
+    const dados = ler();
+    const existente = dados.escolas.find((e) => e.id === id);
+    if (!existente) throw new Error(`Escola nao encontrada: ${id}`);
+
+    const atualizada: Escola = { ...existente, nome: input.nome };
+    gravar({
+      ...dados,
+      escolas: dados.escolas.map((e) => (e.id === id ? atualizada : e)),
+    });
+    return atualizada;
+  },
+
+  async deleteEscola(id) {
+    const dados = ler();
+    if (!dados.escolas.some((e) => e.id === id)) {
+      throw new Error(`Escola nao encontrada: ${id}`);
+    }
+
+    // cascata: remove a escola, todas as turmas vinculadas a ela,
+    // os alunos dessas turmas e as conversas desses alunos
+    const turmasRemovidas = new Set(
+      dados.turmas.filter((t) => t.escolaId === id).map((t) => t.id),
+    );
+    const alunosRemovidos = new Set(
+      dados.alunos.filter((a) => turmasRemovidas.has(a.turmaId)).map((a) => a.id),
+    );
+
+    gravar({
+      ...dados,
+      escolas: dados.escolas.filter((e) => e.id !== id),
+      turmas: dados.turmas.filter((t) => t.escolaId !== id),
+      alunos: dados.alunos.filter((a) => !turmasRemovidas.has(a.turmaId)),
+      conversas: dados.conversas.filter((c) => !alunosRemovidos.has(c.alunoId)),
+    });
+  },
+
+  // turmas
   async listTurmas() {
     return ler().turmas;
   },
 
   async createTurma(input) {
     const dados = ler();
-    const turma: Turma = { id: gerarId("tur"), nome: input.nome };
+    const turma: Turma = {
+      id: gerarId("tur"),
+      nome: input.nome,
+      ...(input.escolaId ? { escolaId: input.escolaId } : {}),
+    };
     gravar({ ...dados, turmas: [...dados.turmas, turma] });
     return turma;
   },
@@ -65,7 +121,14 @@ export const localStorageRepository: DataRepository = {
     const existente = dados.turmas.find((turma) => turma.id === id);
     if (!existente) throw new Error(`Turma nao encontrada: ${id}`);
 
-    const atualizada: Turma = { ...existente, nome: input.nome };
+    const atualizada: Turma = {
+      ...existente,
+      nome: input.nome,
+      escolaId: "escolaId" in input ? (input.escolaId || undefined) : existente.escolaId,
+    };
+    if (!atualizada.escolaId) {
+      delete atualizada.escolaId;
+    }
     gravar({
       ...dados,
       turmas: dados.turmas.map((turma) => (turma.id === id ? atualizada : turma)),

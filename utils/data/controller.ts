@@ -23,24 +23,62 @@ export async function saveTeacherName(nome: string): Promise<Resultado> {
   return ok();
 }
 
-export async function createTurma(dados?: { nome: string } | string): Promise<Resultado> {
+export async function createEscola(dados?: { nome: string } | string): Promise<Resultado> {
   const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
   const limpo = nome.trim();
-  if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
+  if (!limpo) return falha(ALERTAS.ESCOLA_NOME_VAZIO);
 
-  await repository.createTurma({ nome: limpo });
+  await repository.createEscola({ nome: limpo });
   return ok();
 }
 
-export async function updateTurma(id: string, dados: { nome: string } | string): Promise<Resultado> {
+export async function updateEscola(id: string, dados: { nome: string } | string): Promise<Resultado> {
   const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
+  const limpo = nome.trim();
+  if (!limpo) return falha(ALERTAS.ESCOLA_NOME_VAZIO);
+
+  const escolas = await repository.listEscolas();
+  if (!escolas.some((e) => e.id === id)) return falha(ALERTAS.ESCOLA_NAO_ENCONTRADA);
+
+  await repository.updateEscola(id, { nome: limpo });
+  return ok();
+}
+
+export async function deleteEscola(id: string): Promise<Resultado> {
+  const escolas = await repository.listEscolas();
+  if (!escolas.some((e) => e.id === id)) return falha(ALERTAS.ESCOLA_NAO_ENCONTRADA);
+
+  await repository.deleteEscola(id);
+  return ok();
+}
+
+export async function createTurma(dados?: { nome: string; escolaId?: string | null } | string): Promise<Resultado> {
+  const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
+  const escolaId = typeof dados === "object" && dados.escolaId ? dados.escolaId : undefined;
+  const limpo = nome.trim();
+  if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
+
+  await repository.createTurma({ nome: limpo, escolaId });
+  return ok();
+}
+
+export async function updateTurma(
+  id: string,
+  dados: { nome: string; escolaId?: string | null } | string,
+): Promise<Resultado> {
+  const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
+  const temEscolaId = typeof dados === "object" && "escolaId" in dados;
+  const escolaId = typeof dados === "object" && dados.escolaId ? dados.escolaId : undefined;
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
 
   const turmas = await repository.listTurmas();
   if (!turmas.some((turma) => turma.id === id)) return falha(ALERTAS.TURMA_NAO_ENCONTRADA);
 
-  await repository.updateTurma(id, { nome: limpo });
+  await repository.updateTurma(id, {
+    nome: limpo,
+    ...(temEscolaId ? { escolaId } : {}),
+  });
   return ok();
 }
 
@@ -170,11 +208,12 @@ export async function addMessage(
 }
 
 export async function carregarDados() {
-  const [turmas, alunos, conversas, teacherName] = await Promise.all([
+  const [escolas, turmas, alunos, conversas, teacherName] = await Promise.all([
+    repository.listEscolas(),
     repository.listTurmas(),
     repository.listAlunos(),
     repository.listConversas(),
     repository.getTeacherName(),
   ]);
-  return { turmas, alunos, conversas, teacherName };
+  return { escolas, turmas, alunos, conversas, teacherName };
 }

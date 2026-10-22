@@ -90,8 +90,28 @@ export default function ConteudoDashboardAluno() {
     }
   }
 
-  function handleGerarPei() {
-    mostrar({ tom: "warning", titulo: "PEI indisponível", descricao: "A geração de PEI ainda não foi implementada." });
+  async function handleCriarPei() {
+    if (!alunoId) return;
+    setAbrindoChat(true);
+    const resultado = await openChatWith(alunoId);
+    if (!resultado.ok) {
+      setAbrindoChat(false);
+      mostrar(resultado.erro);
+      return;
+    }
+    await recarregar();
+    setAbrindoChat(false);
+    if (resultado.conversaId) {
+      router.push(`/chat?conversaId=${resultado.conversaId}&gerarPei=true`);
+    }
+  }
+
+  function handleBaixarPei() {
+    mostrar({
+      tom: "info",
+      titulo: "Baixar PEI",
+      descricao: `Iniciando o download do PEI de ${aluno?.nome ?? "aluno"}.`,
+    });
   }
 
   if (!hydrated) {
@@ -115,7 +135,8 @@ export default function ConteudoDashboardAluno() {
           nomeTurma={turma?.nome ?? ""}
           turmaId={aluno.turmaId}
           onBatePapo={handleBatePapo}
-          onGerarPei={handleGerarPei}
+          onCriarPei={handleCriarPei}
+          onBaixarPei={handleBaixarPei}
           abrindoChat={abrindoChat}
           onEditar={() => setIdEmEdicao(aluno.id)}
           onExcluir={() => setIdEmExclusao(aluno.id)}

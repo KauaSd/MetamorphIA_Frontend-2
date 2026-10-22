@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { saveTeacherName } from "@/utils/data/controller";
 import type { Resultado } from "@/utils/data/controller";
 import Input from "@/components/common/Input";
@@ -9,6 +9,7 @@ import { X, ChevronUp, ChevronDown } from "lucide-react";
 import CheckBoxAluno from "@/components/common/CheckBoxAl";
 import DropDown, { type DropDownOption } from "@/components/common/DropDown";
 import Blurfundo from "@/components/common/Blurfundo";
+import { useData } from "@/components/app/state/DataProvider";
 
 const COLUNAS_NEURO = [
   ["TEA", "TDAH", "Dislexia"],
@@ -176,7 +177,7 @@ export function FormAluno({
             </div>
             <p className="text-sm text-primary">
               Neurodivergência{" "}
-              <span className="text-[10px] text-[#797979] font-normal">
+              <span className="text-[10px] text-secondary font-normal">
                 (selecione todas que se apliquem)
               </span>
             </p>
@@ -197,7 +198,7 @@ export function FormAluno({
             <DropDown options={turmas} value={turmaId} onChange={setTurmaId} />
             <p className="text-sm text-primary">
               Professor de Educação Especializada{" "}
-              <span className="text-[10px] text-[#797979] font-normal">
+              <span className="text-[10px] text-secondary font-normal">
                 (se houver)
               </span>
             </p>
@@ -215,7 +216,7 @@ export function FormAluno({
               type="button"
               onClick={onClose}
               disabled={salvando}
-              className="bg-surface-inverse text-inverse"
+              className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover"
             >
               Cancelar
             </Button>
@@ -231,10 +232,12 @@ export function FormAluno({
 
 interface FormTurmaProps {
   onClose: () => void;
-  onSalvar: (nome: string, componentes?: string[]) => Promise<Resultado>;
+  onSalvar: (nome: string, componentes?: string[], escolaId?: string) => Promise<Resultado>;
   modo?: "criar" | "editar";
   nomeInicial?: string;
   componentesIniciais?: string[];
+  escolaIdInicial?: string;
+  escolas?: DropDownOption[];
 }
 
 export function FormTurma({
@@ -243,10 +246,29 @@ export function FormTurma({
   modo = "criar",
   nomeInicial = "",
   componentesIniciais = [],
+  escolaIdInicial = "",
+  escolas: escolasProp,
 }: FormTurmaProps) {
+  const { escolas: escolasData } = useData();
   const [nomeTurma, setNomeTurma] = useState(nomeInicial);
   const [componentes, setComponentes] = useState<string[]>(componentesIniciais);
+  const [escolaId, setEscolaId] = useState(escolaIdInicial);
   const [salvando, setSalvando] = useState(false);
+
+  const listaEscolas = useMemo(() => {
+    if (escolasProp) return escolasProp;
+    return (escolasData ?? []).map((e) => ({ value: e.id, label: e.nome }));
+  }, [escolasProp, escolasData]);
+
+  const opcoesEscolas: DropDownOption[] = useMemo(() => {
+    if (listaEscolas.length === 0) {
+      return [{ value: "", label: "Sem escola" }];
+    }
+    return [
+      { value: "", label: "Sem escola" },
+      ...listaEscolas,
+    ];
+  }, [listaEscolas]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -255,7 +277,11 @@ export function FormTurma({
     setSalvando(true);
     try {
       // quem valida o nome vazio e o controller; o form so fecha se der ok
-      const resultado = await onSalvar(nomeTurma.trim(), componentes);
+      const resultado = await onSalvar(
+        nomeTurma.trim(),
+        componentes,
+        escolaId || undefined
+      );
       if (resultado.ok) {
         onClose();
       }
@@ -297,7 +323,7 @@ export function FormTurma({
           <div className="flex flex-col gap-2">
             <p className="text-sm text-primary">
               Componente curricular{" "}
-              <span className="text-[10px] text-[#797979] font-normal">
+              <span className="text-[10px] text-secondary font-normal">
                 (selecione todos que leciona)
               </span>
             </p>
@@ -315,12 +341,22 @@ export function FormTurma({
             />
           </div>
 
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-primary">Escola</p>
+            <DropDown
+              options={opcoesEscolas}
+              value={escolaId}
+              onChange={setEscolaId}
+              placeholder="Sem escola"
+            />
+          </div>
+
           <div className="flex gap-5">
             <Button
               type="button"
               disabled={salvando}
               onClick={onClose}
-              className="bg-surface-inverse text-inverse"
+              className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover"
             >
               Cancelar
             </Button>
@@ -443,7 +479,7 @@ function ModalConfirmarExclusao({ pergunta, onClose, onExcluir }: ModalConfirmar
             <Button
               type="button"
               disabled={excluindo}
-              className="bg-surface-inverse text-inverse w-32"
+              className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover w-32"
               onClick={onClose}
             >
               Cancelar
@@ -452,7 +488,7 @@ function ModalConfirmarExclusao({ pergunta, onClose, onExcluir }: ModalConfirmar
               type="button"
               disabled={excluindo}
               onClick={handleExcluir}
-              className="bg-surface-danger text-ink w-32 whitespace-nowrap"
+              className="bg-surface-danger text-ink hover:bg-surface-danger/80 w-32 whitespace-nowrap"
             >
               {excluindo ? "Excluindo..." : "Excluir"}
             </Button>

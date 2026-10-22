@@ -76,6 +76,16 @@ export const ALERTAS = {
     titulo: "Campo obrigatório",
     descricao: "Digite seu nome para o sistema saber como chamar você.",
   },
+  ESCOLA_NOME_VAZIO: {
+    tom: "danger",
+    titulo: "Campo obrigatório",
+    descricao: "Digite o nome da escola.",
+  },
+  ESCOLA_NAO_ENCONTRADA: {
+    tom: "danger",
+    titulo: "Escola não encontrada",
+    descricao: "Essa escola não existe mais. Volte para a lista de escolas.",
+  },
   TURMA_NOME_VAZIO: {
     tom: "danger",
     titulo: "Campo obrigatório",

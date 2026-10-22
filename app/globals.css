@@ -28,9 +28,12 @@
   --surface-danger: #ff9999;
   --surface-danger-strong: #ff5154;
   --surface-warning: #ffd279;
+  --surface-warning-strong: #ffc164;
   --surface-success: #ceffca;
+  --surface-success-strong: #a5f09f;
   --surface-info: #caf3ff;
   --surface-positive: #c9f9fe;
+  --surface-positive-strong: #9eeaf5;
   --surface-tag-other: #948f9e;
 
   /* neurodivergencias: cor de identidade de cada uma, usada na TagNeuro
@@ -86,9 +89,12 @@
   --surface-danger: #ff9999;
   --surface-danger-strong: #ff5154;
   --surface-warning: #ffd279;
+  --surface-warning-strong: #ffc164;
   --surface-success: #ceffca;
+  --surface-success-strong: #a5f09f;
   --surface-info: #caf3ff;
   --surface-positive: #c9f9fe;
+  --surface-positive-strong: #9eeaf5;
   --surface-tag-other: #948f9e;
 
   /* neurodivergencias: mesmas cores dos dois temas */
@@ -214,9 +220,12 @@
   --color-surface-danger: var(--surface-danger);
   --color-surface-danger-strong: var(--surface-danger-strong);
   --color-surface-warning: var(--surface-warning);
+  --color-surface-warning-strong: var(--surface-warning-strong);
   --color-surface-success: var(--surface-success);
+  --color-surface-success-strong: var(--surface-success-strong);
   --color-surface-info: var(--surface-info);
   --color-surface-positive: var(--surface-positive);
+  --color-surface-positive-strong: var(--surface-positive-strong);
   --color-surface-tag-other: var(--surface-tag-other);
 
   /* neurodivergencias */

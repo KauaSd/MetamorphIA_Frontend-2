@@ -214,7 +214,7 @@ export default function DropDown({
         className={`
           flex w-full items-center justify-between
           rounded-full
-          bg-sunken
+          bg-sunken hover:bg-sunken-hover
           text-primary ${effectiveTextSize} ${effectiveLineHeight}
           ${fontClass}
           transition-all duration-200 ease-out
@@ -291,7 +291,7 @@ export default function DropDown({
                     ${
                       selecionada
                         ? "bg-surface-base"
-                        : "bg-transparent hover:bg-surface-base-strong"
+                        : "bg-transparent hover:bg-surface-base-hover"
                     }
                   `}
                 >

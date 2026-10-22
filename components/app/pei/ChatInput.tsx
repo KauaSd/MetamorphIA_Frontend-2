@@ -192,7 +192,7 @@ export default function ChatInput({
             type="submit"
             disabled={disabled || (!textoAtual.trim() && listaAnexos.length === 0)}
             aria-label={enviarLabel}
-            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[70px] bg-surface-inverse disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[70px] bg-surface-inverse hover:bg-surface-inverse-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               width="20"

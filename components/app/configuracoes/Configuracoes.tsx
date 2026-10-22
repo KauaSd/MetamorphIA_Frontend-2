@@ -431,25 +431,25 @@ export function ContaConfig({ destaque }: { destaque: string | null }) {
         <div className="divide-y-2 divide-sunken">
           
           <LinhaConfig id="cfg-alterar-senha" destaque={destaque} label="Alterar minha senha">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormAlterarSenha(true)}>
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover" onClick={() => setMostrarFormAlterarSenha(true)}>
               Alterar senha
             </button>
           </LinhaConfig>
 
           <LinhaConfig id="cfg-desconectar" destaque={destaque} label="Desconectar desse dispositivo">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormDesconecta(true)}>
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover" onClick={() => setMostrarFormDesconecta(true)}>
               Sair
             </button>
           </LinhaConfig>
 
           <LinhaConfig id="cfg-desconectar-todos" destaque={destaque} label="Desconectar de todos os dispositivo">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormDesconectaTodos(true)}>
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover" onClick={() => setMostrarFormDesconectaTodos(true)}>
               Desconectar todos
             </button>
           </LinhaConfig>
 
           <LinhaConfig id="cfg-apagar-conta" destaque={destaque} label="Apagar sua conta">
-            <button className="rounded-[70px] bg-surface-danger px-8 py-1 text-[18px] text-ink hover:bg-surface-danger/80" onClick={() => setMostrarFormDeleta(true)}>
+            <button className="rounded-[70px] bg-surface-danger px-8 py-1 text-[18px] text-ink cursor-pointer transition-colors hover:bg-surface-danger/80" onClick={() => setMostrarFormDeleta(true)}>
               Apagar conta
             </button>
           </LinhaConfig>
@@ -505,7 +505,7 @@ export function PrivacidadeConfig({ destaque }: { destaque: string | null }) {
         <div className="divide-y-2 divide-sunken">
           
           <LinhaConfig id="cfg-exportar-dados" destaque={destaque} label="Exportar dados">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover">
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover">
               Exportar dados
             </button>
           </LinhaConfig>
@@ -524,7 +524,7 @@ export function PlanosConfig({ destaque }: { destaque: string | null }) {
         <div className="divide-y-2 divide-sunken">
           
           <LinhaConfig id="cfg-planos" destaque={destaque} label="Plano Atual: Gratuito">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] hover:bg-sunken-hover" onClick={() => setMostrarFormPlanos(true)}>
+            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover" onClick={() => setMostrarFormPlanos(true)}>
               Evoluir para PRO
             </button>
           </LinhaConfig>

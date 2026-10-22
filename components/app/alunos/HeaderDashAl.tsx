@@ -133,7 +133,7 @@ export default function HeaderDashAl({
           <Button
             type="button"
             onClick={onGerarPei}
-            className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-warning px-3 py-2"
+            className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-warning text-ink hover:bg-surface-warning-strong px-3 py-2"
           >
             <img src={Download.src} className="h-4 w-4 shrink-0 sm:h-6 sm:w-6" alt="" />
             <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-xs sm:text-xl">

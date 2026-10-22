@@ -49,8 +49,8 @@ function ModalConfirmacaoConta({
         </div>
 
         <div className="flex gap-5 self-end">
-            <Button type="button" onClick={onClose} className={`bg-surface-inverse text-inverse${larguraFixa ? " w-32" : ""}`}>Cancelar</Button>
-            <Button type="button" className={`bg-surface-danger text-ink${larguraFixa ? " w-32 whitespace-nowrap" : ""}`}>{textoConfirmar}</Button>
+            <Button type="button" onClick={onClose} className={`bg-surface-inverse text-inverse hover:bg-surface-inverse-hover${larguraFixa ? " w-32" : ""}`}>Cancelar</Button>
+            <Button type="button" className={`bg-surface-danger text-ink hover:bg-surface-danger/80${larguraFixa ? " w-32 whitespace-nowrap" : ""}`}>{textoConfirmar}</Button>
         </div>
       </div>
     </form>
@@ -138,11 +138,11 @@ export function FormAlterarSenha({onClose}: Partial<FormProps>){
 
         <div className={`flex gap-5 ${onClose ? "self-end" : "justify-center"}`}>
           {onClose ? (
-            <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse">Cancelar</Button>
+            <Button type="button" onClick={onClose} className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover">Cancelar</Button>
           ) : (
-            <ButtonLink href="/auth/token" className="bg-surface-inverse text-inverse">Cancelar</ButtonLink>
+            <ButtonLink href="/auth/token" className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover">Cancelar</ButtonLink>
           )}
-          <Button type="submit" className="bg-surface-danger text-ink">Salvar</Button>
+          <Button type="submit" className="bg-surface-danger text-ink hover:bg-surface-danger/80">Salvar</Button>
         </div>
       </div>
     </form>

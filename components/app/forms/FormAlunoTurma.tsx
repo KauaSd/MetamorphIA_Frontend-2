@@ -215,7 +215,7 @@ export function FormAluno({
               type="button"
               onClick={onClose}
               disabled={salvando}
-              className="bg-surface-inverse text-inverse"
+              className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover"
             >
               Cancelar
             </Button>
@@ -320,7 +320,7 @@ export function FormTurma({
               type="button"
               disabled={salvando}
               onClick={onClose}
-              className="bg-surface-inverse text-inverse"
+              className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover"
             >
               Cancelar
             </Button>
@@ -443,7 +443,7 @@ function ModalConfirmarExclusao({ pergunta, onClose, onExcluir }: ModalConfirmar
             <Button
               type="button"
               disabled={excluindo}
-              className="bg-surface-inverse text-inverse w-32"
+              className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover w-32"
               onClick={onClose}
             >
               Cancelar
@@ -452,7 +452,7 @@ function ModalConfirmarExclusao({ pergunta, onClose, onExcluir }: ModalConfirmar
               type="button"
               disabled={excluindo}
               onClick={handleExcluir}
-              className="bg-surface-danger text-ink w-32 whitespace-nowrap"
+              className="bg-surface-danger text-ink hover:bg-surface-danger/80 w-32 whitespace-nowrap"
             >
               {excluindo ? "Excluindo..." : "Excluir"}
             </Button>

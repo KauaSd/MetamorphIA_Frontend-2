@@ -18,9 +18,12 @@ export const TOKENS = {
   "surface-danger": "var(--surface-danger)",
   "surface-danger-strong": "var(--surface-danger-strong)",
   "surface-warning": "var(--surface-warning)",
+  "surface-warning-strong": "var(--surface-warning-strong)",
   "surface-success": "var(--surface-success)",
+  "surface-success-strong": "var(--surface-success-strong)",
   "surface-info": "var(--surface-info)",
   "surface-positive": "var(--surface-positive)",
+  "surface-positive-strong": "var(--surface-positive-strong)",
   "surface-tag-other": "var(--surface-tag-other)",
 
   // Neurodivergências
@@ -78,9 +81,12 @@ export const TW_COLOR_MAP = {
   "surface-danger": "bg-surface-danger",
   "surface-danger-strong": "bg-surface-danger-strong",
   "surface-warning": "bg-surface-warning",
+  "surface-warning-strong": "hover:bg-surface-warning-strong",
   "surface-success": "bg-surface-success",
+  "surface-success-strong": "hover:bg-surface-success-strong",
   "surface-info": "bg-surface-info",
   "surface-positive": "bg-surface-positive",
+  "surface-positive-strong": "hover:bg-surface-positive-strong",
   "surface-tag-other": "bg-surface-tag-other",
 
   // Neurodivergências

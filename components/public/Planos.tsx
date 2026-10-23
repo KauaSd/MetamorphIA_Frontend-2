@@ -50,7 +50,7 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         tag: "individual pro",
         titulo: "Professor",
         descricao: "Para quem quer economizar horas de trabalho e incluir de verdade.",
-        valor: "R$ 39",
+        valor: "R$ 44,90",
         periodo: "/mês",
         borda: "border-surface-accent",
         tagBg: "bg-surface-accent/50",

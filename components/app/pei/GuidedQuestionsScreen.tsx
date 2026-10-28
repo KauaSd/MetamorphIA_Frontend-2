@@ -25,12 +25,9 @@ export default function GuidedQuestionsScreen() {
 
   return (
     <div className="flex w-full flex-col gap-3">
-      <InfoNotice />
+      <InfoNotice componente={componente} />
       <QuestionCard
-        alunoNome={aluno.nome}
-        componente={componente}
         question={pergunta}
-        index={currentIndex}
         resposta={respostaAtual}
         status={status}
         onSelecionarOpcao={selecionarOpcao}

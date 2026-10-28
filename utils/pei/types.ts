@@ -4,6 +4,8 @@ export type Question = {
   id: string;
   order: number;
   text: string;
+  parentText?: string;
+  parentOrder?: number;
   selectionMode: "single" | "multiple";
   options: { id: string; text: string }[];
   hasNext: boolean;

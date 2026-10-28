@@ -5,14 +5,10 @@ import Button from "@/components/common/Button";
 import OptionPill from "@/components/app/pei/OptionPill";
 import StepNavigator from "@/components/app/pei/StepNavigator";
 import { letraDaOpcao } from "@/utils/pei/types";
-import { componenteLabel } from "@/utils/pei/opcoes";
 import type { Answer, Question, StatusPEI } from "@/utils/pei/types";
 
 export interface QuestionCardProps {
-  alunoNome: string;
-  componente: string;
   question: Question;
-  index: number;
   resposta: Answer;
   status: StatusPEI;
   onSelecionarOpcao: (opcaoId: string) => void;
@@ -23,10 +19,7 @@ export interface QuestionCardProps {
 
 export default function QuestionCard(props: QuestionCardProps) {
   const {
-    alunoNome,
-    componente,
     question,
-    index,
     resposta,
     status,
     onSelecionarOpcao,
@@ -46,12 +39,14 @@ export default function QuestionCard(props: QuestionCardProps) {
             <img src={Icon.src} alt="" className="h-full w-full object-contain" />
           </div>
           <div className="min-w-0">
-            <p className="truncate font-bold text-primary">
-              {alunoNome} - PEI - {componenteLabel(componente)}
+            <p className="font-bold text-primary sm:text-lg">
+              {question.parentText
+                ? `Pergunta ${question.parentOrder}: ${question.parentText}`
+                : question.text}
             </p>
-            <p className="text-sm text-primary sm:text-base">
-              {index + 1}. {question.text}
-            </p>
+            {question.parentText && (
+              <p className="mt-1 text-sm text-primary sm:text-base">{question.text}</p>
+            )}
           </div>
         </div>
         <StepNavigator

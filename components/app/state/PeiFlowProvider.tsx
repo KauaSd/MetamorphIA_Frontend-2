@@ -19,7 +19,7 @@ import {
 } from "@/utils/pei/types";
 import { peiService } from "@/utils/pei/service";
 
-export const CHAVE_PEI = "metamorphia:pei:v1";
+export const CHAVE_PEI = "metamorphia:pei:v3";
 
 interface FluxoSalvo {
   alunoId: string;
@@ -179,24 +179,13 @@ export function PeiFlowProvider({
     (opcaoId: string) => {
       const pergunta = questions[currentIndex];
       if (!pergunta || status === "salvando" || status === "carregando") return;
-      const atual = respostas[pergunta.id] ?? respostaVazia(pergunta.id);
-      const primeiraVez =
-        atual.selectedOptionIds.length === 0 && !atual.freeText?.trim();
 
       setRespostas((prev) => {
         const resp = prev[pergunta.id] ?? respostaVazia(pergunta.id);
         return { ...prev, [pergunta.id]: { ...resp, selectedOptionIds: [opcaoId] } };
       });
-
-      if (primeiraVez) {
-        if (pergunta.hasNext) {
-          setCurrentIndex((indice) => indice + 1);
-        } else {
-          setMostrarRevisao(true);
-        }
-      }
     },
-    [questions, currentIndex, status, respostas],
+    [questions, currentIndex, status],
   );
 
   const confirmarTexto = useCallback(

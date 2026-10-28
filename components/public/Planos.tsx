@@ -29,7 +29,7 @@ type PlanoConfig = PlanoBase & (
 // texto, cores e features de cada plano, usado pelo Planos
 const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
     basico: {
-        tag: "básico",
+        tag: "BÁSICO",
         titulo: "Gratuito",
         descricao: "Para conhecer e experimentar a tecnologia em sala de aula.",
         valor: "R$ 0",
@@ -47,7 +47,7 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         temBotao: false,
     },
     pro: {
-        tag: "individual pro",
+        tag: "INDIVIDUAL PRO",
         titulo: "Professor",
         descricao: "Para quem quer economizar horas de trabalho e incluir de verdade.",
         valor: "R$ 44,90",
@@ -71,7 +71,7 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         },
     },
     institucional: {
-        tag: "institucional",
+        tag: "INSTITUCIONAL",
         titulo: "Escola",
         descricao: "Para coordenação pedagógica, escolas completas e redes de ensino.",
         valor: "Personalizado",

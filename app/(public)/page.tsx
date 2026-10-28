@@ -172,7 +172,7 @@ export default function Home() {
               <p className="text-sm max-w-160 ml-2 text-secondary text-justify">
                 Com o perfil do aluno em mãos, nosso Agente de Inteligência
                 Artificial sugere e adapta atividades pedagógicas de acordo com
-                as especificidades de cada neurodiivergência. Chega de
+                as especificidades de cada neurodivergência. Chega de
                 retrabalho: você recebe orientações práticas, prontas para
                 aplicar em sala de aula.
               </p>

@@ -18,7 +18,7 @@ export default function Uso(){
                     </div>
                     <div>
                         <Titulo titulo="2. Público-Alvo e Elegibilidade" />
-                        <p>A MetamorphIA é destinado exclusivamente a <span className="font-bold">professores e profissionais da educação</span> atuantes nos anos iniciais do Ensino Fundamental (1º ao 5º ano). O acesso à plataforma é vedado a menores de 18 anos de forma autônoma. O uso em contexto institucional (escolas públicas ou privadas) é permitido e incentivado, desde que em conformidade com as políticas internas da instituição.</p>
+                        <p>A MetamorphIA é destinada exclusivamente a <span className="font-bold">professores e profissionais da educação</span> atuantes nos anos iniciais do Ensino Fundamental (1º ao 5º ano). O acesso à plataforma é vedado a menores de 18 anos de forma autônoma. O uso em contexto institucional (escolas públicas ou privadas) é permitido e incentivado, desde que em conformidade com as políticas internas da instituição.</p>
                     </div>
                     <div>
                         <Titulo titulo="3. Funcionalidades Disponíveis" />

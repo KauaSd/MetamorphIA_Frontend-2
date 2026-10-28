@@ -29,7 +29,8 @@ export default function Privacidade(){
                             - Nome completo do estudante<br></br>
                             - Idade<br></br>
                             - Turma/série<br></br>
-                            - Diagnóstico de neurodivergência (se houver e se o professor optar por informar.
+                            - Nome da instituição de ensino<br></br>
+                            - Diagnóstico de neurodivergência (se houver e se o professor optar por informar).
                             <br></br><br></br>
                         </p>
                         <p className="italic text-secondary ml-20"><span className="font-bold">Nota:</span> A MetamorphIA adota uma abordagem de <span className="font-bold">minimização de dados</span>. Intencionalmente, a plataforma <span className="font-bold">não solicita</span> dados de responsáveis legais (como nome dos pais/responsáveis e contatos telefônicos), reduzindo a exposição de informações sensíveis sem comprometer a utilidade pedagógica da ferramenta.</p>
@@ -38,7 +39,6 @@ export default function Privacidade(){
                         <Titulo titulo="3. Dados Sensíveis" />
                         <p>O diagnóstico de neurodivergência é considerado um <span className="font-bold">dado pessoal sensível</span> nos termos da LGPD (art. 5º, inciso II), pois se enquadra na categoria de dado relativo à saúde. Seu tratamento pela plataforma ocorre com base nas seguintes premissas:
                                 <br></br><br></br>
-                            - O preenchimento deste campo <span className="font-bold">é opcional</span>;<br></br>
                             - Os dados são utilizados exclusivamente para personalizar as sugestões pedagógicas e o PEI gerado pela IA;<br></br>
                             - Nenhuma informação de diagnóstico é compartilhada com terceiros, utilizada para fins comerciais ou de perfilamento externo.
                         </p>

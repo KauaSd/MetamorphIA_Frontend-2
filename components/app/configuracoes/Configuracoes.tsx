@@ -8,7 +8,7 @@ import engrenagem from "@/public/engrenagem.svg";
 import circulo_conta from "@/public/circulo_conta.svg";
 import cadeado from "@/public/cadeado.svg";
 import astroid from "@/public/astroid.svg";
-import { FormDeletaConta, FormDesconectaTodos, FormDesconecta, FormAlterarSenha, FormPlanos} from "@/components/app/forms/FormConta";
+import { FormDeletaConta, FormDesconectaTodos, FormDesconecta, FormAlterarSenha} from "@/components/app/forms/FormConta";
 import CampoEditavel from "@/components/app/configuracoes/CampoEditavel";
 import BarraAlteracoes from "@/components/app/configuracoes/BarraAlteracoes";
 import { useData } from "@/components/app/state/DataProvider";
@@ -515,26 +515,21 @@ export function PrivacidadeConfig({ destaque }: { destaque: string | null }) {
 }
 
 export function PlanosConfig({ destaque }: { destaque: string | null }) {
-  const [mostrarFormPlanos, setMostrarFormPlanos] = useState(false);
-
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Conta</h2>
         <div className="divide-y-2 divide-sunken">
-          
           <LinhaConfig id="cfg-planos" destaque={destaque} label="Plano Atual: Gratuito">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover" onClick={() => setMostrarFormPlanos(true)}>
+            <Link
+              href="/planos"
+              className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover"
+            >
               Evoluir para PRO
-            </button>
+            </Link>
           </LinhaConfig>
         </div>
       </div>
-      {mostrarFormPlanos && (
-        <FormPlanos
-          onClose={() => setMostrarFormPlanos(false)}
-        />
-      )}
     </div>
   );
 }

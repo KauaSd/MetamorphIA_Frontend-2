@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
+import { twMerge } from "tailwind-merge";
 import ButtonLink from "@/components/common/ButtonLink";
 
 type PlanoId = "basico" | "pro" | "institucional";
 
 type BotaoPlano = {
     texto: string;
+    href?: string;
     className?: string;
 };
 
@@ -25,6 +27,14 @@ type PlanoConfig = PlanoBase & (
     | { temBotao: false }
     | { temBotao: true; botao: BotaoPlano }
 );
+
+export const BENEFICIOS_PRO: ReactNode[] = [
+    <><b>Até 10 escolas</b></>,
+    <>Até 30 com perfil individual</>,
+    <><b>Acesso doze vezes maior que o plano gratuito</b></>,
+    <>Personalização para TDAH, TEA, Dislexia e mais</>,
+    <>Até 120 PEIs</>,
+];
 
 // texto, cores e features de cada plano, usado pelo Planos
 const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
@@ -56,17 +66,11 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         tagBg: "bg-surface-accent/50",
         tagTexto: "text-ink",
         bolinha: "bg-surface-accent",
-        features: [
-            <><b>Turmas ilimitadas</b></>,
-            <>Até 40 alunos com perfil individualizado</>,
-            <><b>Adaptações ilimitadas com MetamorphIA</b></>,
-            <>Personalização para TDAH, TEA, Dislexia e mais</>,
-            <>Múltiplos formatos (visuais e pictogramas)</>,
-            <>Relatórios de engajamento e evolução</>,
-        ],
+        features: BENEFICIOS_PRO,
         temBotao: true,
         botao: {
             texto: "Comprar",
+            href: "/planos/comprar",
             className: "bg-surface-accent hover:bg-surface-accent-strong",
         },
     },
@@ -94,12 +98,12 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
     },
 };
 
-export default function Planos({ tipo }: { tipo: PlanoId }) {
+export default function Planos({ tipo, className }: { tipo: PlanoId; className?: string }) {
     // dados do plano pedido, cai no basico se o tipo nao existir
     const c = CONFIG_PLANOS[tipo] ?? CONFIG_PLANOS.basico;
 
     return (
-        <div className={`font-(family-name:--font-poppins) flex flex-col w-full max-w-[400px] md:w-100 min-h-150 border-5 ${c.borda} bg-surface-base rounded-3xl px-7 py-7`}>
+        <div className={twMerge(`font-(family-name:--font-poppins) flex flex-col w-full max-w-[400px] md:w-100 min-h-150 border-5 ${c.borda} bg-surface-base rounded-3xl px-7 py-7`, className)}>
             <div className="flex flex-col gap-5">
                 <div className={`w-fit h-fit text-xs px-3 py-1 rounded-3xl ${c.tagBg}`}>
                     <span className={`font-bold ${c.tagTexto}`}>
@@ -133,7 +137,7 @@ export default function Planos({ tipo }: { tipo: PlanoId }) {
             </div>
             {c.temBotao ? (
                 <div className="mt-auto mb-3 pt-5">
-                    <ButtonLink className={`font-(family-name:--font-text-me-one) text-[12px] sm:text-[20px] ${c.botao.className ?? ""}`}>
+                    <ButtonLink href={c.botao.href} className={`font-(family-name:--font-text-me-one) text-[12px] sm:text-[20px] ${c.botao.className ?? ""}`}>
                         {c.botao.texto}
                     </ButtonLink>
                 </div>

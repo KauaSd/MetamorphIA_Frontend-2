@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ChevronDown } from "lucide-react";
+import { twMerge } from "tailwind-merge";
 
 export interface DropDownOption {
   value: string;
@@ -21,6 +22,8 @@ interface DropDownProps {
   lineHeight?: string;
   itemHeight?: number;
   itemGap?: number;
+  className?: string;
+  disabled?: boolean;
   onChange?: (value: string) => void;
   onMultiChange?: (values: string[]) => void;
 }
@@ -38,13 +41,19 @@ export default function DropDown({
   lineHeight,
   itemHeight,
   itemGap,
+  className,
+  disabled = false,
   onChange,
   onMultiChange,
 }: DropDownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [interno, setInterno] = useState(value ?? options[0]?.value ?? "");
   const [internoMulti, setInternoMulti] = useState<string[]>(values ?? []);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [scrollMetrics, setScrollMetrics] = useState({
+    progress: 0,
+    thumbHeight: 40,
+    maxTravel: 0,
+  });
 
   const selectedValue = value !== undefined ? value : interno;
   const selectedValues = values !== undefined ? values : internoMulti;
@@ -64,11 +73,22 @@ export default function DropDown({
     if (!listRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = listRef.current;
     const maxScroll = scrollHeight - clientHeight;
-    if (maxScroll <= 0) {
-      setScrollProgress(0);
-    } else {
-      setScrollProgress(Math.min(1, Math.max(0, scrollTop / maxScroll)));
-    }
+    const progress =
+      maxScroll <= 0 ? 0 : Math.min(1, Math.max(0, scrollTop / maxScroll));
+
+    const trackHeight = trackRef.current?.clientHeight ?? clientHeight;
+    const padding = 2;
+    const usableTrack = Math.max(0, trackHeight - padding * 2);
+    const thumbHeight =
+      scrollHeight > 0
+        ? Math.min(
+            usableTrack,
+            Math.max(28, Math.round((clientHeight / scrollHeight) * usableTrack))
+          )
+        : usableTrack;
+    const maxTravel = Math.max(0, usableTrack - thumbHeight);
+
+    setScrollMetrics({ progress, thumbHeight, maxTravel });
   }, []);
 
   // Permite scrollar com a rodinha do mouse mesmo quando o ponteiro estiver sobre a barra de scroll ou bordas
@@ -83,7 +103,7 @@ export default function DropDown({
         handleScroll();
       });
     }
-  }, [isOpen, handleScroll]);
+  }, [isOpen, options.length, handleScroll]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -139,13 +159,14 @@ export default function DropDown({
     dragStartYRef.current = e.clientY;
     dragStartScrollTopRef.current = listRef.current?.scrollTop ?? 0;
 
+    const maxTravel = scrollMetrics.maxTravel;
+
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!isDraggingRef.current || !listRef.current) return;
       const deltaY = moveEvent.clientY - dragStartYRef.current;
       const { scrollHeight, clientHeight } = listRef.current;
       const maxScroll = scrollHeight - clientHeight;
-      const travelDistance = 106 - 77 - 4; // 25px de percurso
-      const scrollDelta = (deltaY / travelDistance) * maxScroll;
+      const scrollDelta = maxTravel > 0 ? (deltaY / maxTravel) * maxScroll : 0;
       listRef.current.scrollTop = dragStartScrollTopRef.current + scrollDelta;
     };
 
@@ -164,8 +185,12 @@ export default function DropDown({
     if (!trackRef.current || !listRef.current) return;
     const rect = trackRef.current.getBoundingClientRect();
     const clickY = e.clientY - rect.top;
-    const travelDistance = 106 - 77;
-    const ratio = Math.min(1, Math.max(0, (clickY - 77 / 2) / travelDistance));
+    const padding = 2;
+    const { thumbHeight, maxTravel } = scrollMetrics;
+    const ratio =
+      maxTravel > 0
+        ? Math.min(1, Math.max(0, (clickY - padding - thumbHeight / 2) / maxTravel))
+        : 0;
     const { scrollHeight, clientHeight } = listRef.current;
     listRef.current.scrollTop = ratio * (scrollHeight - clientHeight);
   };
@@ -210,8 +235,11 @@ export default function DropDown({
       {/* botão principal */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className={`
+        disabled={disabled}
+        onClick={() => {
+          if (!disabled) setIsOpen((prev) => !prev);
+        }}
+        className={twMerge(`
           flex w-full items-center justify-between
           rounded-full
           bg-sunken hover:bg-sunken-hover
@@ -219,7 +247,8 @@ export default function DropDown({
           ${fontClass}
           transition-all duration-200 ease-out
           ${small ? "h-8 px-4" : "h-9 px-5"}
-        `}
+          ${disabled ? "cursor-not-allowed opacity-50 hover:bg-sunken" : ""}
+        `, className)}
       >
         <span className="truncate py-0.5">
           {labelExibicao}
@@ -254,12 +283,12 @@ export default function DropDown({
           }
         `}
       >
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-stretch gap-1.5">
           {/* Lista com scroll funcional e barra nativa oculta */}
           <div
             ref={listRef}
             onScroll={handleScroll}
-            className={`flex-1 flex flex-col ${
+            className={`flex-1 min-w-0 flex flex-col ${
               maxVisibleItems
                 ? "overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                 : ""
@@ -301,21 +330,22 @@ export default function DropDown({
             })}
           </div>
 
-          {/* Barra lateral de scroll personalizada: 10x106 com cor da base adaptável (bg-surface-secondary) e thumb (bg-surface-inverse) */}
+          {/* Barra lateral de scroll personalizada adaptada a altura do dropdown */}
           {temScrollCustomizado ? (
             <div
               ref={trackRef}
               onClick={handleTrackClick}
               onWheel={handleWheel}
-              className="relative w-[10px] h-[106px] shrink-0 rounded-full bg-surface-secondary cursor-pointer my-auto mr-1 select-none"
+              className="relative w-[10px] shrink-0 rounded-full bg-surface-secondary cursor-pointer my-1 mr-1 select-none"
               title="Rolar opções"
             >
               <div
                 onMouseDown={handleThumbMouseDown}
                 onWheel={handleWheel}
-                className="absolute left-[2px] w-[6px] h-[77px] rounded-full bg-surface-inverse cursor-grab active:cursor-grabbing transition-transform duration-75"
+                className="absolute top-0 left-[2px] w-[6px] rounded-full bg-surface-inverse cursor-grab active:cursor-grabbing transition-transform duration-75"
                 style={{
-                  transform: `translateY(${2 + scrollProgress * (106 - 77 - 4)}px)`,
+                  height: `${scrollMetrics.thumbHeight}px`,
+                  transform: `translateY(${2 + scrollMetrics.progress * scrollMetrics.maxTravel}px)`,
                 }}
               />
             </div>

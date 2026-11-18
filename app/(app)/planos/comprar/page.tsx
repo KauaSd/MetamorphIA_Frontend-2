@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, ChevronLeft } from "lucide-react";
 import Input from "@/components/common/Input";
@@ -73,6 +73,24 @@ export default function ComprarPlanoPage() {
   const [municipios, setMunicipios] = useState<DropDownOption[]>([]);
   const [aceitaTermos, setAceitaTermos] = useState(false);
   const [cienteRenovacao, setCienteRenovacao] = useState(false);
+  const [etapaPagamento, setEtapaPagamento] = useState<
+    "idle" | "aguardando" | "concluido"
+  >("idle");
+
+  // shortcut: mock temporizado de pagamento até integrar o gateway real
+  useEffect(() => {
+    if (etapaPagamento === "aguardando") {
+      const timer = setTimeout(() => setEtapaPagamento("concluido"), 2500);
+      return () => clearTimeout(timer);
+    }
+    if (etapaPagamento === "concluido") {
+      const timer = setTimeout(() => {
+        sessionStorage.setItem("metamorphia:boasVindasPro", "1");
+        router.push("/escolas");
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [etapaPagamento, router]);
 
   const planoSelecionado = OPCOES_PERIODICIDADE[periodicidade];
   const dataRenovacao = calcularDataRenovacao(periodicidade);
@@ -274,7 +292,8 @@ export default function ComprarPlanoPage() {
           <div className="mt-8 [@media(min-width:1024px)_and_(max-width:1700px),(min-width:1024px)_and_(max-height:850px)]:mt-6 [@media(min-width:1024px)_and_(max-width:1380px),(min-width:1024px)_and_(max-height:680px)]:mt-3 max-lg:mt-4">
             <Button
               type="button"
-              disabled={!aceitaTermos || !cienteRenovacao}
+              disabled={!aceitaTermos || !cienteRenovacao || etapaPagamento !== "idle"}
+              onClick={() => setEtapaPagamento("aguardando")}
               className="font-(family-name:--font-poppins) text-base sm:text-base text-ink [@media(min-width:1024px)_and_(max-width:1700px),(min-width:1024px)_and_(max-height:850px)]:py-1.5 [@media(min-width:1024px)_and_(max-width:1700px),(min-width:1024px)_and_(max-height:850px)]:text-sm [@media(min-width:1024px)_and_(max-width:1380px),(min-width:1024px)_and_(max-height:680px)]:py-1 max-lg:py-1.5 max-lg:text-sm"
             >
               Assinar
@@ -282,6 +301,74 @@ export default function ComprarPlanoPage() {
           </div>
         </div>
       </div>
+
+      {etapaPagamento !== "idle" && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={
+            etapaPagamento === "aguardando"
+              ? "Aguardando pagamento"
+              : "Pagamento concluído"
+          }
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-surface-inverse/45 px-4"
+        >
+          <div className="flex h-[385px] w-full max-w-[450px] flex-col items-center justify-center gap-8 rounded-[50px] bg-surface-base p-8 shadow-lg max-sm:h-[320px] max-sm:max-w-[340px] max-sm:gap-6 max-sm:rounded-[38px]">
+            <p className="text-center font-(family-name:--font-poppins) text-[22px] text-primary max-sm:text-lg">
+              {etapaPagamento === "aguardando"
+                ? "Aguardando pagamento..."
+                : "Pagamento concluído!"}
+            </p>
+
+            {etapaPagamento === "aguardando" ? (
+              <div className="flex h-[168px] w-[168px] items-center justify-center rounded-full bg-surface-accent max-sm:h-32 max-sm:w-32">
+                <svg
+                  className="h-24 w-24 animate-spin text-inverse max-sm:h-18 max-sm:w-18"
+                  viewBox="0 0 50 50"
+                  aria-hidden="true"
+                >
+                  <circle
+                    className="opacity-30"
+                    cx="25"
+                    cy="25"
+                    r="19"
+                    stroke="currentColor"
+                    strokeWidth="5"
+                    fill="none"
+                  />
+                  <circle
+                    cx="25"
+                    cy="25"
+                    r="19"
+                    stroke="currentColor"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeDasharray="36 120"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+            ) : (
+              <div className="flex h-[168px] w-[168px] items-center justify-center rounded-full bg-surface-success max-sm:h-32 max-sm:w-32">
+                <svg
+                  className="h-24 w-24 text-inverse max-sm:h-18 max-sm:w-18"
+                  viewBox="0 0 50 50"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M14 26L22 34L37 17"
+                    stroke="currentColor"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

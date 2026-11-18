@@ -1,8 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
 import HeaderPagEscolas from "@/components/app/escolas/HeaderPagEscolas";
 import BarraPesquisa from "@/components/common/Input";
+import Blurfundo from "@/components/common/Blurfundo";
+import Button from "@/components/common/Button";
 import Escola, { type TurmaResumo } from "@/components/app/escolas/Escola";
 import BoxSemEscola from "@/components/app/escolas/BoxSemEscola";
 import Toast, { useAlerta } from "@/components/common/Toast";
@@ -14,11 +17,19 @@ import { ALERTAS } from "@/utils/alertas";
 export default function ConteudoEscolas() {
   const { escolas, turmas, recarregar } = useData();
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [mostrarBoasVindasPro, setMostrarBoasVindasPro] = useState(false);
   const [busca, setBusca] = useState("");
   const [ordenacao, setOrdenacao] = useState("az");
   const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
   const [idEmExclusao, setIdEmExclusao] = useState<string | null>(null);
   const { alerta, mostrar, limpar } = useAlerta();
+
+  useEffect(() => {
+    if (sessionStorage.getItem("metamorphia:boasVindasPro") === "1") {
+      sessionStorage.removeItem("metamorphia:boasVindasPro");
+      setMostrarBoasVindasPro(true);
+    }
+  }, []);
 
   const escolaEmEdicao = idEmEdicao
     ? escolas.find((escola) => escola.id === idEmEdicao)
@@ -153,6 +164,42 @@ export default function ConteudoEscolas() {
           onClose={() => setIdEmExclusao(null)}
           onExcluir={confirmarExclusao}
         />
+      ) : null}
+
+      {mostrarBoasVindasPro ? (
+        <Blurfundo onClose={() => setMostrarBoasVindasPro(false)}>
+          <div className="w-full max-w-md">
+            <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+              <div className="flex items-center justify-between">
+                <p className="font-(family-name:--font-text-me-one) text-3xl text-primary sm:text-4xl">
+                  Plano PRO
+                </p>
+                <button
+                  type="button"
+                  aria-label="Fechar"
+                  className="cursor-pointer"
+                  onClick={() => setMostrarBoasVindasPro(false)}
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <p className="text-md text-justify text-primary">
+                Agora você é um prof PRO e tem acesso a 20x mais adaptações e
+                outras funcionalidades. Agradecemos a confiança! Tenha uma ótima
+                experiência e boas adaptações!
+              </p>
+              <div className="flex self-end">
+                <Button
+                  type="button"
+                  className="w-auto px-9 sm:px-11"
+                  onClick={() => setMostrarBoasVindasPro(false)}
+                >
+                  Legal!
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Blurfundo>
       ) : null}
 
       {alerta ? <Toast alerta={alerta} limpar={limpar} /> : null}

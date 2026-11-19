@@ -16,7 +16,7 @@ export default function PlanosPage() {
   };
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center bg-surface-muted px-6 max-lg:h-auto max-lg:py-16">
+    <div className="relative flex h-auto w-full items-center justify-center bg-surface-muted px-6 py-16 lg:h-full lg:py-0">
       <button
         type="button"
         aria-label="Fechar"
@@ -26,10 +26,10 @@ export default function PlanosPage() {
         <X className="h-6 w-6" />
       </button>
 
-      <div className="grid w-full max-w-[1200px] grid-cols-3 items-stretch gap-6 lg:gap-8 max-lg:flex max-lg:flex-col max-lg:items-center">
-        <Planos tipo="basico" className="md:w-full min-h-0" />
-        <Planos tipo="pro" className="md:w-full min-h-0" />
-        <Planos tipo="institucional" className="md:w-full min-h-0" />
+      <div className="flex w-full max-w-[1200px] flex-col items-center gap-6 lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-8">
+        <Planos tipo="basico" className="min-h-0 md:w-full" />
+        <Planos tipo="pro" className="min-h-0 md:w-full" />
+        <Planos tipo="institucional" className="min-h-0 md:w-full" />
       </div>
     </div>
   );

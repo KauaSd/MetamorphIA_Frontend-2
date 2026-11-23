@@ -166,6 +166,22 @@
   animation: caret-blink 1s steps(1) infinite;
 }
 
+/* barra horizontal de carregamento indeterminado:
+   surge na borda esquerda, cruza, encolhe ate sumir na borda direita e volta */
+@keyframes loading-bar-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(250%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 /* painel de criacao do PEI subindo de baixo para cima */
 @keyframes painel-criar {
   from {

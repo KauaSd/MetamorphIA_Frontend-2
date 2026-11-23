@@ -1,7 +1,7 @@
 import { ALERTAS, type MensagemAlerta } from "@/utils/alertas";
 import { repository } from "./dataRepository";
 import { conversaDoAluno, gerarId, hojeDDMMAAAA } from "./types";
-import type { Aluno } from "./types";
+import type { Aluno, AnexoMensagem } from "./types";
 
 export type Resultado =
   | { ok: true; conversaId?: string }
@@ -15,12 +15,24 @@ function falha(erro: MensagemAlerta): Resultado {
   return { ok: false, erro };
 }
 
+function falhaApi(err: unknown, titulo = "Erro ao comunicar com o servidor"): Resultado {
+  const descricao =
+    err instanceof Error && err.message
+      ? err.message
+      : "Verifique se a API está em execução e tente novamente.";
+  return falha({ tom: "danger", titulo, descricao });
+}
+
 export async function saveTeacherName(nome: string): Promise<Resultado> {
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.IDENTIFICACAO_NOME_VAZIO);
 
-  await repository.saveTeacherName(limpo);
-  return ok();
+  try {
+    await repository.saveTeacherName(limpo);
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível salvar seu nome");
+  }
 }
 
 export async function createEscola(dados?: { nome: string } | string): Promise<Resultado> {
@@ -28,8 +40,12 @@ export async function createEscola(dados?: { nome: string } | string): Promise<R
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.ESCOLA_NOME_VAZIO);
 
-  await repository.createEscola({ nome: limpo });
-  return ok();
+  try {
+    await repository.createEscola({ nome: limpo });
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível criar a escola");
+  }
 }
 
 export async function updateEscola(id: string, dados: { nome: string } | string): Promise<Resultado> {
@@ -37,19 +53,27 @@ export async function updateEscola(id: string, dados: { nome: string } | string)
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.ESCOLA_NOME_VAZIO);
 
-  const escolas = await repository.listEscolas();
-  if (!escolas.some((e) => e.id === id)) return falha(ALERTAS.ESCOLA_NAO_ENCONTRADA);
+  try {
+    const escolas = await repository.listEscolas();
+    if (!escolas.some((e) => e.id === id)) return falha(ALERTAS.ESCOLA_NAO_ENCONTRADA);
 
-  await repository.updateEscola(id, { nome: limpo });
-  return ok();
+    await repository.updateEscola(id, { nome: limpo });
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível editar a escola");
+  }
 }
 
 export async function deleteEscola(id: string): Promise<Resultado> {
-  const escolas = await repository.listEscolas();
-  if (!escolas.some((e) => e.id === id)) return falha(ALERTAS.ESCOLA_NAO_ENCONTRADA);
+  try {
+    const escolas = await repository.listEscolas();
+    if (!escolas.some((e) => e.id === id)) return falha(ALERTAS.ESCOLA_NAO_ENCONTRADA);
 
-  await repository.deleteEscola(id);
-  return ok();
+    await repository.deleteEscola(id);
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível excluir a escola");
+  }
 }
 
 export async function createTurma(dados?: { nome: string; escolaId?: string | null } | string): Promise<Resultado> {
@@ -58,8 +82,12 @@ export async function createTurma(dados?: { nome: string; escolaId?: string | nu
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
 
-  await repository.createTurma({ nome: limpo, escolaId });
-  return ok();
+  try {
+    await repository.createTurma({ nome: limpo, escolaId });
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível criar a turma");
+  }
 }
 
 export async function updateTurma(
@@ -72,22 +100,30 @@ export async function updateTurma(
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
 
-  const turmas = await repository.listTurmas();
-  if (!turmas.some((turma) => turma.id === id)) return falha(ALERTAS.TURMA_NAO_ENCONTRADA);
+  try {
+    const turmas = await repository.listTurmas();
+    if (!turmas.some((turma) => turma.id === id)) return falha(ALERTAS.TURMA_NAO_ENCONTRADA);
 
-  await repository.updateTurma(id, {
-    nome: limpo,
-    ...(temEscolaId ? { escolaId } : {}),
-  });
-  return ok();
+    await repository.updateTurma(id, {
+      nome: limpo,
+      ...(temEscolaId ? { escolaId } : {}),
+    });
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível editar a turma");
+  }
 }
 
 export async function deleteTurma(id: string): Promise<Resultado> {
-  const turmas = await repository.listTurmas();
-  if (!turmas.some((turma) => turma.id === id)) return falha(ALERTAS.TURMA_NAO_ENCONTRADA);
+  try {
+    const turmas = await repository.listTurmas();
+    if (!turmas.some((turma) => turma.id === id)) return falha(ALERTAS.TURMA_NAO_ENCONTRADA);
 
-  await repository.deleteTurma(id);
-  return ok();
+    await repository.deleteTurma(id);
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível excluir a turma");
+  }
 }
 
 export async function createAluno(input: {
@@ -103,52 +139,64 @@ export async function createAluno(input: {
   const turmaId = input.turmaId.trim();
   if (!turmaId) return falha(ALERTAS.ALUNO_SEM_TURMA);
 
-  const turmas = await repository.listTurmas();
-  if (!turmas.some((turma) => turma.id === turmaId)) {
-    return falha(ALERTAS.ALUNO_SEM_TURMA_NAO_ENCONTRADA);
-  }
-
   if (input.idade !== null && input.idade < 0) {
     return falha(ALERTAS.ALUNO_IDADE_INVALIDA);
   }
 
-  await repository.createAluno({ nome, idade: input.idade, neuro: input.neuro ?? [], turmaId });
-  return ok();
-}
-
-export async function updateAluno(id: string, dados: Partial<Aluno>): Promise<Resultado> {
-  const alunos = await repository.listAlunos();
-  const existente = alunos.find((aluno) => aluno.id === id);
-  if (!existente) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
-
-  const nome = dados.nome === undefined ? existente.nome : dados.nome.trim();
-  if (!nome) return falha(ALERTAS.ALUNO_NOME_VAZIO);
-
-  if (dados.idade !== undefined && dados.idade !== null && dados.idade < 0) {
-    return falha(ALERTAS.ALUNO_IDADE_INVALIDA);
-  }
-
-  if (dados.turmaId !== undefined) {
-    const turmaId = dados.turmaId.trim();
-    if (!turmaId) return falha(ALERTAS.ALUNO_SEM_TURMA);
-
+  try {
     const turmas = await repository.listTurmas();
     if (!turmas.some((turma) => turma.id === turmaId)) {
       return falha(ALERTAS.ALUNO_SEM_TURMA_NAO_ENCONTRADA);
     }
-    dados = { ...dados, turmaId };
-  }
 
-  await repository.updateAluno(id, { ...dados, nome });
-  return ok();
+    await repository.createAluno({ nome, idade: input.idade, neuro: input.neuro ?? [], turmaId });
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível cadastrar o aluno");
+  }
+}
+
+export async function updateAluno(id: string, dados: Partial<Aluno>): Promise<Resultado> {
+  try {
+    const alunos = await repository.listAlunos();
+    const existente = alunos.find((aluno) => aluno.id === id);
+    if (!existente) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
+
+    const nome = dados.nome === undefined ? existente.nome : dados.nome.trim();
+    if (!nome) return falha(ALERTAS.ALUNO_NOME_VAZIO);
+
+    if (dados.idade !== undefined && dados.idade !== null && dados.idade < 0) {
+      return falha(ALERTAS.ALUNO_IDADE_INVALIDA);
+    }
+
+    if (dados.turmaId !== undefined) {
+      const turmaId = dados.turmaId.trim();
+      if (!turmaId) return falha(ALERTAS.ALUNO_SEM_TURMA);
+
+      const turmas = await repository.listTurmas();
+      if (!turmas.some((turma) => turma.id === turmaId)) {
+        return falha(ALERTAS.ALUNO_SEM_TURMA_NAO_ENCONTRADA);
+      }
+      dados = { ...dados, turmaId };
+    }
+
+    await repository.updateAluno(id, { ...dados, nome });
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível atualizar o aluno");
+  }
 }
 
 export async function deleteAluno(id: string): Promise<Resultado> {
-  const alunos = await repository.listAlunos();
-  if (!alunos.some((aluno) => aluno.id === id)) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
+  try {
+    const alunos = await repository.listAlunos();
+    if (!alunos.some((aluno) => aluno.id === id)) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
 
-  await repository.deleteAluno(id);
-  return ok();
+    await repository.deleteAluno(id);
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível excluir o aluno");
+  }
 }
 
 // a conversa nasce no clique, e nao na primeira mensagem, para o Recentes ja ter o que mostrar
@@ -178,24 +226,39 @@ export async function addMessage(
   conversaId: string,
   texto: string,
   autor: "professor" | "aluno",
+  anexos?: AnexoMensagem[],
+  alunoIdFallback?: string,
 ): Promise<Resultado> {
   const limpo = texto.trim();
-  if (!limpo) return falha(ALERTAS.MENSAGEM_VAZIA);
+  const temAnexos = Boolean(anexos && anexos.length > 0);
+  if (!limpo && !temAnexos) return falha(ALERTAS.MENSAGEM_VAZIA);
 
   const conversas = await repository.listConversas();
-  const conversa = conversas.find((item) => item.id === conversaId);
+  let conversa = conversas.find((item) => item.id === conversaId);
+  if (!conversa && alunoIdFallback) {
+    conversa = {
+      id: conversaId,
+      alunoId: alunoIdFallback,
+      titulo: limpo || (anexos?.[0]?.name ?? "Nova conversa"),
+      data: hojeDDMMAAAA(),
+      mensagens: [],
+    };
+  }
   if (!conversa) return falha(ALERTAS.CONVERSA_NAO_ENCONTRADA);
+
+  const textoFinal = limpo || `📎 Arquivo enviado: ${anexos!.map((a) => a.name).join(", ")}`;
 
   const mensagem = {
     id: gerarId("msg"),
-    texto: limpo,
+    texto: textoFinal,
     autor,
     em: new Date().toISOString(),
+    ...(temAnexos ? { anexos } : {}),
   };
 
   // a primeira mensagem do professor da titulo a conversa, o que da nome ao item no Recentes
   const titulo =
-    autor === "professor" && conversa.mensagens.length === 0 ? limpo : conversa.titulo;
+    autor === "professor" && conversa.mensagens.length === 0 ? textoFinal : conversa.titulo;
 
   await repository.upsertConversa({
     ...conversa,

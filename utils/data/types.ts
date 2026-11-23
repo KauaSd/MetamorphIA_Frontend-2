@@ -17,6 +17,14 @@ export interface Aluno {
   idade: number | null;
   neuro: string[];
   turmaId: string;
+  descricao?: string;
+}
+
+export interface AnexoMensagem {
+  name: string;
+  type: string;
+  size: number;
+  dataUrl?: string;
 }
 
 export interface Mensagem {
@@ -24,6 +32,7 @@ export interface Mensagem {
   texto: string;
   autor: "professor" | "aluno";
   em: string;
+  anexos?: AnexoMensagem[];
 }
 
 export interface Conversa {

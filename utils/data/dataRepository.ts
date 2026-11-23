@@ -38,6 +38,6 @@ export interface DataRepository {
   getStudentInsights(alunoId: string): Promise<StudentInsights>;
 }
 
-import { localStorageRepository } from "./localStorageRepository";
+import { apiRepository } from "./apiRepository";
 
-export const repository: DataRepository = localStorageRepository;
+export const repository: DataRepository = apiRepository;

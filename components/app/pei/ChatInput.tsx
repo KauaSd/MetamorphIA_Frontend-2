@@ -63,14 +63,30 @@ export default function ChatInput({
     if (onAdicionarAnexos) {
       onAdicionarAnexos(permitidos);
     } else if (!controlado) {
-      setAnexosInternos((prev) => [
-        ...prev,
-        ...permitidos.map((arquivo) => ({
-          name: arquivo.name,
-          type: arquivo.type,
-          size: arquivo.size,
-        })),
-      ]);
+      void Promise.all(
+        permitidos.map(
+          (arquivo) =>
+            new Promise<Anexo>((resolver) => {
+              const leitor = new FileReader();
+              leitor.onload = () =>
+                resolver({
+                  name: arquivo.name,
+                  type: arquivo.type || "application/octet-stream",
+                  size: arquivo.size,
+                  dataUrl: String(leitor.result),
+                });
+              leitor.onerror = () =>
+                resolver({
+                  name: arquivo.name,
+                  type: arquivo.type || "application/octet-stream",
+                  size: arquivo.size,
+                });
+              leitor.readAsDataURL(arquivo);
+            }),
+        ),
+      ).then((novos) => {
+        setAnexosInternos((prev) => [...prev, ...novos]);
+      });
     }
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
@@ -91,6 +107,9 @@ export default function ChatInput({
     onSubmit?.(texto, listaAnexos);
     if (limparAoEnviar) {
       atualizarTexto("");
+      if (!controlado) {
+        setAnexosInternos([]);
+      }
     }
   }
 

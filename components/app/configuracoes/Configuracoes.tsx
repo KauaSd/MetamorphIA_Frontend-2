@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import BarraPesquisa from "@/components/common/Input";
 import Blurfundo from "@/components/common/Blurfundo";
+import { OverlayCarregando } from "@/components/common/Carregando";
 import { X, Sun, Moon } from "lucide-react";
 import engrenagem from "@/public/engrenagem.svg";
 import circulo_conta from "@/public/circulo_conta.svg";
@@ -13,6 +14,11 @@ import CampoEditavel from "@/components/app/configuracoes/CampoEditavel";
 import BarraAlteracoes from "@/components/app/configuracoes/BarraAlteracoes";
 import { useData } from "@/components/app/state/DataProvider";
 import { saveTeacherName } from "@/utils/data/controller";
+import {
+  apiDbFetch,
+  getSavedUserProfile,
+  setSavedUserProfile,
+} from "@/utils/apiClient";
 import Link from "next/link";
 import {
   DEFAULT_THEME,
@@ -56,6 +62,8 @@ interface ConfiguracoesProps {
 interface PerfilProps {
   nome: string;
   aoDigitar: (valor: string) => void;
+  instrucoes: string;
+  aoDigitarInstrucoes: (valor: string) => void;
 }
 
 interface ItemBusca {
@@ -142,31 +150,99 @@ export default function Configuracoes({
   const [alvo, setAlvo] = useState<string | null>(null);
   const painelRef = useRef<HTMLElement>(null);
 
-  // rascunho do nome: a pessoa digita direto no campo e so grava (ou descarta)
+  // rascunho do nome e instrucoes da IA: a pessoa digita direto no campo e so grava (ou descarta)
   // pela barra de alteracoes do rodape
   const [nome, setNome] = useState(teacherName ?? "");
-  const alterado = nome.trim() !== (teacherName ?? "").trim();
+  const [ultimoNomeServidor, setUltimoNomeServidor] = useState(teacherName ?? "");
+  const [instrucoesSalvas, setInstrucoesSalvas] = useState(
+    () => getSavedUserProfile()?.instrucoes_ia ?? "",
+  );
+  const [instrucoes, setInstrucoes] = useState(
+    () => getSavedUserProfile()?.instrucoes_ia ?? "",
+  );
+
+  if ((teacherName ?? "") !== ultimoNomeServidor) {
+    setUltimoNomeServidor(teacherName ?? "");
+    if (nome === ultimoNomeServidor) {
+      setNome(teacherName ?? "");
+    }
+  }
+
+  const nomeAlterado = nome.trim() !== (teacherName ?? "").trim();
+  const instrucoesAlteradas = instrucoes.trim() !== instrucoesSalvas.trim();
+  const alterado = nomeAlterado || instrucoesAlteradas;
 
   // saida tentada com pendencia: a barra de alteracoes fica vermelha ate
   // salvar, cancelar ou digitar de novo
   const [bloqueada, setBloqueada] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [exportando, setExportando] = useState(false);
   const caixaRef = useRef<HTMLDivElement>(null);
 
   async function salvarAlteracoes() {
-    const resultado = await saveTeacherName(nome.trim());
-    if (!resultado.ok) throw new Error(resultado.erro.titulo);
-    await recarregar();
-    setBloqueada(false);
+    setSalvando(true);
+    try {
+      const limpo = nome.trim();
+      if (nomeAlterado) {
+        const resultado = await saveTeacherName(limpo);
+        if (!resultado.ok) throw new Error(resultado.erro.titulo);
+        setNome(limpo);
+      }
+      if (instrucoesAlteradas) {
+        const resp = await apiDbFetch("/autenticar/instrucoes", {
+          method: "PATCH",
+          body: JSON.stringify({ instrucoes_ia: instrucoes.trim() }),
+        });
+        if (!resp.ok) throw new Error("Não foi possível salvar as instruções");
+        setInstrucoes(instrucoes.trim());
+        setInstrucoesSalvas(instrucoes.trim());
+        const perfilAtual = getSavedUserProfile();
+        if (perfilAtual) {
+          setSavedUserProfile({ ...perfilAtual, instrucoes_ia: instrucoes.trim() });
+        }
+      }
+      await recarregar();
+      setBloqueada(false);
+    } finally {
+      setSalvando(false);
+    }
   }
 
   function cancelarAlteracoes() {
     setNome(teacherName ?? "");
+    setInstrucoes(instrucoesSalvas);
     setBloqueada(false);
   }
 
   function aoDigitar(valor: string) {
     setNome(valor);
     setBloqueada(false);
+  }
+
+  function aoDigitarInstrucoes(valor: string) {
+    setInstrucoes(valor);
+    setBloqueada(false);
+  }
+
+  async function exportarDados() {
+    if (exportando) return;
+    setExportando(true);
+    try {
+      const resp = await apiDbFetch("/autenticar/exportar-dados?formato=json");
+      if (!resp.ok) return;
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "metamorphia_dados_lgpd.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch {
+    } finally {
+      setExportando(false);
+    }
   }
 
   // o blur e o x chamam isso: sem alteracao fecha, com alteracao so alerta
@@ -213,8 +289,9 @@ export default function Configuracoes({
   }
 
   return (
-    <Blurfundo onClose={tentarFechar}>
+    <Blurfundo onClose={salvando || exportando ? undefined : tentarFechar}>
       <div ref={caixaRef} className="flex h-[590px] w-[890px] absolute overflow-hidden rounded-[40px] bg-surface-muted">
+        <OverlayCarregando ativo={salvando || exportando} mensagem={exportando ? "Exportando dados..." : "Salvando alterações..."} />
         <SidebarEscura
           abaAtiva={abaAtiva}
           setAbaAtiva={setAbaAtiva}
@@ -224,7 +301,7 @@ export default function Configuracoes({
         />
 
         <PainelClaro
-          Preencher={renderizarAba(abaAtiva, alvo, { nome, aoDigitar })}
+          Preencher={renderizarAba(abaAtiva, alvo, { nome, aoDigitar, instrucoes, aoDigitarInstrucoes }, exportarDados, exportando)}
           onClose={tentarFechar}
           painelRef={painelRef}
         />
@@ -243,9 +320,16 @@ export default function Configuracoes({
 }
 
 // escolhe a aba pelo nome, usado pelo Configuracoes
-function renderizarAba(aba : string, alvo: string | null, perfil: PerfilProps) {
+function renderizarAba(
+  aba: string,
+  alvo: string | null,
+  perfil: PerfilProps,
+  onExportarDados: () => Promise<void>,
+  exportando: boolean,
+) {
   if (aba === "conta") return <ContaConfig destaque={alvo} />;
-  if (aba === "privacidade") return <PrivacidadeConfig destaque={alvo} />;
+  if (aba === "privacidade")
+    return <PrivacidadeConfig destaque={alvo} onExportarDados={onExportarDados} exportando={exportando} />;
   if (aba === "planos") return <PlanosConfig destaque={alvo} />;
   return <GeralConfig destaque={alvo} perfil={perfil} />;
 }
@@ -378,7 +462,7 @@ export function GeralConfig({ destaque, perfil }: { destaque: string | null; per
         <div className="divide-y-2 divide-sunken"> 
 
           <LinhaConfig id="cfg-nome-completo" destaque={destaque} label="Nome Completo">
-            <CampoValor value="Rafaela Silva" />
+            <CampoValor value={perfil.nome || "Professor(a)"} />
           </LinhaConfig>
 
           <LinhaConfig id="cfg-como-te-chamar" destaque={destaque} label="Como o MetamorphIA deveria te chamar">
@@ -397,8 +481,10 @@ export function GeralConfig({ destaque, perfil }: { destaque: string | null; per
             O MetamorphIA terá isso em mente durante as conversas
           </p>
           <textarea
+            value={perfil.instrucoes}
+            onChange={(e) => perfil.aoDigitarInstrucoes(e.target.value)}
             placeholder="ex: faça perguntas de esclarecimento antes de dar respostas detalhadas"
-            className="mt-3 h-20 w-full resize-none rounded-[30px] bg-sunken px-4 py-3 text-[14px] text-secondary placeholder:text-secondary focus:outline-none overflow-auto scrollbar-none"
+            className="mt-3 h-20 w-full resize-none rounded-[30px] bg-sunken px-4 py-3 text-[14px] text-primary placeholder:text-secondary focus:outline-none overflow-auto scrollbar-none"
           />
           </div>
           </div>
@@ -479,7 +565,15 @@ export function ContaConfig({ destaque }: { destaque: string | null }) {
   );
 }
 
-export function PrivacidadeConfig({ destaque }: { destaque: string | null }) {
+export function PrivacidadeConfig({
+  destaque,
+  onExportarDados,
+  exportando = false,
+}: {
+  destaque: string | null;
+  onExportarDados?: () => Promise<void>;
+  exportando?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Privacidade</h2>
@@ -505,7 +599,12 @@ export function PrivacidadeConfig({ destaque }: { destaque: string | null }) {
         <div className="divide-y-2 divide-sunken">
           
           <LinhaConfig id="cfg-exportar-dados" destaque={destaque} label="Exportar dados">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover">
+            <button
+              type="button"
+              disabled={exportando}
+              onClick={() => void onExportarDados?.()}
+              className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover disabled:cursor-not-allowed disabled:opacity-60"
+            >
               Exportar dados
             </button>
           </LinhaConfig>
@@ -515,17 +614,25 @@ export function PrivacidadeConfig({ destaque }: { destaque: string | null }) {
 }
 
 export function PlanosConfig({ destaque }: { destaque: string | null }) {
+  const planoRaw = (getSavedUserProfile()?.plano ?? "normal").toLowerCase();
+  const rotuloPlano =
+    planoRaw === "pro"
+      ? "PRO"
+      : planoRaw === "institucional"
+        ? "Institucional"
+        : "Gratuito";
+
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Conta</h2>
         <div className="divide-y-2 divide-sunken">
-          <LinhaConfig id="cfg-planos" destaque={destaque} label="Plano Atual: Gratuito">
+          <LinhaConfig id="cfg-planos" destaque={destaque} label={`Plano Atual: ${rotuloPlano}`}>
             <Link
               href="/planos"
               className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover"
             >
-              Evoluir para PRO
+              {planoRaw === "normal" ? "Evoluir para PRO" : "Ver planos"}
             </Link>
           </LinhaConfig>
         </div>

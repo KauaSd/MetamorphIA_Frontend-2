@@ -8,6 +8,7 @@ import Blurfundo from "@/components/common/Blurfundo";
 import Button from "@/components/common/Button";
 import Escola, { type TurmaResumo } from "@/components/app/escolas/Escola";
 import BoxSemEscola from "@/components/app/escolas/BoxSemEscola";
+import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import Toast, { useAlerta } from "@/components/common/Toast";
 import { FormEscola, FormDeletaEscola } from "@/components/app/forms/FormEscola";
 import { useData } from "@/components/app/state/DataProvider";
@@ -15,7 +16,7 @@ import { createEscola, deleteEscola, updateEscola, type Resultado } from "@/util
 import { ALERTAS } from "@/utils/alertas";
 
 export default function ConteudoEscolas() {
-  const { escolas, turmas, recarregar } = useData();
+  const { escolas, turmas, recarregar, hydrated } = useData();
   const [mostrarForm, setMostrarForm] = useState(false);
   const [mostrarBoasVindasPro, setMostrarBoasVindasPro] = useState(false);
   const [busca, setBusca] = useState("");
@@ -102,6 +103,10 @@ export default function ConteudoEscolas() {
 
   const temEscola = escolas.length > 0;
   const temResultado = escolasFiltradas.length > 0;
+
+  if (!hydrated) {
+    return <CarregandoDashboard mensagem="Carregando escolas..." />;
+  }
 
   return (
     <div className="flex flex-col w-full min-h-screen items-center">

@@ -1,0 +1,343 @@
+"use client";
+
+export const API_DB_URL = (
+  process.env.NEXT_PUBLIC_API_URL ??
+  process.env.NEXT_PUBLIC_DB_API_URL ??
+  "https://metamorphia-db-api.onrender.com"
+).replace(/\/$/, "");
+
+export const TOKEN_STORAGE_KEY = "metamorphia:auth:token";
+export const REFRESH_TOKEN_STORAGE_KEY = "metamorphia:auth:refresh_token";
+export const PENDING_2FA_TOKEN_KEY = "metamorphia:auth:pending_2fa_token";
+export const PENDING_RESET_IDENTIFIER_KEY = "metamorphia:auth:pending_reset_identifier";
+export const PENDING_RESET_TOKEN_KEY = "metamorphia:auth:pending_reset_token";
+export const USER_PROFILE_KEY = "metamorphia:auth:user";
+
+export interface UserProfile {
+  id_usuario: number;
+  nome_usuario: string;
+  email_usuario?: string | null;
+  telefone_usuario?: string | null;
+  tipo_usuario?: string;
+  plano?: string;
+  id_grupo?: number | null;
+  pode_chat?: boolean;
+  tags?: string[];
+  instrucoes_ia?: string | null;
+}
+
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthToken(token: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (token) {
+      window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    } else {
+      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  } catch {}
+}
+
+export function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setRefreshToken(token: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (token) {
+      window.localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, token);
+    } else {
+      window.localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+    }
+  } catch {}
+}
+
+export function setAuthTokens(
+  accessToken: string,
+  refreshToken?: string | null,
+): void {
+  setAuthToken(accessToken);
+  if (refreshToken !== undefined) {
+    setRefreshToken(refreshToken);
+  }
+}
+
+export function getPending2FAToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage.getItem(PENDING_2FA_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setPending2FAToken(token: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (token) {
+      window.sessionStorage.setItem(PENDING_2FA_TOKEN_KEY, token);
+    } else {
+      window.sessionStorage.removeItem(PENDING_2FA_TOKEN_KEY);
+    }
+  } catch {}
+}
+
+export function getSavedUserProfile(): UserProfile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(USER_PROFILE_KEY);
+    return raw ? (JSON.parse(raw) as UserProfile) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setSavedUserProfile(profile: UserProfile | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (profile) {
+      window.localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
+    } else {
+      window.localStorage.removeItem(USER_PROFILE_KEY);
+    }
+  } catch {}
+}
+
+export function getPendingResetIdentifier(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage.getItem(PENDING_RESET_IDENTIFIER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setPendingResetIdentifier(identificador: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (identificador) {
+      window.sessionStorage.setItem(PENDING_RESET_IDENTIFIER_KEY, identificador);
+    } else {
+      window.sessionStorage.removeItem(PENDING_RESET_IDENTIFIER_KEY);
+    }
+  } catch {}
+}
+
+export function getPendingResetToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage.getItem(PENDING_RESET_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setPendingResetToken(token: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (token) {
+      window.sessionStorage.setItem(PENDING_RESET_TOKEN_KEY, token);
+    } else {
+      window.sessionStorage.removeItem(PENDING_RESET_TOKEN_KEY);
+    }
+  } catch {}
+}
+
+export function clearAuthSession(): void {
+  setAuthToken(null);
+  setRefreshToken(null);
+  setPending2FAToken(null);
+  setPendingResetIdentifier(null);
+  setPendingResetToken(null);
+  setSavedUserProfile(null);
+}
+
+export function parseNumeroId(id: string | number | null | undefined): number | null {
+  if (typeof id === "number" && Number.isFinite(id)) return id;
+  if (!id) return null;
+  const texto = String(id).trim();
+  if (/^\d+$/.test(texto)) return Number(texto);
+  const match = /(\d+)$/.exec(texto);
+  if (match) return Number(match[1]);
+  return null;
+}
+
+export function montarHeadersJson(tokenOverride?: string | null): Record<string, string> {
+  const token = tokenOverride !== undefined ? tokenOverride : getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+const ROTAS_SEM_REFRESH = [
+  "/autenticar/login",
+  "/autenticar/cadastro",
+  "/autenticar/refresh",
+  "/autenticar/google",
+  "/autenticar/microsoft",
+  "/autenticar/recuperar-senha",
+  "/autenticar/verificar-codigo-senha",
+  "/autenticar/redefinir-senha",
+];
+
+function tokenEstaExpirando(token: string, margemSegundos = 60): boolean {
+  try {
+    const partes = token.split(".");
+    if (partes.length < 2) return false;
+    const base64 = partes[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64)) as { exp?: number };
+    if (typeof payload.exp !== "number") return false;
+    const agoraSegundos = Math.floor(Date.now() / 1000);
+    return payload.exp - agoraSegundos <= margemSegundos;
+  } catch {
+    return false;
+  }
+}
+
+let refreshEmAndamento: Promise<string | null> | null = null;
+
+/**
+ * Renova o access_token (e rotaciona o refresh_token) via POST /autenticar/refresh.
+ * Requisicoes paralelas compartilham a mesma chamada para evitar corrida na rotacao.
+ */
+export async function renovarTokenJwt(): Promise<string | null> {
+  if (refreshEmAndamento) return refreshEmAndamento;
+
+  refreshEmAndamento = (async () => {
+    const refreshToken = getRefreshToken();
+    try {
+      const resp = await fetch(`${API_DB_URL}/autenticar/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(refreshToken ? { refresh_token: refreshToken } : {}),
+      });
+
+      if (!resp.ok) {
+        clearAuthSession();
+        return null;
+      }
+
+      const dados = (await resp.json()) as {
+        access_token?: string;
+        refresh_token?: string | null;
+      };
+      if (!dados.access_token) {
+        clearAuthSession();
+        return null;
+      }
+
+      setAuthToken(dados.access_token);
+      if (dados.refresh_token) {
+        setRefreshToken(dados.refresh_token);
+      }
+      return dados.access_token;
+    } catch {
+      return null;
+    } finally {
+      refreshEmAndamento = null;
+    }
+  })();
+
+  return refreshEmAndamento;
+}
+
+function executarFetchDb(
+  endpoint: string,
+  init: RequestInit,
+  token: string | null,
+): Promise<Response> {
+  const headers = new Headers(init.headers ?? {});
+  if (
+    !headers.has("Content-Type") &&
+    !(init.body instanceof FormData) &&
+    !(init.body instanceof URLSearchParams)
+  ) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  return fetch(`${API_DB_URL}${endpoint}`, {
+    ...init,
+    headers,
+  });
+}
+
+export async function apiDbFetch(
+  endpoint: string,
+  init: RequestInit = {},
+  tokenOverride?: string | null,
+): Promise<Response> {
+  const permiteRefresh =
+    tokenOverride === undefined &&
+    !ROTAS_SEM_REFRESH.some((rota) => endpoint.startsWith(rota));
+
+  let token = tokenOverride !== undefined ? tokenOverride : getAuthToken();
+
+  // Renovacao preventiva se o JWT ja estiver expirado ou a menos de 60s de expirar
+  if (permiteRefresh && token && tokenEstaExpirando(token) && getRefreshToken()) {
+    const renovado = await renovarTokenJwt();
+    if (renovado) token = renovado;
+  }
+
+  let resp = await executarFetchDb(endpoint, init, token);
+
+  // Se a API responder 401, tenta renovar o JWT uma vez e refaz a requisicao
+  if (resp.status === 401 && permiteRefresh && getRefreshToken()) {
+    const renovado = await renovarTokenJwt();
+    if (renovado) {
+      resp = await executarFetchDb(endpoint, init, renovado);
+    } else if (
+      typeof window !== "undefined" &&
+      !window.location.pathname.startsWith("/auth/")
+    ) {
+      window.location.href = "/auth/login";
+    }
+  }
+
+  return resp;
+}
+
+/**
+ * Executa a chamada via Gateway da API principal (`/AI/...`).
+ */
+export async function apiAiGatewayOrDirect(
+  dbEndpoint: string,
+  _iaEndpoint: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  return apiDbFetch(dbEndpoint, init);
+}
+
+export function baixarArquivoDeAnexo(anexo: {
+  name: string;
+  dataUrl?: string;
+  type?: string;
+}): void {
+  if (typeof window === "undefined" || !anexo.dataUrl) return;
+  const link = document.createElement("a");
+  link.href = anexo.dataUrl;
+  link.download = anexo.name || "documento_adaptado.docx";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}

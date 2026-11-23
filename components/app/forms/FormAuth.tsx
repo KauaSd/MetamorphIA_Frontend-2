@@ -6,6 +6,7 @@ import CheckBox from "@/components/common/CheckBox";
 import Toast from "@/components/common/Toast";
 import Button from "@/components/common/Button";
 import ButtonLink from "@/components/common/ButtonLink";
+import { OverlayCarregando } from "@/components/common/Carregando";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { OTPInput, SlotProps } from "input-otp";
@@ -18,6 +19,18 @@ import {
   validarTelefone,
 } from "@/utils/validacao";
 import { RegrasSenha } from "@/components/app/auth/RegrasSenha";
+import {
+  API_DB_URL,
+  apiDbFetch,
+  getPending2FAToken,
+  getPendingResetIdentifier,
+  setAuthTokens,
+  setPending2FAToken,
+  setPendingResetIdentifier,
+  setPendingResetToken,
+  setSavedUserProfile,
+} from "@/utils/apiClient";
+import { saveTeacherName } from "@/utils/data/controller";
 
 
 export function FormLogin() {
@@ -25,9 +38,11 @@ export function FormLogin() {
   const [identificador, setIdentificador] = useState("");
   const [senha, setSenha] = useState("");
   const [alerta, setAlerta] = useState<MensagemAlerta | null>(null);
+  const [carregando, setCarregando] = useState(false);
 
-  function login(e: React.FormEvent) {
+  async function login(e: React.FormEvent) {
     e.preventDefault();
+    if (carregando) return;
 
     if (!identificador.trim()) {
       setAlerta(ALERTAS.LOGIN_SEM_IDENTIFICADOR);
@@ -44,8 +59,72 @@ export function FormLogin() {
       return;
     }
 
-    setAlerta(null);
-    router.push("/alunos");
+    setCarregando(true);
+    try {
+      const formBody = new URLSearchParams();
+      formBody.set("indentificador", identificador.trim());
+      formBody.set("senhaProf", senha);
+
+      const resp = await fetch(`${API_DB_URL}/autenticar/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formBody.toString(),
+      });
+
+      if (!resp.ok) {
+        const erroJson = (await resp.json().catch(() => ({}))) as { detail?: string };
+        setAlerta({
+          tom: "danger",
+          titulo: "Falha no login",
+          descricao: erroJson.detail || "Usuário ou senha incorreta.",
+        });
+        setCarregando(false);
+        return;
+      }
+
+      const tokenData = (await resp.json()) as {
+        access_token: string;
+        refresh_token?: string | null;
+        requires_2fa?: boolean;
+      };
+
+      if (tokenData.requires_2fa) {
+        setPending2FAToken(tokenData.access_token);
+        await apiDbFetch("/autenticar/envia_token", { method: "POST" }, tokenData.access_token).catch(() => {});
+        setAlerta(null);
+        router.push("/auth/token");
+        return;
+      }
+
+      setAuthTokens(tokenData.access_token, tokenData.refresh_token);
+      try {
+        const meResp = await apiDbFetch("/autenticar/me", {}, tokenData.access_token);
+        if (meResp.ok) {
+          const me = (await meResp.json()) as {
+            id_usuario: number;
+            nome_usuario: string;
+            email_usuario?: string;
+            telefone_usuario?: string;
+            tipo_usuario?: string;
+            plano?: string;
+          };
+          setSavedUserProfile(me);
+          if (me.nome_usuario) {
+            await saveTeacherName(me.nome_usuario);
+          }
+        }
+      } catch {}
+
+      setAlerta(null);
+      router.push("/alunos");
+    } catch {
+      setAlerta({
+        tom: "danger",
+        titulo: "Erro de conexão",
+        descricao: "Não foi possível conectar ao servidor. Tente novamente.",
+      });
+      setCarregando(false);
+    }
   }
 
   return (
@@ -60,7 +139,8 @@ export function FormLogin() {
       ) : null}
 
       {/* card do formulario */}
-      <div className="flex w-full flex-col gap-5 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="relative overflow-hidden flex w-full flex-col gap-5 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <OverlayCarregando ativo={carregando} mensagem="Entrando..." />
         {/* titulo */}
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-sm text-secondary">Já tem uma conta?</h1>
@@ -74,12 +154,14 @@ export function FormLogin() {
             placeholder="Digite seu telefone ou e-mail"
             value={identificador}
             onChange={(e) => setIdentificador(e.target.value)}
+            disabled={carregando}
           />
           <Input
             type="password"
             placeholder="Digite sua senha"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            disabled={carregando}
           />
         </div>
 
@@ -94,7 +176,7 @@ export function FormLogin() {
           </Link>
         </div>
         {/* botao de enviar */}
-          <Button type="submit">Entrar</Button>
+          <Button type="submit" disabled={carregando}>Entrar</Button>
         {/* link para o cadastro */}
         <div className="text-sm text-secondary flex flex-row items-center justify-center gap-1">
           <p> Não tem uma conta? </p>
@@ -120,9 +202,11 @@ export function FormCadastro() {
   const [nome, setNome] = useState("");
   const [aceitaTermos, setAceitaTermos] = useState(false);
   const [alerta, setAlerta] = useState<MensagemAlerta | null>(null);
+  const [carregando, setCarregando] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (carregando) return;
 
     if (!nome.trim()) {
       setAlerta(ALERTAS.CAD_NOME_VAZIO);
@@ -134,9 +218,8 @@ export function FormCadastro() {
       return;
     }
 
-    // so digitos parece telefone; letras (com ou sem @) caem na validacao
-    // de e-mail, assim "qualquer texto" nao acusa erro de telefone
-    if (pareceTelefone(contato)) {
+    const ehTel = pareceTelefone(contato);
+    if (ehTel) {
       if (!validarTelefone(contato)) {
         setAlerta(ALERTAS.CAD_TEL_INVALIDO);
         return;
@@ -159,8 +242,53 @@ export function FormCadastro() {
       return;
     }
 
-    setAlerta(null);
-    router.push("/auth/login");
+    setCarregando(true);
+    try {
+      const digitosTel = contato.replace(/\D/g, "");
+      const emailPayload = ehTel ? null : contato.trim().toLowerCase();
+      const telPayload = ehTel ? digitosTel : null;
+
+      const resp = await apiDbFetch("/autenticar/cadastro", {
+        method: "POST",
+        body: JSON.stringify({
+          nomeProf: nome.trim(),
+          emailprof: emailPayload,
+          numprof: telPayload,
+          senhaProf: senha,
+        }),
+      });
+
+      if (!resp.ok) {
+        const erroJson = (await resp.json().catch(() => ({}))) as {
+          detail?: string | Array<{ msg?: string; loc?: Array<string | number> }>;
+        };
+        let msgErro = "Verifique os dados informados e tente novamente.";
+        if (typeof erroJson.detail === "string") {
+          msgErro = erroJson.detail;
+        } else if (Array.isArray(erroJson.detail) && erroJson.detail.length > 0) {
+          msgErro = erroJson.detail
+            .map((item) => item.msg?.replace(/^Value error,\s*/i, "") || "Dado inválido")
+            .join("; ");
+        }
+        setAlerta({
+          tom: "danger",
+          titulo: "Não foi possível cadastrar",
+          descricao: msgErro,
+        });
+        setCarregando(false);
+        return;
+      }
+
+      setAlerta(null);
+      router.push("/auth/login");
+    } catch {
+      setAlerta({
+        tom: "danger",
+        titulo: "Erro de conexão",
+        descricao: "Não foi possível conectar ao servidor. Tente novamente.",
+      });
+      setCarregando(false);
+    }
   }
 
   return (
@@ -175,7 +303,8 @@ export function FormCadastro() {
       )}
 
       {/* card do formulario */}
-      <div className="flex w-full flex-col gap-5 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="relative overflow-hidden flex w-full flex-col gap-5 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <OverlayCarregando ativo={carregando} mensagem="Cadastrando..." />
         {/* titulo */}
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-sm text-secondary">Não tem uma conta?</h1>
@@ -189,18 +318,21 @@ export function FormCadastro() {
             placeholder="Digite seu nome completo"
             value={nome}
             onChange={(e) => setNome(e.target.value)}
+            disabled={carregando}
           />
           <Input
             type="text"
             placeholder="Digite seu telefone ou e-mail"
             value={contato}
             onChange={(e) => setContato(e.target.value)}
+            disabled={carregando}
           />
           <Input
             type="password"
             placeholder="Digite sua senha"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
+            disabled={carregando}
           />
 
           <RegrasSenha senha={senha} />
@@ -215,7 +347,7 @@ export function FormCadastro() {
         </div>
 
         {/* botao de enviar */}
-        <Button type="submit">Cadastrar</Button>
+        <Button type="submit" disabled={carregando}>Cadastrar</Button>
         {/* link para o login */}
         <div className="text-sm text-secondary flex flex-row items-center justify-center gap-1">
           <p>Já tem uma conta?</p>
@@ -237,9 +369,11 @@ export function FormRecuperaSenha() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [alerta, setAlerta] = useState<MensagemAlerta | null>(null);
+  const [carregando, setCarregando] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (carregando) return;
 
     if (!email.trim()) {
       setAlerta(ALERTAS.RECUPERA_VAZIO);
@@ -251,8 +385,37 @@ export function FormRecuperaSenha() {
       return;
     }
 
-    setAlerta(null);
-    router.push("/auth/token");
+    setCarregando(true);
+    try {
+      const identificadorLimpo = email.trim();
+      const resp = await apiDbFetch("/autenticar/recuperar-senha", {
+        method: "POST",
+        body: JSON.stringify({ identificador: identificadorLimpo }),
+      });
+
+      if (!resp.ok) {
+        const erroJson = (await resp.json().catch(() => ({}))) as { detail?: string };
+        setAlerta({
+          tom: "danger",
+          titulo: "Não foi possível enviar o código",
+          descricao: erroJson.detail || "Verifique o e-mail ou telefone informado.",
+        });
+        setCarregando(false);
+        return;
+      }
+
+      setPending2FAToken(null);
+      setPendingResetIdentifier(identificadorLimpo);
+      setAlerta(null);
+      router.push("/auth/token");
+    } catch {
+      setAlerta({
+        tom: "danger",
+        titulo: "Erro de conexão",
+        descricao: "Não foi possível conectar ao servidor. Tente novamente.",
+      });
+      setCarregando(false);
+    }
   }
 
   return (
@@ -267,16 +430,23 @@ export function FormRecuperaSenha() {
       )}
 
       {/* card do formulario */}
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <OverlayCarregando ativo={carregando} mensagem="Enviando código..." />
         {/* titulo e texto de instrucao */}
         <div className="flex flex-col items-center gap-6">
           <p className="text-2xl text-primary sm:text-3xl">Recuperar senha</p>
-          <p className="text-sm text-secondary text-justify">Para redefinir sua senha, informe seu número de telefone ou e-mail cadastrado na sua conta e lhe enviaremos um link  com as instruções.</p>
+          <p className="text-sm text-secondary text-justify">Para redefinir sua senha, informe seu número de telefone ou e-mail cadastrado na sua conta e lhe enviaremos um código com as instruções.</p>
         </div>
 
         {/* campo de e-mail ou telefone */}
         <div className="flex flex-col items-center">
-          <Input type="text" placeholder="Digite seu e-mail ou telefone" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            type="text"
+            placeholder="Digite seu e-mail ou telefone"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={carregando}
+          />
         </div>
 
         {/* botoes voltar e proximo */}
@@ -287,7 +457,7 @@ export function FormRecuperaSenha() {
           >
             Voltar
           </ButtonLink>
-          <Button type="submit">Próximo</Button>
+          <Button type="submit" disabled={carregando}>Próximo</Button>
       </div>
       </div>
     </form>
@@ -298,17 +468,99 @@ export function FormToken() {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [alerta, setAlerta] = useState<MensagemAlerta | null>(null);
+  const [carregando, setCarregando] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (carregando) return;
 
     if (value.length !== 6) {
       setAlerta(ALERTAS.TOKEN_INCOMPLETO);
       return;
     }
 
-    setAlerta(null);
-    router.push("/auth/alterarSenha");
+    const token2fa = getPending2FAToken();
+    if (token2fa) {
+      setCarregando(true);
+      try {
+        const resp = await apiDbFetch(
+          "/autenticar/verificar-2fa",
+          {
+            method: "POST",
+            body: JSON.stringify({ codigo: value }),
+          },
+          token2fa,
+        );
+        if (!resp.ok) {
+          setAlerta({
+            tom: "danger",
+            titulo: "Código inválido",
+            descricao: "O código informado está incorreto ou expirou.",
+          });
+          setCarregando(false);
+          return;
+        }
+        const dados = (await resp.json()) as {
+          access_token: string;
+          refresh_token?: string | null;
+        };
+        setPending2FAToken(null);
+        setAuthTokens(dados.access_token, dados.refresh_token);
+        setAlerta(null);
+        router.push("/alunos");
+        return;
+      } catch {
+        setAlerta({
+          tom: "danger",
+          titulo: "Erro de conexão",
+          descricao: "Não foi possível verificar o código no servidor.",
+        });
+        setCarregando(false);
+        return;
+      }
+    }
+
+    const identificadorReset = getPendingResetIdentifier();
+    if (!identificadorReset) {
+      setAlerta({
+        tom: "danger",
+        titulo: "Sessão expirada",
+        descricao: "Informe seu e-mail ou telefone novamente para receber um novo código.",
+      });
+      return;
+    }
+
+    setCarregando(true);
+    try {
+      const resp = await apiDbFetch("/autenticar/verificar-codigo-senha", {
+        method: "POST",
+        body: JSON.stringify({
+          identificador: identificadorReset,
+          codigo: value,
+        }),
+      });
+      if (!resp.ok) {
+        const erroJson = (await resp.json().catch(() => ({}))) as { detail?: string };
+        setAlerta({
+          tom: "danger",
+          titulo: "Código inválido",
+          descricao: erroJson.detail || "O código informado está incorreto ou expirou.",
+        });
+        setCarregando(false);
+        return;
+      }
+      const dados = (await resp.json()) as { reset_token: string };
+      setPendingResetToken(dados.reset_token);
+      setAlerta(null);
+      router.push("/auth/alterarSenha");
+    } catch {
+      setAlerta({
+        tom: "danger",
+        titulo: "Erro de conexão",
+        descricao: "Não foi possível verificar o código no servidor.",
+      });
+      setCarregando(false);
+    }
   }
 
   return (
@@ -323,7 +575,8 @@ export function FormToken() {
       )}
 
       {/* card do formulario */}
-      <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <OverlayCarregando ativo={carregando} mensagem="Verificando código..." />
         {/* titulo e texto de instrucao */}
         <div className="flex flex-col items-center gap-6">
           <p className="text-2xl text-primary sm:text-3xl text-center">Digite o código de verificação</p>
@@ -336,6 +589,7 @@ export function FormToken() {
         maxLength={6}
         value={value}
         onChange={setValue}
+        disabled={carregando}
         containerClassName="flex gap-2"
         render={({ slots }) => (
           <div className="flex gap-4">
@@ -355,7 +609,7 @@ export function FormToken() {
           >
             Voltar
           </ButtonLink>
-          <Button type="submit">Verificar</Button>
+          <Button type="submit" disabled={carregando}>Verificar</Button>
         </div>
         </div>
       </form>

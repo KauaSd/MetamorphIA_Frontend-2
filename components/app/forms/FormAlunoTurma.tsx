@@ -5,6 +5,7 @@ import { saveTeacherName } from "@/utils/data/controller";
 import type { Resultado } from "@/utils/data/controller";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
+import { OverlayCarregando } from "@/components/common/Carregando";
 import { X, ChevronUp, ChevronDown } from "lucide-react";
 import CheckBoxAluno from "@/components/common/CheckBoxAl";
 import DropDown, { type DropDownOption } from "@/components/common/DropDown";
@@ -114,9 +115,10 @@ export function FormAluno({
   };
 
   return (
-    <Blurfundo onClose={onClose}>
+    <Blurfundo onClose={salvando ? undefined : onClose}>
       <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <div className="flex w-full flex-col gap-10 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <div className="relative overflow-hidden flex w-full flex-col gap-10 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+          <OverlayCarregando ativo={salvando} mensagem="Salvando aluno..." />
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p
@@ -291,9 +293,10 @@ export function FormTurma({
   };
 
   return (
-    <Blurfundo onClose={onClose}>
+    <Blurfundo onClose={salvando ? undefined : onClose}>
       <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+          <OverlayCarregando ativo={salvando} mensagem="Salvando turma..." />
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p className="text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)">
@@ -399,7 +402,8 @@ export function FormIdentificacao({ onSalvar }: FormIdentificacaoProps) {
   return (
     <Blurfundo>
       <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+          <OverlayCarregando ativo={salvando} mensagem="Salvando..." />
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>
@@ -452,9 +456,10 @@ function ModalConfirmarExclusao({ pergunta, onClose, onExcluir }: ModalConfirmar
   };
 
   return (
-    <Blurfundo onClose={onClose}>
+    <Blurfundo onClose={excluindo ? undefined : onClose}>
       <div className="w-full max-w-md">
-        <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+          <OverlayCarregando ativo={excluindo} mensagem="Excluindo..." />
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>

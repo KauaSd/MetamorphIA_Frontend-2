@@ -1,18 +1,20 @@
 import { ChevronRight, ChevronLeft, X } from "lucide-react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Button from "@/components/common/Button"
+import { OverlayCarregando } from "@/components/common/Carregando"
 import DropDown from "@/components/common/DropDown"
 import { PeiFlowProvider, usePeiFlow } from "@/components/app/state/PeiFlowProvider"
 import GuidedQuestionsScreen from "@/components/app/pei/GuidedQuestionsScreen"
 import ChatInput from "@/components/app/pei/ChatInput"
 import { OPCOES_COMPONENTE, OPCOES_PERIODO } from "@/utils/pei/opcoes"
 import { letraDaOpcao } from "@/utils/pei/types"
-import type { Aluno } from "@/utils/data/types"
+import { peiService } from "@/utils/pei/service"
+import type { Aluno, AnexoMensagem } from "@/utils/data/types"
 
 interface ConteudopeiProps {
     onFechar?: () => void
     onCriarAgora?: () => void
-    onConcluirPei?: (mensagem: string) => void
+    onConcluirPei?: (mensagem: string, anexos?: AnexoMensagem[]) => void
     mostrarCriacao?: boolean
     nomeAluno?: string | null
     professor?: string
@@ -20,7 +22,7 @@ interface ConteudopeiProps {
     children?: React.ReactNode
     aluno?: Aluno | null
     onVoltar?: () => void
-    onEnviarChat?: (texto: string) => void
+    onEnviarChat?: (texto: string, anexos?: AnexoMensagem[]) => void
     chatPlaceholder?: string
     chatDisabled?: boolean
 }
@@ -38,6 +40,7 @@ function ConteudopeiConteudo({
     onCriarAgora,
     onConcluirPei,
     mostrarCriacao = false,
+    aluno,
     nomeAluno,
     professor,
     className,
@@ -68,43 +71,98 @@ function ConteudopeiConteudo({
         limpar,
     } = usePeiFlow()
     const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false)
+    const [gerandoPei, setGerandoPei] = useState(false)
+    const [acaoPei, setAcaoPei] = useState<"importando" | "gerando" | null>(null)
+    const importarInputRef = useRef<HTMLInputElement>(null)
     const emQuestoes = passo === "questoes"
 
     function fechar() {
+        if (gerandoPei) return
         if (fluxoEmAndamento) setMostrarConfirmacao(true)
         else onFechar?.()
     }
 
-    function confirmarPei() {
-        const linhas = questions.map((pergunta, idx) => {
-            const resp = respostas[pergunta.id]
-            const escolhidas = pergunta.options
-                .map((op, opIdx) =>
-                    resp?.selectedOptionIds.includes(op.id)
-                        ? `${letraDaOpcao(opIdx)}. ${op.text}`
-                        : null,
-                )
-                .filter(Boolean)
-            const textoLivre = resp?.freeText?.trim()
-            const itens = [
-                ...escolhidas.map((opcao) => `- **Resposta:** ${opcao}`),
-                ...(textoLivre ? [`- **Complemento:** ${textoLivre}`] : []),
-            ]
-            const corpoResposta =
-                itens.length > 0 ? itens.join("\n") : "- *Sem resposta*"
-            return `**${idx + 1}. ${pergunta.text}**\n\n${corpoResposta}`
-        })
+    async function handleImportarArquivo(files: FileList | null) {
+        if (!files || files.length === 0 || !aluno || gerandoPei) return
+        const arquivo = files[0]
+        setGerandoPei(true)
+        setAcaoPei("importando")
+        try {
+            const resultado = await peiService.importarPeiArquivo({
+                aluno,
+                arquivo,
+                componente,
+                periodo,
+            })
+            const mensagem = `O PEI de **${aluno.nome}** foi importado com sucesso a partir do arquivo **${arquivo.name}**! 🎉\n\nO contexto pedagógico do estudante já foi atualizado na IA e o documento está anexado abaixo para consulta ou download.`
+            limpar()
+            onConcluirPei?.(mensagem, resultado.anexo ? [resultado.anexo] : undefined)
+        } finally {
+            setGerandoPei(false)
+            setAcaoPei(null)
+            if (importarInputRef.current) importarInputRef.current.value = ""
+        }
+    }
 
-        const mensagem = `A criação do PEI foi um sucesso! 🎉\nAbaixo estão as respostas que defini para cada pergunta. Se quiser mudar alguma coisa, é só me pedir aqui no chat: posso reformular uma pergunta ou refazer a resposta por completo. Você também pode editar direto no documento que vou enviar.\n\n---\n\n${linhas.join("\n\n")}\n\n---\n\nSe estiver tudo certo, é só digitar "Documento" e eu envio o PEI para você!`
+    async function confirmarPei() {
+        if (gerandoPei) return
+        setGerandoPei(true)
+        setAcaoPei("gerando")
+        try {
+            const linhas = questions.map((pergunta, idx) => {
+                const resp = respostas[pergunta.id]
+                const escolhidas = pergunta.options
+                    .map((op, opIdx) =>
+                        resp?.selectedOptionIds.includes(op.id)
+                            ? `${letraDaOpcao(opIdx)}. ${op.text}`
+                            : null,
+                    )
+                    .filter(Boolean)
+                const textoLivre = resp?.freeText?.trim()
+                const itens = [
+                    ...escolhidas.map((opcao) => `- **Resposta:** ${opcao}`),
+                    ...(textoLivre ? [`- **Complemento:** ${textoLivre}`] : []),
+                ]
+                const corpoResposta =
+                    itens.length > 0 ? itens.join("\n") : "- *Sem resposta*"
+                return `**${idx + 1}. ${pergunta.text}**\n\n${corpoResposta}`
+            })
 
-        setMostrarRevisao(false)
-        limpar()
-        onConcluirPei?.(mensagem)
+            let anexosGerados: AnexoMensagem[] | undefined
+            if (aluno) {
+                const gerado = await peiService.gerarPeiDocumento({
+                    aluno,
+                    professor,
+                    componente,
+                    periodo,
+                    questions,
+                    respostas,
+                })
+                if (gerado?.anexo) {
+                    anexosGerados = [gerado.anexo]
+                }
+            }
+
+            const mensagem = anexosGerados?.length
+                ? `A criação do PEI foi um sucesso! 🎉\nAbaixo estão as respostas que defini para cada pergunta e o arquivo **.docx** oficial já está anexado nesta mensagem pronto para download. Se quiser mudar alguma coisa, é só me pedir aqui no chat!\n\n---\n\n${linhas.join("\n\n")}\n\n---\n\nSe precisar que eu reenvie o arquivo a qualquer momento, basta digitar "Documento"!`
+                : `Registrei as respostas do PEI abaixo, mas não foi possível gerar o arquivo **.docx** no servidor agora (verifique se sua sessão ainda está ativa ou faça login novamente).\n\n---\n\n${linhas.join("\n\n")}`
+
+            setMostrarRevisao(false)
+            limpar()
+            onConcluirPei?.(mensagem, anexosGerados)
+        } finally {
+            setGerandoPei(false)
+            setAcaoPei(null)
+        }
     }
 
     return (
         <>
         <div className={`${className ?? ""} relative flex w-full h-full flex-col items-center gap-3 sm:gap-4 rounded-[70px] bg-surface-base/40 px-4 py-3 sm:px-8 sm:py-4 overflow-auto`}>
+            <OverlayCarregando
+                ativo={gerandoPei && acaoPei === "importando"}
+                mensagem="Importando PEI..."
+            />
             <button
                 type="button"
                 aria-label="Fechar painel"
@@ -119,8 +177,20 @@ function ConteudopeiConteudo({
                 <p className={`text-center text-3xl sm:text-4xl lg:text-5xl transition-all duration-500 ${mostrarCriacao ? "mt-8" : "mt-20"}`}>OK, vamos começar!</p>
 
                 <div className={`flex w-full flex-col items-center gap-4 justify-center sm:flex-row sm:gap-40 transition-all duration-500 ${mostrarCriacao ? "mt-6" : "mt-30"}`}>
-                    <Button className="w-full bg-surface-warning text-ink hover:bg-warning sm:w-80 px-8 py-3 text-base sm:text-lg">
-                        Importar PEI
+                    <input
+                        ref={importarInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt"
+                        className="hidden"
+                        onChange={(e) => void handleImportarArquivo(e.target.files)}
+                    />
+                    <Button
+                        type="button"
+                        disabled={gerandoPei}
+                        onClick={() => importarInputRef.current?.click()}
+                        className="w-full bg-surface-warning text-ink hover:bg-warning sm:w-80 px-8 py-3 text-base sm:text-lg"
+                    >
+                        {gerandoPei ? "Importando..." : "Importar PEI"}
                     </Button>
                     <Button
                         onClick={onCriarAgora}
@@ -225,12 +295,12 @@ function ConteudopeiConteudo({
                         anexos={emQuestoes ? anexosAtuais : undefined}
                         onAdicionarAnexos={emQuestoes ? adicionarAnexos : undefined}
                         onRemoverAnexo={emQuestoes ? removerAnexo : undefined}
-                        onSubmit={(texto) => {
+                        onSubmit={(texto, anexosSub) => {
                             if (emQuestoes) {
                                 confirmarTexto(texto)
                                 void avancar()
                             } else {
-                                onEnviarChat?.(texto)
+                                onEnviarChat?.(texto, anexosSub)
                             }
                         }}
                     />
@@ -242,11 +312,12 @@ function ConteudopeiConteudo({
                 <div
                     className="absolute inset-0 z-50 flex items-center justify-center rounded-[70px] bg-surface-inverse/50 p-4"
                     onClick={(e) => {
-                        if (e.target === e.currentTarget) setMostrarRevisao(false)
+                        if (!gerandoPei && e.target === e.currentTarget) setMostrarRevisao(false)
                     }}
                 >
                     <div className="w-full max-w-md">
-                        <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+                        <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+                            <OverlayCarregando ativo={gerandoPei} mensagem="Gerando PEI..." />
                             <div className="flex flex-col gap-6">
                                 <div className="flex items-center justify-between">
                                     <p className="text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)">
@@ -255,7 +326,8 @@ function ConteudopeiConteudo({
                                     <button
                                         type="button"
                                         aria-label="Fechar"
-                                        className="cursor-pointer hover:text-secondary"
+                                        disabled={gerandoPei}
+                                        className="cursor-pointer hover:text-secondary disabled:opacity-50"
                                         onClick={() => setMostrarRevisao(false)}
                                     >
                                         <X className="w-6 h-6" />
@@ -271,6 +343,7 @@ function ConteudopeiConteudo({
                             <div className="flex gap-5 self-end">
                                 <Button
                                     type="button"
+                                    disabled={gerandoPei}
                                     onClick={() => setMostrarRevisao(false)}
                                     className="bg-surface-inverse text-inverse hover:bg-surface-inverse-hover w-32"
                                 >
@@ -278,6 +351,7 @@ function ConteudopeiConteudo({
                                 </Button>
                                 <Button
                                     type="button"
+                                    disabled={gerandoPei}
                                     onClick={confirmarPei}
                                     className="w-32"
                                 >

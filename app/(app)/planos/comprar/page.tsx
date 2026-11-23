@@ -7,8 +7,10 @@ import Input from "@/components/common/Input";
 import DropDown, { type DropDownOption } from "@/components/common/DropDown";
 import CheckBox from "@/components/common/CheckBox";
 import Button from "@/components/common/Button";
+import { BarraCarregando } from "@/components/common/Carregando";
 import { UFS_BRASIL, buscarMunicipiosPorUf } from "@/utils/localidades";
 import { BENEFICIOS_PRO } from "@/components/public/Planos";
+import { apiDbFetch, getAuthToken } from "@/utils/apiClient";
 
 type Periodicidade = "mensal" | "anual";
 
@@ -71,13 +73,36 @@ export default function ComprarPlanoPage() {
   const [uf, setUf] = useState("");
   const [municipio, setMunicipio] = useState("");
   const [municipios, setMunicipios] = useState<DropDownOption[]>([]);
+  const [carregandoMunicipios, setCarregandoMunicipios] = useState(false);
   const [aceitaTermos, setAceitaTermos] = useState(false);
   const [cienteRenovacao, setCienteRenovacao] = useState(false);
   const [etapaPagamento, setEtapaPagamento] = useState<
     "idle" | "aguardando" | "concluido"
   >("idle");
 
-  // shortcut: mock temporizado de pagamento até integrar o gateway real
+  async function iniciarAssinatura() {
+    setEtapaPagamento("aguardando");
+    if (getAuthToken()) {
+      try {
+        const docDigitos = cpfCnpj.replace(/\D/g, "") || "12345678901";
+        const tipoCont = docDigitos.length === 14 ? "cnpj" : "cpf";
+        const resp = await apiDbFetch("/pagamentos/checkout", {
+          method: "POST",
+          body: JSON.stringify({
+            nome_plano: "pro",
+            tipo_cont: tipoCont,
+            documento_cont: docDigitos,
+          }),
+        });
+        if (resp.ok) {
+          const dados = (await resp.json()) as { checkout_url?: string };
+          if (dados.checkout_url && dados.checkout_url.startsWith("http")) {
+            window.open(dados.checkout_url, "_blank", "noopener,noreferrer");
+          }
+        }
+      } catch {}
+    }
+  }
   useEffect(() => {
     if (etapaPagamento === "aguardando") {
       const timer = setTimeout(() => setEtapaPagamento("concluido"), 2500);
@@ -108,11 +133,14 @@ export default function ComprarPlanoPage() {
     setMunicipio("");
     if (!novaUf) {
       setMunicipios([]);
+      setCarregandoMunicipios(false);
       return;
     }
+    setCarregandoMunicipios(true);
     buscarMunicipiosPorUf(novaUf)
       .then((lista) => setMunicipios(lista))
-      .catch(() => setMunicipios([]));
+      .catch(() => setMunicipios([]))
+      .finally(() => setCarregandoMunicipios(false));
   };
 
   return (
@@ -240,8 +268,8 @@ export default function ComprarPlanoPage() {
                       options={municipios}
                       value={municipio}
                       onChange={setMunicipio}
-                      placeholder="Município"
-                      disabled={!uf}
+                      placeholder={carregandoMunicipios ? "Carregando..." : "Município"}
+                      disabled={!uf || carregandoMunicipios}
                       maxVisibleItems={6}
                       font="poppins"
                       textSize="text-sm"
@@ -301,7 +329,7 @@ export default function ComprarPlanoPage() {
               disabled={
                 !aceitaTermos || !cienteRenovacao || etapaPagamento !== "idle"
               }
-              onClick={() => setEtapaPagamento("aguardando")}
+              onClick={() => void iniciarAssinatura()}
               className="py-1.5 font-(family-name:--font-poppins) text-sm text-ink lg:py-1 xl:py-1.5 2xl:py-2 2xl:text-base"
             >
               Assinar
@@ -329,32 +357,8 @@ export default function ComprarPlanoPage() {
             </p>
 
             {etapaPagamento === "aguardando" ? (
-              <div className="flex h-32 w-32 items-center justify-center rounded-full bg-surface-accent sm:h-[168px] sm:w-[168px]">
-                <svg
-                  className="h-18 w-18 animate-spin text-inverse sm:h-24 sm:w-24"
-                  viewBox="0 0 50 50"
-                  aria-hidden="true"
-                >
-                  <circle
-                    className="opacity-30"
-                    cx="25"
-                    cy="25"
-                    r="19"
-                    stroke="currentColor"
-                    strokeWidth="5"
-                    fill="none"
-                  />
-                  <circle
-                    cx="25"
-                    cy="25"
-                    r="19"
-                    stroke="currentColor"
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                    strokeDasharray="36 120"
-                    fill="none"
-                  />
-                </svg>
+              <div className="flex w-full flex-col items-center justify-center gap-4 py-6">
+                <BarraCarregando className="h-2.5 w-56 sm:w-64" />
               </div>
             ) : (
               <div className="flex h-32 w-32 items-center justify-center rounded-full bg-surface-success sm:h-[168px] sm:w-[168px]">

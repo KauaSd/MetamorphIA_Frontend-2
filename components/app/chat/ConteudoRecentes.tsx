@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import HeaderPag from "@/components/app/chat/HeaderRecentes";
 import Historico from "@/components/app/chat/ConversasRecentes";
+import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import { useData } from "@/components/app/state/DataProvider";
 import {
   conversasRecentes,
@@ -32,6 +33,10 @@ export default function ConteudoRecentes() {
       }];
     });
   }, [conversas, alunos, turmas]);
+
+  if (!hydrated) {
+    return <CarregandoDashboard mensagem="Carregando conversas..." />;
+  }
 
   return (
     <div className="flex flex-col w-full">

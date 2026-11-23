@@ -4,7 +4,7 @@ const PARECE_TELEFONE_REGEX = /^[\d\s()+-]+$/;
 const NUMERO_REGEX = /[0-9]/;
 const MINUSCULA_REGEX = /[a-z]/;
 const MAIUSCULA_REGEX = /[A-Z]/;
-const ESPECIAL_REGEX = /[@#$%^&*+=!?._-]/;
+const ESPECIAL_REGEX = /[^A-Za-z0-9\s]/;
 
 export function validarEmail(valor: string): boolean {
   return EMAIL_REGEX.test(valor.trim());

@@ -5,6 +5,7 @@ import HeaderPagAl from "@/components/app/alunos/HeaderPagAl";
 import BarraPesquisa from "@/components/common/Input";
 import Aluno from "@/components/app/alunos/Aluno";
 import BoxSemAluno from "@/components/app/alunos/BoxSemAluno";
+import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import Toast, { useAlerta } from "@/components/common/Toast";
 import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma";
 import { useData } from "@/components/app/state/DataProvider";
@@ -12,7 +13,7 @@ import { updateAluno, deleteAluno, type Resultado } from "@/utils/data/controlle
 import { ALERTAS } from "@/utils/alertas";
 
 export default function ConteudoAlunos(){
-    const { turmas, alunos, recarregar } = useData();
+    const { turmas, alunos, recarregar, hydrated } = useData();
     const [busca, setBusca] = useState("");
     const [ordenacao, setOrdenacao] = useState("az");
     const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
@@ -75,6 +76,10 @@ export default function ConteudoAlunos(){
             await recarregar();
         }
         return tentar(resultado);
+    }
+
+    if (!hydrated) {
+        return <CarregandoDashboard mensagem="Carregando alunos..." />;
     }
 
     return(

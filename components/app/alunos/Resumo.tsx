@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Encaracolado from "@/components/common/Encaracolado";
+import { OverlayCarregando } from "@/components/common/Carregando";
 import EncaracoladoSvg from "@/public/EncaracoladoResumo.svg";
 import Lapis from "@/public/mode_edit.svg";
 
@@ -9,7 +10,7 @@ type TipoStat = 1 | 2;
 interface ResumoProps{
     tipo: TipoStat;
     txt: string;
-    onSave: (novoTexto: string) => void;
+    onSave: (novoTexto: string) => void | Promise<void>;
 }
 const CONFIG_TIPOS = {
   1: {
@@ -23,6 +24,7 @@ export default function Resumo(props : ResumoProps) {
     const config = CONFIG_TIPOS[props.tipo] || CONFIG_TIPOS[1];
 
     const [editando, setEditando] = useState(false);
+    const [salvando, setSalvando] = useState(false);
     const [textoEditado, setTextoEditado] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -40,18 +42,25 @@ export default function Resumo(props : ResumoProps) {
     }
 
     function cancelarEdicao(){
+        if (salvando) return;
         setEditando(false);
     }
 
-    function confirmarEdicao(){
-        if (textoEditado.trim() === "") return;
+    async function confirmarEdicao(){
+        if (salvando || textoEditado.trim() === "") return;
 
-        props.onSave(textoEditado);
-        setEditando(false);
+        setSalvando(true);
+        try {
+            await props.onSave(textoEditado);
+            setEditando(false);
+        } finally {
+            setSalvando(false);
+        }
     }
 
     return(
         <div className="relative flex min-h-28 w-full flex-col gap-2 rounded-[35px] bg-surface-base px-8 py-4">
+            <OverlayCarregando ativo={salvando} mensagem="Salvando resumo..." />
             <Encaracolado src={EncaracoladoSvg.src} className="absolute left-[-10] top-1/2 -translate-y-1/2 w-[30px] aspect-[33/141]" />
             <div className="flex flex-row justify-between">
                 <p className="font-(family-name:--font-text-me-one) text-xl text-primary sm:text-2xl"> {config.titulo} </p>
@@ -61,14 +70,15 @@ export default function Resumo(props : ResumoProps) {
                         <button
                             type="button"
                             onClick={cancelarEdicao}
-                            className="bg-sunken cursor-pointer rounded-[70px] py-1 px-3 hover:bg-sunken-hover">
+                            disabled={salvando}
+                            className="bg-sunken cursor-pointer rounded-[70px] py-1 px-3 hover:bg-sunken-hover disabled:cursor-not-allowed disabled:opacity-50">
                                 Cancelar
                             </button>
 
                         <button
                             type="button"
-                            onClick={confirmarEdicao}
-                            disabled={textoEditado.trim() === ""}
+                            onClick={() => void confirmarEdicao()}
+                            disabled={salvando || textoEditado.trim() === ""}
                             className="bg-surface-accent cursor-pointer rounded-[70px] py-1 px-3 hover:bg-surface-accent-strong disabled:cursor-not-allowed disabled:opacity-50">
                             Salvar
                         </button>

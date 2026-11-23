@@ -3,6 +3,7 @@
 import { usePeiFlow } from "@/components/app/state/PeiFlowProvider";
 import InfoNotice from "@/components/app/pei/InfoNotice";
 import QuestionCard from "@/components/app/pei/QuestionCard";
+import { BarraCarregando } from "@/components/common/Carregando";
 
 export default function GuidedQuestionsScreen() {
   const fluxo = usePeiFlow();
@@ -21,7 +22,24 @@ export default function GuidedQuestionsScreen() {
   } = fluxo;
 
   const pergunta = questions[currentIndex];
-  if (!aluno || !pergunta) return null;
+  if (!aluno) return null;
+
+  if (!pergunta) {
+    if (status === "carregando") {
+      return (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Carregando perguntas do PEI"
+          className="flex items-center justify-center py-10"
+        >
+          <BarraCarregando className="w-52" />
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <div className="flex w-full flex-col gap-3">

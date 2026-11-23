@@ -4,7 +4,7 @@ export default function PlanosLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex h-dvh w-full items-center justify-center overflow-hidden bg-surface-muted text-primary max-lg:h-auto max-lg:min-h-dvh max-lg:items-start max-lg:overflow-y-auto">
+    <div className="relative flex min-h-dvh w-full items-start justify-center overflow-y-auto bg-surface-muted text-primary lg:h-dvh lg:items-center lg:overflow-hidden">
       {children}
     </div>
   );

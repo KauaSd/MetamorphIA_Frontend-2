@@ -4,6 +4,7 @@ import { useState } from "react";
 import Blurfundo from "@/components/common/Blurfundo";
 import Input from "@/components/common/Input";
 import Button from "@/components/common/Button";
+import { OverlayCarregando } from "@/components/common/Carregando";
 import { X } from "lucide-react";
 import type { Resultado } from "@/utils/data/controller";
 
@@ -39,9 +40,10 @@ export function FormEscola({
   };
 
   return (
-    <Blurfundo onClose={onClose}>
+    <Blurfundo onClose={salvando ? undefined : onClose}>
       <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+          <OverlayCarregando ativo={salvando} mensagem="Salvando escola..." />
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <p className="text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)">
@@ -114,9 +116,10 @@ export function FormDeletaEscola({
   };
 
   return (
-    <Blurfundo onClose={onClose}>
+    <Blurfundo onClose={excluindo ? undefined : onClose}>
       <div className="w-full max-w-md">
-        <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+        <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+          <OverlayCarregando ativo={excluindo} mensagem="Excluindo escola..." />
           <div className="flex items-center justify-between">
             <p className="text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)">
               Excluir Escola

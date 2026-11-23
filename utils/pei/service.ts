@@ -1,78 +1,288 @@
-import type { Question } from "@/utils/pei/types";
+import {
+  apiAiGatewayOrDirect,
+  baixarArquivoDeAnexo,
+  parseNumeroId,
+} from "@/utils/apiClient";
+import type { Aluno, AnexoMensagem } from "@/utils/data/types";
+import type { Answer, Question } from "@/utils/pei/types";
 import { letraDaOpcao } from "@/utils/pei/types";
-import type { Aluno } from "@/utils/data/types";
+
+export interface PeiGeradoResultado {
+  peiId: string;
+  documentoGerado: string;
+  arquivoNome: string;
+  anexo?: AnexoMensagem;
+}
 
 export interface PeiService {
   buscarPerguntas(ctx: {
     aluno: Aluno;
     componente: string;
     periodo: string;
+    descricaoAluno?: string;
   }): Promise<Question[]>;
+  gerarPeiDocumento(ctx: {
+    aluno: Aluno;
+    professor?: string;
+    componente: string;
+    periodo: string;
+    questions: Question[];
+    respostas: Record<string, Answer>;
+  }): Promise<PeiGeradoResultado | null>;
+  importarPeiArquivo(ctx: {
+    aluno: Aluno;
+    arquivo: File;
+    componente?: string;
+    periodo?: string;
+  }): Promise<PeiGeradoResultado>;
+  baixarUltimoPeiAluno(aluno: Aluno): Promise<boolean>;
 }
 
-const OPCOES_LOREM = [
-  "Lorem ipsum dolor sit amet",
-  "Consectetur adipiscing elit",
-  "Sed do eiusmod tempor incididunt",
-  "Ut labore et dolore magna aliqua",
-];
+function extrairBimestre(periodo: string): number {
+  const match = /(\d)/.exec(periodo);
+  if (match) {
+    const n = Number(match[1]);
+    if (n >= 1 && n <= 4) return n;
+  }
+  return 1;
+}
 
-const PERGUNTAS_PEI: { text: string; subQuestions: string[] }[] = [
-  {
-    text: "Quais conteúdos e habilidades do Currículo da Rede Estadual Paulista serão desenvolvidos no bimestre?",
-    subQuestions: [
-      "O que o estudante já consegue fazer?",
-      "O que precisa e é possível de ser ajustado esse bimestre?",
-      "E como isso será feito?",
-    ],
-  },
-  {
-    text: "Quais estratégias, intervenções pedagógicas e recursos de acessibilidade serão utilizados para favorecer o acesso, a participação e a aprendizagem do estudante?",
-    subQuestions: [
-      "Quais estratégias pedagógicas você utilizará para que o estudante consiga participar das aulas?",
-      "Quais intervenções pedagógicas você utilizará para que o estudante consiga participar das aulas?",
-      "Quais recursos de acessibilidade você utilizará para que o estudante consiga participar das aulas?",
-    ],
-  },
-  {
-    text: "Quais instrumentos serão utilizados para acompanhar o aprendizado do estudante de forma inclusiva e individualizada?",
-    subQuestions: [
-      "Como você vai avaliar o estudante respeitando seu ritmo, suas necessidades e suas formas de expressão?",
-    ],
-  },
-];
+interface ApiPeiSubpergunta {
+  id_subpergunta: string;
+  pergunta: string;
+  opcoes: string[];
+}
 
-function perguntasPei(): Question[] {
-  const perguntas = PERGUNTAS_PEI.flatMap((grupo, grupoIndice) =>
-    grupo.subQuestions.map((subpergunta, subIndice) => ({
-      id: `q${grupoIndice + 1}s${subIndice + 1}`,
-      text: subpergunta,
-      parentText: grupo.text,
-      parentOrder: grupoIndice + 1,
+interface ApiPeiPerguntaGeral {
+  numero: number;
+  pergunta_geral: string;
+  subperguntas: ApiPeiSubpergunta[];
+}
+
+function converterRoteiroApiParaQuestions(perguntasApi: ApiPeiPerguntaGeral[]): Question[] {
+  const lista = perguntasApi.flatMap((grupo, gIdx) =>
+    (grupo.subperguntas ?? []).map((sub, sIdx) => ({
+      id: sub.id_subpergunta || `q${gIdx + 1}s${sIdx + 1}`,
+      text: sub.pergunta,
+      parentText: grupo.pergunta_geral,
+      parentOrder: grupo.numero || gIdx + 1,
       selectionMode: "single" as const,
-      options: OPCOES_LOREM.map((texto, o) => ({
-        id: `q${grupoIndice + 1}s${subIndice + 1}o${o + 1}`,
-        text: `${texto} ${letraDaOpcao(o)}`,
+      options: (sub.opcoes ?? []).slice(0, 4).map((opTexto, oIdx) => ({
+        id: `q${gIdx + 1}s${sIdx + 1}o${oIdx + 1}`,
+        text: opTexto || `Opção ${letraDaOpcao(oIdx)}`,
       })),
     })),
   );
 
-  return perguntas.map((pergunta, indice) => ({
-    ...pergunta,
-    order: indice + 1,
-    hasNext: indice < perguntas.length - 1,
+  return lista.map((item, idx) => ({
+    ...item,
+    order: idx + 1,
+    hasNext: idx < lista.length - 1,
   }));
 }
 
-function peiServiceDesenvolvimento(ctx: {
-  aluno: Aluno;
-  componente: string;
-  periodo: string;
-}): Promise<Question[]> {
-  void ctx;
-  return Promise.resolve(perguntasPei());
-}
-
 export const peiService: PeiService = {
-  buscarPerguntas: peiServiceDesenvolvimento,
+  async buscarPerguntas({ aluno, componente, periodo, descricaoAluno }): Promise<Question[]> {
+    const numId = parseNumeroId(aluno.id);
+    if (numId === null) {
+      throw new Error("ID do aluno inválido para gerar perguntas do PEI.");
+    }
+
+    const bimestre = extrairBimestre(periodo);
+    const descricao =
+      descricaoAluno ||
+      aluno.descricao ||
+      `Estudante ${aluno.nome}, idade ${aluno.idade ?? "não informada"}, perfil ${aluno.neuro.join(", ") || "inclusão escolar"}.`;
+
+    const resp = await apiAiGatewayOrDirect(
+      `/AI/pei/aluno/${numId}/inicial`,
+      `/alunos/${numId}/pei/inicial`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          descricao_aluno: descricao,
+          componente_curricular: componente || "Língua Portuguesa",
+          periodo_bimestre: bimestre,
+        }),
+      },
+    );
+
+    if (!resp.ok) {
+      throw new Error(`Falha ao buscar perguntas do PEI (HTTP ${resp.status}).`);
+    }
+
+    const dados = (await resp.json()) as {
+      perguntas?: ApiPeiPerguntaGeral[];
+    };
+    const convertidas = Array.isArray(dados.perguntas)
+      ? converterRoteiroApiParaQuestions(dados.perguntas)
+      : [];
+
+    if (convertidas.length === 0) {
+      throw new Error("A API não retornou perguntas para o PEI.");
+    }
+
+    return convertidas;
+  },
+
+  async gerarPeiDocumento({
+    aluno,
+    professor,
+    componente,
+    periodo,
+    questions,
+    respostas,
+  }): Promise<PeiGeradoResultado | null> {
+    const numId = parseNumeroId(aluno.id);
+    if (numId === null) return null;
+
+    const bimestre = extrairBimestre(periodo);
+    const itensRespostas = questions.map((q) => {
+      const resp = respostas[q.id];
+      const opcoesEscolhidas = q.options
+        .filter((op) => resp?.selectedOptionIds.includes(op.id))
+        .map((op) => op.text);
+      const textoLivre = resp?.freeText?.trim();
+      const partes = [...opcoesEscolhidas, ...(textoLivre ? [textoLivre] : [])];
+      return {
+        pergunta: q.text,
+        resposta: partes.join(" | ") || "Conforme planejamento pedagógico do bimestre.",
+        numero_pergunta_geral: q.parentOrder ?? 1,
+      };
+    });
+
+    const resp = await apiAiGatewayOrDirect(`/AI/pei/aluno/${numId}`, `/alunos/${numId}/pei`, {
+      method: "POST",
+      body: JSON.stringify({
+        nome_professor_regente: professor || "Professor(a)",
+        componente_curricular: componente || "Língua Portuguesa",
+        periodo_bimestre: bimestre,
+        respostas: itensRespostas,
+      }),
+    });
+
+    if (!resp.ok) return null;
+
+    const dados = (await resp.json()) as {
+      pei_id: string;
+      documento_gerado: string;
+      arquivo_nome?: string;
+      documento_docx_base64?: string;
+    };
+    const arquivoNome =
+      dados.arquivo_nome || `PEI_${aluno.nome.replace(/\s+/g, "_")}_${bimestre}Bim_2026.docx`;
+    const b64 = dados.documento_docx_base64;
+    const anexo: AnexoMensagem | undefined = b64
+      ? {
+          name: arquivoNome,
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          size: Math.round((b64.length * 3) / 4),
+          dataUrl: `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${b64}`,
+        }
+      : undefined;
+
+    return {
+      peiId: dados.pei_id,
+      documentoGerado: dados.documento_gerado,
+      arquivoNome,
+      anexo,
+    };
+  },
+
+  async importarPeiArquivo({
+    aluno,
+    arquivo,
+    componente,
+    periodo,
+  }): Promise<PeiGeradoResultado> {
+    const numId = parseNumeroId(aluno.id);
+    if (numId === null) {
+      throw new Error("ID do aluno inválido para importar PEI.");
+    }
+
+    const dataUrl = await new Promise<string>((resolver, rejeitar) => {
+      const leitor = new FileReader();
+      leitor.onload = () => resolver(String(leitor.result));
+      leitor.onerror = () => rejeitar(new Error("Falha ao ler arquivo"));
+      leitor.readAsDataURL(arquivo);
+    });
+
+    const bimestre = extrairBimestre(periodo || "1");
+    const resp = await apiAiGatewayOrDirect(
+      `/AI/pei/aluno/${numId}/importar`,
+      `/alunos/${numId}/pei/importar`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          arquivo_nome: arquivo.name,
+          arquivo_base64: dataUrl,
+          componente_curricular: componente || "Língua Portuguesa",
+          periodo_bimestre: bimestre,
+        }),
+      },
+    );
+
+    if (!resp.ok) {
+      throw new Error(`Não foi possível importar o PEI (HTTP ${resp.status}).`);
+    }
+
+    const dados = (await resp.json()) as {
+      pei_id: string;
+      documento_gerado: string;
+      arquivo_nome?: string;
+      documento_docx_base64?: string;
+    };
+    const arquivoNome = dados.arquivo_nome || arquivo.name;
+    const b64 = dados.documento_docx_base64;
+    const anexo: AnexoMensagem = b64
+      ? {
+          name: arquivoNome,
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          size: Math.round((b64.length * 3) / 4),
+          dataUrl: `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${b64}`,
+        }
+      : {
+          name: arquivo.name,
+          type: arquivo.type || "application/octet-stream",
+          size: arquivo.size,
+          dataUrl,
+        };
+
+    return {
+      peiId: dados.pei_id,
+      documentoGerado: dados.documento_gerado,
+      arquivoNome,
+      anexo,
+    };
+  },
+
+  async baixarUltimoPeiAluno(aluno: Aluno): Promise<boolean> {
+    const numId = parseNumeroId(aluno.id);
+    if (numId === null) return false;
+
+    const respLista = await apiAiGatewayOrDirect(
+      `/AI/pei/aluno/${numId}`,
+      `/alunos/${numId}/pei`,
+    );
+    if (!respLista.ok) return false;
+
+    const lista = (await respLista.json()) as Array<{ pei_id: string }>;
+    if (!Array.isArray(lista) || lista.length === 0) return false;
+
+    const peiId = lista[0].pei_id;
+    const respDoc = await apiAiGatewayOrDirect(
+      `/AI/pei/aluno/${numId}/${peiId}/docx`,
+      `/alunos/${numId}/pei/${peiId}/docx`,
+    );
+    if (!respDoc.ok) return false;
+
+    const blob = await respDoc.blob();
+    const url = URL.createObjectURL(blob);
+    baixarArquivoDeAnexo({
+      name: `PEI_${aluno.nome.replace(/\s+/g, "_")}.docx`,
+      dataUrl: url,
+    });
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    return true;
+  },
 };

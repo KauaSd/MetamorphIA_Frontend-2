@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -20,16 +19,6 @@ import {
 import { peiService } from "@/utils/pei/service";
 
 export const CHAVE_PEI = "metamorphia:pei:v3";
-
-interface FluxoSalvo {
-  alunoId: string;
-  componente: string;
-  periodo: string;
-  passo: PassoPEI;
-  currentIndex: number;
-  questions: Question[];
-  respostas: Record<string, Answer>;
-}
 
 export interface PeiFlowContext {
   aluno: Aluno | null;
@@ -62,38 +51,6 @@ export interface PeiFlowContext {
 
 const PeiFlowContexto = createContext<PeiFlowContext | null>(null);
 
-function lerFluxoSalvo(aluno: Aluno | null): FluxoSalvo | null {
-  if (!aluno || typeof window === "undefined") return null;
-  try {
-    const bruto = localStorage.getItem(`${CHAVE_PEI}:${aluno.id}`);
-    if (!bruto) return null;
-    const salvo = JSON.parse(bruto) as FluxoSalvo;
-    if (salvo.alunoId !== aluno.id) return null;
-    const questions = (salvo.questions ?? []).map((q) => ({
-      ...q,
-      selectionMode: "single" as const,
-    }));
-    const respostas: Record<string, Answer> = {};
-    for (const [chave, resp] of Object.entries(salvo.respostas ?? {})) {
-      respostas[chave] = {
-        ...resp,
-        selectedOptionIds: (resp.selectedOptionIds ?? []).slice(0, 1),
-      };
-    }
-    return { ...salvo, questions, respostas };
-  } catch {
-    return null;
-  }
-}
-
-function gravarFluxo(aluno: Aluno | null, fluxo: Omit<FluxoSalvo, "alunoId">) {
-  if (!aluno || typeof window === "undefined") return;
-  localStorage.setItem(
-    `${CHAVE_PEI}:${aluno.id}`,
-    JSON.stringify({ alunoId: aluno.id, ...fluxo, status: "pronto" }),
-  );
-}
-
 export function PeiFlowProvider({
   aluno,
   children,
@@ -101,17 +58,13 @@ export function PeiFlowProvider({
   aluno: Aluno | null;
   children: React.ReactNode;
 }) {
-  const salvoInicial = useMemo(() => lerFluxoSalvo(aluno), [aluno]);
-
-  const [componente, setComponente] = useState(salvoInicial?.componente ?? "");
-  const [periodo, setPeriodo] = useState(salvoInicial?.periodo ?? "");
-  const [passo, setPasso] = useState<PassoPEI>(salvoInicial?.passo ?? "form");
+  const [componente, setComponente] = useState("");
+  const [periodo, setPeriodo] = useState("");
+  const [passo, setPasso] = useState<PassoPEI>("form");
   const [status, setStatus] = useState<StatusPEI>("pronto");
-  const [currentIndex, setCurrentIndex] = useState(salvoInicial?.currentIndex ?? 0);
-  const [questions, setQuestions] = useState<Question[]>(salvoInicial?.questions ?? []);
-  const [respostas, setRespostas] = useState<Record<string, Answer>>(
-    salvoInicial?.respostas ?? {},
-  );
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [respostas, setRespostas] = useState<Record<string, Answer>>({});
   const [mostrarRevisao, setMostrarRevisao] = useState(false);
 
   const carregarPerguntas = useCallback(async () => {
@@ -125,10 +78,6 @@ export function PeiFlowProvider({
       setStatus("erro");
     }
   }, [aluno, componente, periodo]);
-
-  useEffect(() => {
-    gravarFluxo(aluno, { componente, periodo, passo, currentIndex, questions, respostas });
-  }, [aluno, componente, periodo, passo, currentIndex, questions, respostas]);
 
   const respostaAtual: Answer =
     respostas[questions[currentIndex]?.id] ?? respostaVazia(questions[currentIndex]?.id ?? "");
@@ -258,10 +207,7 @@ export function PeiFlowProvider({
     setQuestions([]);
     setRespostas({});
     setMostrarRevisao(false);
-    if (aluno && typeof window !== "undefined") {
-      localStorage.removeItem(`${CHAVE_PEI}:${aluno.id}`);
-    }
-  }, [aluno]);
+  }, []);
 
   const valor = useMemo<PeiFlowContext>(
     () => ({

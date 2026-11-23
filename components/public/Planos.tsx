@@ -93,6 +93,7 @@ const CONFIG_PLANOS: Record<PlanoId, PlanoConfig> = {
         temBotao: true,
         botao: {
             texto: "Sou escola",
+            href: "/planos/institucional",
             className: "bg-surface-warning hover:bg-warning",
         },
     },

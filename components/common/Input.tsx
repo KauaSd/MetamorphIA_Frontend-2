@@ -8,7 +8,8 @@ type InputProps = {
   placeholder?: string;
   value?: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  className?: string,
+  className?: string;
+  disabled?: boolean;
 };
 
 export default function Input({
@@ -17,6 +18,7 @@ export default function Input({
   value,
   onChange,
   className = "",
+  disabled = false,
 }: InputProps) {
   const isSearch = type === "search";
 
@@ -30,8 +32,9 @@ export default function Input({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        disabled={disabled}
         className={twMerge(
-          "w-full rounded-[70px] py-[0.55rem] text-sm text-secondary outline-none transition-colors",
+          "w-full rounded-[70px] py-[0.55rem] text-sm text-secondary outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed",
           isSearch ? "bg-surface-base pl-12 pr-[0.7rem]" : "bg-sunken px-[0.7rem]",
           className,
         )}

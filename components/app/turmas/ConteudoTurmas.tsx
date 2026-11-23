@@ -5,6 +5,7 @@ import HeaderPag from "@/components/app/turmas/HeaderPagTurmas";
 import BarraPesquisa from "@/components/common/Input";
 import Turma, { type AlunoTag } from "@/components/app/turmas/Turma";
 import BoxSemTurma from "@/components/app/turmas/BoxSemTurma";
+import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import Toast, { useAlerta } from "@/components/common/Toast";
 import { FormTurma, FormDeletaTurma } from "@/components/app/forms/FormAlunoTurma";
 import { useData } from "@/components/app/state/DataProvider";
@@ -12,7 +13,7 @@ import { createTurma, deleteTurma, updateTurma, type Resultado } from "@/utils/d
 import { ALERTAS } from "@/utils/alertas";
 
 export default function ConteudoTurmas() {
-  const { turmas, alunos, escolas, recarregar } = useData();
+  const { turmas, alunos, escolas, recarregar, hydrated } = useData();
   const [mostrarForm, setMostrarForm] = useState(false);
   const [busca, setBusca] = useState("");
   const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
@@ -87,6 +88,10 @@ export default function ConteudoTurmas() {
 
   const temTurma = turmas.length > 0;
   const temResultado = turmasFiltradas.length > 0;
+
+  if (!hydrated) {
+    return <CarregandoDashboard mensagem="Carregando turmas..." />;
+  }
 
   return (
     <div className="flex flex-col w-full min-h-screen items-center">

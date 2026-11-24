@@ -6,6 +6,12 @@ export const API_DB_URL = (
   "https://metamorphia-db-api.onrender.com"
 ).replace(/\/$/, "");
 
+export const API_IA_URL = (
+  process.env.NEXT_PUBLIC_IA_API_URL ??
+  process.env.NEXT_PUBLIC_AI_API_URL ??
+  "https://metamorphia-ia-api.onrender.com"
+).replace(/\/$/, "");
+
 export const TOKEN_STORAGE_KEY = "metamorphia:auth:token";
 export const REFRESH_TOKEN_STORAGE_KEY = "metamorphia:auth:refresh_token";
 export const PENDING_2FA_TOKEN_KEY = "metamorphia:auth:pending_2fa_token";
@@ -260,7 +266,8 @@ export async function renovarTokenJwt(): Promise<string | null> {
   return refreshEmAndamento;
 }
 
-function executarFetchDb(
+function executarFetchComBase(
+  baseUrl: string,
   endpoint: string,
   init: RequestInit,
   token: string | null,
@@ -276,13 +283,14 @@ function executarFetchDb(
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
-  return fetch(`${API_DB_URL}${endpoint}`, {
+  return fetch(`${baseUrl}${endpoint}`, {
     ...init,
     headers,
   });
 }
 
-export async function apiDbFetch(
+async function apiFetchComBase(
+  baseUrl: string,
   endpoint: string,
   init: RequestInit = {},
   tokenOverride?: string | null,
@@ -299,13 +307,13 @@ export async function apiDbFetch(
     if (renovado) token = renovado;
   }
 
-  let resp = await executarFetchDb(endpoint, init, token);
+  let resp = await executarFetchComBase(baseUrl, endpoint, init, token);
 
   // Se a API responder 401, tenta renovar o JWT uma vez e refaz a requisicao
   if (resp.status === 401 && permiteRefresh && getRefreshToken()) {
     const renovado = await renovarTokenJwt();
     if (renovado) {
-      resp = await executarFetchDb(endpoint, init, renovado);
+      resp = await executarFetchComBase(baseUrl, endpoint, init, renovado);
     } else if (
       typeof window !== "undefined" &&
       !window.location.pathname.startsWith("/auth/")
@@ -317,14 +325,34 @@ export async function apiDbFetch(
   return resp;
 }
 
+export async function apiDbFetch(
+  endpoint: string,
+  init: RequestInit = {},
+  tokenOverride?: string | null,
+): Promise<Response> {
+  return apiFetchComBase(API_DB_URL, endpoint, init, tokenOverride);
+}
+
+export async function apiIaFetch(
+  endpoint: string,
+  init: RequestInit = {},
+  tokenOverride?: string | null,
+): Promise<Response> {
+  return apiFetchComBase(API_IA_URL, endpoint, init, tokenOverride);
+}
+
 /**
- * Executa a chamada via Gateway da API principal (`/AI/...`).
+ * Executa a chamada diretamente na API da IA (`API_IA_URL`) quando configurada,
+ * com fallback para o Gateway da API principal (`/AI/...`).
  */
 export async function apiAiGatewayOrDirect(
   dbEndpoint: string,
-  _iaEndpoint: string,
+  iaEndpoint: string,
   init: RequestInit = {},
 ): Promise<Response> {
+  if (API_IA_URL) {
+    return apiIaFetch(iaEndpoint, init);
+  }
   return apiDbFetch(dbEndpoint, init);
 }
 

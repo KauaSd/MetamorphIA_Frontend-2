@@ -6,6 +6,7 @@ import { useData } from "@/components/app/state/DataProvider";
 import {
   alunoPorId,
   conversasDoAluno as filtrarConversasDoAluno,
+  escolaPorId,
   turmaPorId,
   type StudentInsights,
 } from "@/utils/data/types";
@@ -16,20 +17,21 @@ import { peiService } from "@/utils/pei/service";
 import { ALERTAS } from "@/utils/alertas";
 import Resumo from "@/components/app/alunos/Resumo";
 import Toast, { useAlerta } from "@/components/common/Toast";
-import Engajamento from "@/components/app/alunos/Engajamento";
 import HistoricoTags from "@/components/app/chat/HistoricoTags";
 import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma";
 import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import { BarraCarregando } from "@/components/common/Carregando";
 import HeaderPag from "@/components/app/alunos/HeaderDashAl";
 import BoxSemConversa from "@/components/app/chat/BoxSemConversa";
-import Estatistica from "@/components/app/alunos/CardEstatisticaAluno";
+import PeisDisciplinaCard from "@/components/app/alunos/PeisDisciplinaCard";
+import MetasBimestreCard from "@/components/app/alunos/MetasBimestreCard";
+import IndicadoresDesenvolvimentoCard from "@/components/app/alunos/IndicadoresDesenvolvimentoCard";
 
 export default function ConteudoDashboardAluno() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const alunoId = searchParams.get("id");
-  const { alunos, turmas, conversas, recarregar, hydrated } = useData();
+  const { alunos, turmas, escolas, conversas, recarregar, hydrated } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
 
   const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
@@ -39,6 +41,7 @@ export default function ConteudoDashboardAluno() {
 
   const aluno = alunoId ? alunoPorId(alunos, alunoId) : undefined;
   const turma = aluno ? turmaPorId(turmas, aluno.turmaId) : undefined;
+  const escola = turma?.escolaId ? escolaPorId(escolas, turma.escolaId) : undefined;
   const conversasDoAluno = alunoId ? filtrarConversasDoAluno(conversas, alunoId) : [];
 
   const turmasParaForm = useMemo(
@@ -119,7 +122,7 @@ export default function ConteudoDashboardAluno() {
   async function handleBatePapo() {
     if (!alunoId) return;
     setAbrindoChat(true);
-    const resultado = await openChatWith(alunoId);
+    const resultado = await openChatWith(alunoId, { nova: true });
     if (!resultado.ok) {
       setAbrindoChat(false);
       mostrar(resultado.erro);
@@ -189,11 +192,12 @@ export default function ConteudoDashboardAluno() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
+    <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:max-w-none lg:px-12 lg:py-[70px] xl:px-[clamp(48px,13.5vw,259px)]">
       <div className="flex w-full flex-col">
         <HeaderPag
           aluno={aluno}
           nomeTurma={turma?.nome ?? ""}
+          nomeEscola={escola?.nome}
           turmaId={aluno.turmaId}
           onBatePapo={handleBatePapo}
           onCriarPei={handleCriarPei}
@@ -204,26 +208,37 @@ export default function ConteudoDashboardAluno() {
         />
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <Estatistica tipo={1} valor={insights?.atividadesAdaptadas ?? 8} />
-        <Estatistica tipo={2} valor={insights?.engajamento ?? 74} />
-        <Estatistica tipo={3} valor={insights?.peiGerado ?? 1} />
-      </div>
+      <Resumo
+        tipo={2}
+        txt={resumo || insights?.resumo || resumoDoAluno}
+        onSave={handleSalvarResumo}
+      />
 
-      <div className="flex flex-col gap-4">
-        <p className="text-lg text-secondary font-semibold">Resumo do perfil</p>
-        <Resumo
-          tipo={2}
-          txt={resumo || insights?.resumo || resumoDoAluno}
-          onSave={handleSalvarResumo}
-        />
-      </div>
+      <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[minmax(0,383fr)_minmax(0,624fr)] xl:grid-cols-[minmax(0,383px)_minmax(0,624px)] xl:justify-between">
+        <div className="flex flex-col gap-5 lg:h-[548px] lg:justify-between lg:gap-[14px]">
+          <PeisDisciplinaCard
+            dados={
+              insights?.peisPorDisciplina ?? {
+                statusGeral: "EM ANDAMENTO",
+                concluidos: 0,
+                total: 0,
+                disciplinas: [],
+              }
+            }
+          />
+          <MetasBimestreCard metas={insights?.metasDoBimestre ?? []} />
+        </div>
 
-      <Engajamento tipo={2} itens={insights?.engajamentoPorMateria ?? []} />
+        <div className="min-w-0">
+          <IndicadoresDesenvolvimentoCard
+            indicadores={insights?.indicadoresDesenvolvimento ?? []}
+          />
+        </div>
+      </div>
 
       <div className="flex flex-col gap-7 pb-6">
         <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-          <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Histórico de conversas</p>
+          <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Histórico de Conversas</p>
           <p className="text-sm text-secondary">{conversasDoAluno.length} conversas</p>
         </div>
 
@@ -232,7 +247,7 @@ export default function ConteudoDashboardAluno() {
             <BoxSemConversa alunoId={aluno.id} />
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex max-h-[340px] flex-col gap-3 overflow-y-auto pr-2">
             {conversasDoAluno.map((conversa) => (
               <HistoricoTags
                 key={conversa.id}

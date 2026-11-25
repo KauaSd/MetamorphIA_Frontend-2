@@ -12,9 +12,16 @@ import {
   type Aluno,
   type ClassInsights,
   type Conversa,
+  type CorIndicador,
   type EngajamentoMateria,
   type Escola,
+  type IndicadorDesenvolvimento,
   type Mensagem,
+  type MetaBimestreItem,
+  type PeiDisciplinaItem,
+  type PeisPorDisciplinaResumo,
+  type StatusMetaBimestre,
+  type StatusPeiDisciplina,
   type StudentInsights,
   type Turma,
 } from "./types";
@@ -24,6 +31,86 @@ const ENGAJAMENTO_ZERADO: EngajamentoMateria[] = [
   { rotulo: "Matemática", materia: "matematica", percentual: 0 },
   { rotulo: "Ciências", materia: "ciencias", percentual: 0 },
 ];
+
+const PEIS_DISCIPLINA_PADRAO: PeisPorDisciplinaResumo = {
+  statusGeral: "EM ANDAMENTO",
+  concluidos: 2,
+  total: 5,
+  disciplinas: [
+    { id: "mat", disciplina: "Matemática", status: "concluido" },
+    { id: "por", disciplina: "L. Portuguesa", status: "em_andamento" },
+    { id: "cie", disciplina: "Ciências", status: "em_andamento" },
+    { id: "ing", disciplina: "L. Inglesa", status: "concluido" },
+    { id: "his", disciplina: "História", status: "nao_iniciado" },
+  ],
+  ultimoEnvio: "30/04/27",
+  proximoPeriodo: "20/07 até 31/07/27",
+};
+
+const METAS_BIMESTRE_PADRAO: MetaBimestreItem[] = [
+  { id: "m1", titulo: "Maior foco nas produções textuais", status: "em_progresso" },
+  { id: "m2", titulo: "Resolver operações com apoio visual", status: "a_iniciar" },
+  { id: "m3", titulo: "Completar atividades em blocos curtos", status: "atingida" },
+];
+
+const INDICADORES_PADRAO: IndicadorDesenvolvimento[] = [
+  {
+    id: "autonomia",
+    titulo: "Autonomia nas Atividades",
+    escalaEsquerda: "Precisa de apoio",
+    escalaCentro: "Com pistas",
+    escalaDireita: "Faz sozinho",
+    nivel: 3,
+    cor: "warning",
+  },
+  {
+    id: "foco",
+    titulo: "Foco e Atenção",
+    escalaEsquerda: "Disperso",
+    escalaCentro: "Oscila",
+    escalaDireita: "Sustentado",
+    nivel: 2,
+    cor: "accent",
+  },
+  {
+    id: "regulacao",
+    titulo: "Regulação Emocional",
+    escalaEsquerda: "Sensível",
+    escalaCentro: "Em adaptação",
+    escalaDireita: "Estável",
+    nivel: 4,
+    cor: "info",
+  },
+  {
+    id: "engajamento",
+    titulo: "Engajamento com Adaptações",
+    escalaEsquerda: "Baixo",
+    escalaCentro: "Moderado",
+    escalaDireita: "Alto",
+    nivel: 4,
+    cor: "success",
+  },
+];
+
+function normalizarStatusPei(status?: string): StatusPeiDisciplina {
+  const s = (status ?? "").toLowerCase();
+  if (s.includes("conclu") || s.includes("pronto") || s.includes("enviado")) return "concluido";
+  if (s.includes("andamento") || s.includes("progresso")) return "em_andamento";
+  return "nao_iniciado";
+}
+
+function normalizarStatusMeta(status?: string): StatusMetaBimestre {
+  const s = (status ?? "").toLowerCase();
+  if (s.includes("atingid") || s.includes("conclu")) return "atingida";
+  if (s.includes("iniciar") || s.includes("pendente")) return "a_iniciar";
+  return "em_progresso";
+}
+
+function normalizarCorIndicador(cor?: string, index = 0): CorIndicador {
+  if (cor === "warning" || cor === "accent" || cor === "info" || cor === "success") return cor;
+  const ciclo: CorIndicador[] = ["warning", "accent", "info", "success"];
+  return ciclo[index % ciclo.length];
+}
 
 // Mantém apenas conversas recém-abertas em memória na sessão atual até a primeira mensagem ir para a API
 const conversasEmMemoria = new Map<string, Conversa>();
@@ -532,13 +619,73 @@ export const apiRepository: DataRepository = {
           pei_gerado?: boolean;
           perfil_ia?: string | null;
           desempenho_por_area?: Record<string, number>;
+          peis_por_disciplina?: {
+            status_geral?: string;
+            concluidos?: number;
+            total?: number;
+            disciplinas?: Array<{ id?: string; disciplina?: string; nome?: string; status?: string }>;
+            ultimo_envio?: string | null;
+            proximo_periodo?: string | null;
+          };
+          metas_bimestre?: Array<{ id?: string; titulo?: string; descricao?: string; status?: string }>;
+          indicadores_desenvolvimento?: Array<{
+            id?: string;
+            titulo?: string;
+            escala_esquerda?: string;
+            escala_centro?: string;
+            escala_direita?: string;
+            nivel?: number;
+            cor?: string;
+          }>;
         };
+
+        const peisApi = dados.peis_por_disciplina;
+        const peisPorDisciplina: PeisPorDisciplinaResumo = peisApi
+          ? {
+              statusGeral: peisApi.status_geral ?? "EM ANDAMENTO",
+              concluidos: peisApi.concluidos ?? 0,
+              total: peisApi.total ?? (peisApi.disciplinas?.length ?? 0),
+              disciplinas: (peisApi.disciplinas ?? []).map((d, idx): PeiDisciplinaItem => ({
+                id: d.id ?? `pei_${idx}`,
+                disciplina: d.disciplina ?? d.nome ?? "Disciplina",
+                status: normalizarStatusPei(d.status),
+              })),
+              ultimoEnvio: peisApi.ultimo_envio ?? null,
+              proximoPeriodo: peisApi.proximo_periodo ?? null,
+            }
+          : PEIS_DISCIPLINA_PADRAO;
+
+        const metasDoBimestre: MetaBimestreItem[] = Array.isArray(dados.metas_bimestre)
+          ? dados.metas_bimestre.map((m, idx) => ({
+              id: m.id ?? `meta_${idx}`,
+              titulo: m.titulo ?? m.descricao ?? "",
+              status: normalizarStatusMeta(m.status),
+            }))
+          : METAS_BIMESTRE_PADRAO;
+
+        const indicadoresDesenvolvimento: IndicadorDesenvolvimento[] = Array.isArray(
+          dados.indicadores_desenvolvimento,
+        )
+          ? dados.indicadores_desenvolvimento.map((ind, idx) => ({
+              id: ind.id ?? `ind_${idx}`,
+              titulo: ind.titulo ?? "",
+              escalaEsquerda: ind.escala_esquerda ?? "",
+              escalaCentro: ind.escala_centro ?? "",
+              escalaDireita: ind.escala_direita ?? "",
+              nivel: Math.max(1, Math.min(5, Number(ind.nivel ?? 1))),
+              cor: normalizarCorIndicador(ind.cor, idx),
+            }))
+          : INDICADORES_PADRAO;
+
         return {
           atividadesAdaptadas: dados.atividades_adaptadas ?? 0,
           engajamento: dados.engajamento_percent ?? 0,
           peiGerado: dados.pei_gerado ? 1 : 0,
           resumo: dados.perfil_ia ?? "",
           engajamentoPorMateria: mapearEngajamento(dados.desempenho_por_area),
+          peisPorDisciplina,
+          metasDoBimestre,
+          indicadoresDesenvolvimento,
         };
       }
     }
@@ -548,6 +695,9 @@ export const apiRepository: DataRepository = {
       peiGerado: 0,
       resumo: "",
       engajamentoPorMateria: ENGAJAMENTO_ZERADO,
+      peisPorDisciplina: PEIS_DISCIPLINA_PADRAO,
+      metasDoBimestre: METAS_BIMESTRE_PADRAO,
+      indicadoresDesenvolvimento: INDICADORES_PADRAO,
     };
   },
 };

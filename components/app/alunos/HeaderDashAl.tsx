@@ -17,6 +17,7 @@ import type { Aluno } from "@/utils/data/types";
 interface HeaderDashAlProps {
   aluno: Aluno;
   nomeTurma: string;
+  nomeEscola?: string;
   /** id da turma do proprio aluno, para o link de voltar */
   turmaId: string;
   onBatePapo: () => void;
@@ -32,6 +33,7 @@ interface HeaderDashAlProps {
 export default function HeaderDashAl({
   aluno,
   nomeTurma,
+  nomeEscola,
   turmaId,
   onBatePapo,
   onCriarPei,
@@ -124,14 +126,20 @@ export default function HeaderDashAl({
               {aluno.nome}
             </p>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-secondary sm:gap-5">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-secondary sm:gap-4">
               {aluno.idade !== null && (
                 <>
                   <p>{aluno.idade} anos</p>
-                  <div className="h-2 w-2 rounded-full bg-secondary" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-secondary" />
                 </>
               )}
               <p className="truncate">{nomeTurma}</p>
+              {nomeEscola ? (
+                <>
+                  <div className="h-1.5 w-1.5 rounded-full bg-secondary" />
+                  <p className="truncate">{nomeEscola}</p>
+                </>
+              ) : null}
             </div>
 
             {aluno.neuro.length > 0 && (
@@ -149,7 +157,7 @@ export default function HeaderDashAl({
             type="button"
             onClick={onBatePapo}
             disabled={abrindoChat}
-            className="flex w-auto flex-row items-center justify-center gap-1.5 px-3 py-1 sm:py-1 bg-surface-success text-ink hover:bg-surface-success-strong"
+            className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-info px-3 py-1 text-ink hover:bg-surface-positive-strong sm:py-1"
           >
             <img src={Add.src} className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" alt="" />
             <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-xs sm:text-xl">
@@ -167,7 +175,7 @@ export default function HeaderDashAl({
               }}
               aria-haspopup="menu"
               aria-expanded={isPeiOpen}
-              className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-warning text-ink hover:bg-surface-warning-strong px-3 py-1 sm:py-1"
+              className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-accent px-3 py-1 text-ink hover:bg-surface-accent-strong sm:py-1"
             >
               <img src={FilePEIIcon.src} className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" alt="" />
               <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-xs sm:text-xl">

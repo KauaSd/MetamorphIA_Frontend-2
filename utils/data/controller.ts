@@ -200,15 +200,19 @@ export async function deleteAluno(id: string): Promise<Resultado> {
 }
 
 // a conversa nasce no clique, e nao na primeira mensagem, para o Recentes ja ter o que mostrar
-export async function openChatWith(alunoId: string | null): Promise<Resultado> {
+export async function openChatWith(
+  alunoId: string | null,
+  opcoes?: { nova?: boolean },
+): Promise<Resultado> {
   if (!alunoId) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
   const alunos = await repository.listAlunos();
   if (!alunos.some((aluno) => aluno.id === alunoId)) return falha(ALERTAS.ALUNO_NAO_ENCONTRADO);
 
-  const conversas = await repository.listConversas();
-  const existente = conversaDoAluno(conversas, alunoId);
-
-  if (existente) return { ok: true, conversaId: existente.id };
+  if (!opcoes?.nova) {
+    const conversas = await repository.listConversas();
+    const existente = conversaDoAluno(conversas, alunoId);
+    if (existente) return { ok: true, conversaId: existente.id };
+  }
 
   const conversa = {
     id: gerarId("con"),

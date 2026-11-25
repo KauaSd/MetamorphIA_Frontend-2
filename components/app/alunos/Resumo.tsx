@@ -59,11 +59,16 @@ export default function Resumo(props : ResumoProps) {
     }
 
     return(
-        <div className="relative flex min-h-28 w-full flex-col gap-2 rounded-[35px] bg-surface-base px-8 py-4">
+        <div className={`relative flex min-h-28 w-full flex-col gap-2 bg-surface-base px-8 py-4 ${props.tipo === 2 ? "rounded-[50px]" : "rounded-[35px]"}`}>
             <OverlayCarregando ativo={salvando} mensagem="Salvando resumo..." />
             <Encaracolado src={EncaracoladoSvg.src} className="absolute left-[-10] top-1/2 -translate-y-1/2 w-[30px] aspect-[33/141]" />
             <div className="flex flex-row justify-between">
-                <p className="font-(family-name:--font-text-me-one) text-xl text-primary sm:text-2xl"> {config.titulo} </p>
+                <div className="flex items-center gap-2">
+                    <p className="font-(family-name:--font-text-me-one) text-xl text-primary sm:text-2xl"> {config.titulo} </p>
+                    {props.tipo === 2 ? (
+                        <span className="text-base text-primary" aria-hidden="true">✦</span>
+                    ) : null}
+                </div>
 
                 {editando ? (
                     <div className="flex flex-row items-center gap-2">

@@ -70,12 +70,53 @@ export interface ClassInsights {
   engajamento: EngajamentoMateria[];
 }
 
+export type StatusPeiDisciplina = "concluido" | "em_andamento" | "nao_iniciado";
+
+export interface PeiDisciplinaItem {
+  id: string;
+  disciplina: string;
+  status: StatusPeiDisciplina;
+}
+
+export interface PeisPorDisciplinaResumo {
+  statusGeral: string;
+  concluidos: number;
+  total: number;
+  disciplinas: PeiDisciplinaItem[];
+  ultimoEnvio?: string | null;
+  proximoPeriodo?: string | null;
+}
+
+export type StatusMetaBimestre = "em_progresso" | "a_iniciar" | "atingida";
+
+export interface MetaBimestreItem {
+  id: string;
+  titulo: string;
+  status: StatusMetaBimestre;
+}
+
+export type CorIndicador = "warning" | "accent" | "info" | "success";
+
+export interface IndicadorDesenvolvimento {
+  id: string;
+  titulo: string;
+  escalaEsquerda: string;
+  escalaCentro: string;
+  escalaDireita: string;
+  /** Nivel de 1 a 5 */
+  nivel: number;
+  cor: CorIndicador;
+}
+
 export interface StudentInsights {
   atividadesAdaptadas: number;
   engajamento: number;
   peiGerado: number;
   resumo: string;
   engajamentoPorMateria: EngajamentoMateria[];
+  peisPorDisciplina: PeisPorDisciplinaResumo;
+  metasDoBimestre: MetaBimestreItem[];
+  indicadoresDesenvolvimento: IndicadorDesenvolvimento[];
 }
 
 // ---------- armazenamento ----------

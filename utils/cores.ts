@@ -121,8 +121,6 @@ const CORES_SUPERFICIE = [
   "bg-surface-warning",
   "bg-surface-success",
   "bg-surface-info",
-  "bg-surface-positive",
-  "bg-surface-tag-other",
 ] as const;
 
 const CORES_SUPERFICIE_CSS = [
@@ -131,16 +129,15 @@ const CORES_SUPERFICIE_CSS = [
   "var(--surface-warning)",
   "var(--surface-success)",
   "var(--surface-info)",
-  "var(--surface-positive)",
-  "var(--surface-tag-other)",
 ] as const;
 
 function indiceCorDoNome(nome: string, total: number): number {
-  let hash = 0;
+  let hash = 2166136261;
   for (let i = 0; i < nome.length; i++) {
-    hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+    hash ^= nome.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
   }
-  return Math.abs(hash) % total;
+  return (hash >>> 0) % total;
 }
 
 /**

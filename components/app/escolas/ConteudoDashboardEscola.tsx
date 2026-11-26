@@ -80,7 +80,7 @@ export default function ConteudoDashboardEscola() {
   ): Promise<Resultado> {
     const resultado = await createTurma({
       nome,
-      escolaId: novoEscolaId || undefined,
+      escolaId: novoEscolaId || escolaId || undefined,
       ...extras,
     });
     if (resultado.ok) {
@@ -144,6 +144,7 @@ export default function ConteudoDashboardEscola() {
         escolas={escolas}
         turmasDaEscolaList={turmasDaEscolaList}
         alunosDaEscola={alunosDaEscola}
+        ehAdminRede={ehAdminRede}
         onRecarregar={recarregar}
       />
     );

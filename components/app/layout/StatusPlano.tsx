@@ -40,6 +40,41 @@ const CONFIG_PLANO: Record<
   },
 };
 
+export function resolverTipoPlano({
+  plano,
+  escolas,
+  escolaInstitucional,
+  podeAlternarModoProfessor,
+  modoAtivo,
+}: {
+  plano?: string | null;
+  escolas: Array<{ institucional?: boolean; plano?: string | null }>;
+  escolaInstitucional?: boolean;
+  podeAlternarModoProfessor?: boolean;
+  modoAtivo?: string | null;
+}): TipoPlanoStatus {
+  const planoNormalizado = (plano ?? "").trim().toLowerCase();
+  const emModoProfessor = Boolean(podeAlternarModoProfessor) && modoAtivo === "professor";
+  const planoIndividualPro =
+    planoNormalizado === "pro" ||
+    escolas.some(
+      (esc) => !esc.institucional && (esc.plano ?? "").trim().toLowerCase() === "pro",
+    );
+  if (emModoProfessor) {
+    return planoIndividualPro ? "pro" : "basico";
+  }
+  const ehInstitucional =
+    Boolean(escolaInstitucional) ||
+    planoNormalizado.includes("institucional") ||
+    escolas.some(
+      (esc) =>
+        esc.institucional ||
+        (esc.plano ?? "").trim().toLowerCase().includes("institucional"),
+    );
+  if (ehInstitucional) return "institucional";
+  return planoNormalizado === "pro" ? "pro" : "basico";
+}
+
 export default function StatusPlano({
   tipo = "basico",
   className,

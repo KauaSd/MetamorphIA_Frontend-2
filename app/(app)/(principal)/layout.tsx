@@ -11,7 +11,7 @@ import {
 import FormVincularInstituicao from "@/components/app/forms/FormVincularInstituicao";
 import { useData } from "@/components/app/state/DataProvider";
 import { alternarModo, markTutorialSeen } from "@/utils/data/controller";
-import StatusPlano, { type TipoPlanoStatus } from "@/components/app/layout/StatusPlano";
+import StatusPlano, { resolverTipoPlano, type TipoPlanoStatus } from "@/components/app/layout/StatusPlano";
 
 const ROTAS_SOMENTE_PROFESSOR = ["/alunos", "/dashboardAluno", "/recentes", "/chat"];
 
@@ -158,22 +158,13 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
   const varianteAtiva = mostrarTutorialInstitucional ? "institucional" : "padrao";
   const exibirTutorial =
     mostrarTutorialInstitucional || Boolean(passoTutorial && !tutorialVisto && !ehInstitucional);
-  const planoNormalizado = (plano ?? "").trim().toLowerCase();
-  const emModoProfessor = podeAlternarModoProfessor && modoAtivo === "professor";
-  const planoIndividualPro =
-    planoNormalizado === "pro" ||
-    escolas.some(
-      (esc) => !esc.institucional && (esc.plano ?? "").trim().toLowerCase() === "pro",
-    );
-  const tipoPlano: TipoPlanoStatus = emModoProfessor
-    ? planoIndividualPro
-      ? "pro"
-      : "basico"
-    : ehInstitucional
-      ? "institucional"
-      : planoNormalizado === "pro"
-        ? "pro"
-        : "basico";
+  const tipoPlano: TipoPlanoStatus = resolverTipoPlano({
+    plano,
+    escolas,
+    escolaInstitucional,
+    podeAlternarModoProfessor,
+    modoAtivo,
+  });
 
   return (
     <div className="flex min-h-screen w-full flex-row">

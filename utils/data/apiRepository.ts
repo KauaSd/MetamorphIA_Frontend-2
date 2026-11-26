@@ -7,6 +7,7 @@ import {
   setSavedUserProfile,
   type UserProfile,
 } from "@/utils/apiClient";
+import { obterOpcoesComponente } from "@/utils/pei/opcoes";
 import type { DataRepository } from "./dataRepository";
 import {
   hojeDDMMAAAA,
@@ -33,26 +34,27 @@ const ENGAJAMENTO_ZERADO: EngajamentoMateria[] = [
   { rotulo: "Ciências", materia: "ciencias", percentual: 0 },
 ];
 
-const PEIS_DISCIPLINA_PADRAO: PeisPorDisciplinaResumo = {
-  statusGeral: "EM ANDAMENTO",
-  concluidos: 2,
-  total: 5,
-  disciplinas: [
-    { id: "mat", disciplina: "Matemática", status: "concluido" },
-    { id: "por", disciplina: "L. Portuguesa", status: "em_andamento" },
-    { id: "cie", disciplina: "Ciências", status: "em_andamento" },
-    { id: "ing", disciplina: "L. Inglesa", status: "concluido" },
-    { id: "his", disciplina: "História", status: "nao_iniciado" },
-  ],
-  ultimoEnvio: "30/04/27",
-  proximoPeriodo: "20/07 até 31/07/27",
-};
+function criarPeisDisciplinaNaoIniciada(): PeisPorDisciplinaResumo {
+  const perfil = getSavedUserProfile();
+  const opcoes = obterOpcoesComponente(
+    perfil?.tags?.length ? perfil.tags : perfil?.tags_areas,
+  );
+  const disciplinas: PeiDisciplinaItem[] = opcoes.map((op) => ({
+    id: op.value,
+    disciplina: op.label,
+    status: "nao_iniciado",
+  }));
+  return {
+    statusGeral: "NÃO INICIADA",
+    concluidos: 0,
+    total: disciplinas.length,
+    disciplinas,
+    ultimoEnvio: null,
+    proximoPeriodo: null,
+  };
+}
 
-const METAS_BIMESTRE_PADRAO: MetaBimestreItem[] = [
-  { id: "m1", titulo: "Maior foco nas produções textuais", status: "em_progresso" },
-  { id: "m2", titulo: "Resolver operações com apoio visual", status: "a_iniciar" },
-  { id: "m3", titulo: "Completar atividades em blocos curtos", status: "atingida" },
-];
+const METAS_BIMESTRE_PADRAO: MetaBimestreItem[] = [];
 
 const INDICADORES_PADRAO: IndicadorDesenvolvimento[] = [
   {
@@ -1029,22 +1031,31 @@ export const apiRepository: DataRepository = {
           }>;
         };
 
+        const peisPadrao = criarPeisDisciplinaNaoIniciada();
         const peisApi = dados.peis_por_disciplina;
+        const disciplinasApi: PeiDisciplinaItem[] = (peisApi?.disciplinas ?? []).map(
+          (d, idx): PeiDisciplinaItem => ({
+            id: d.id ?? `pei_${idx}`,
+            disciplina: d.disciplina ?? d.nome ?? "Disciplina",
+            status: normalizarStatusPei(d.status),
+          }),
+        );
+        const disciplinasFinais =
+          disciplinasApi.length > 0 ? disciplinasApi : peisPadrao.disciplinas;
         const peisPorDisciplina: PeisPorDisciplinaResumo = peisApi
           ? {
-              statusGeral: peisApi.status_geral ?? "EM ANDAMENTO",
+              statusGeral: peisApi.status_geral ?? "NÃO INICIADA",
               concluidos: peisApi.concluidos ?? 0,
-              total: peisApi.total ?? (peisApi.disciplinas?.length ?? 0),
-              disciplinas: (peisApi.disciplinas ?? []).map((d, idx): PeiDisciplinaItem => ({
-                id: d.id ?? `pei_${idx}`,
-                disciplina: d.disciplina ?? d.nome ?? "Disciplina",
-                status: normalizarStatusPei(d.status),
-              })),
+              total:
+                disciplinasApi.length > 0
+                  ? (peisApi.total ?? disciplinasApi.length)
+                  : disciplinasFinais.length,
+              disciplinas: disciplinasFinais,
               ultimoEnvio: peisApi.ultimo_envio ?? null,
               proximoPeriodo: peisApi.proximo_periodo ?? null,
               atrasado: Boolean(peisApi.atrasado ?? peisApi.prazo_expirado),
             }
-          : PEIS_DISCIPLINA_PADRAO;
+          : peisPadrao;
 
         const metasRaw = dados.metas_bimestre ?? dados.metas;
         const metasDoBimestre: MetaBimestreItem[] = Array.isArray(metasRaw)
@@ -1090,7 +1101,7 @@ export const apiRepository: DataRepository = {
       peiGerado: 0,
       resumo: "",
       engajamentoPorMateria: ENGAJAMENTO_ZERADO,
-      peisPorDisciplina: PEIS_DISCIPLINA_PADRAO,
+      peisPorDisciplina: criarPeisDisciplinaNaoIniciada(),
       metasDoBimestre: METAS_BIMESTRE_PADRAO,
       indicadoresDesenvolvimento: INDICADORES_PADRAO,
     };

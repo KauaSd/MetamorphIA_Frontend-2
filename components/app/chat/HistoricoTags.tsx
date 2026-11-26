@@ -40,7 +40,7 @@ export default function HistoricoTags(props: HistoricoProps) {
   // o link fica por fora do conteudo para nao aninhar ancora em ancora
   if (props.href) {
     return (
-      <Link href={props.href} className={`${classe} cursor-pointer`}>
+      <Link href={props.href} className={`${classe} cursor-pointer transition-transform hover:scale-[1.01]`}>
         {conteudo}
       </Link>
     );

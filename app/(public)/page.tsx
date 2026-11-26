@@ -209,11 +209,11 @@ export default function Home() {
             />
           </div>
           </div>
-          <div className="flex gap-10 mt-15 self-center">
-                      <Planos tipo="basico"/>
-                      <Planos tipo="pro"/>
-                      <Planos tipo="institucional"/>
-                      </div>
+          <div className="mt-15 flex w-full max-w-[1200px] flex-col items-center gap-6 self-center lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-8">
+            <Planos tipo="basico" className="min-h-0 md:w-full" />
+            <Planos tipo="pro" className="min-h-0 md:w-full" />
+            <Planos tipo="institucional" className="min-h-0 md:w-full" />
+          </div>
           </div>
           {/* titulo do faq */}
           <h1>FAQ</h1>
@@ -236,10 +236,10 @@ export default function Home() {
             </div>
 
             <div
-              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-t-[25px] rounded-b-[70px] ${
+              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-[25px] ${
                 isOpenf1
-                  ? "grid-rows-[1fr] opacity-100 px-3 py-4"
-                  : "grid-rows-[0fr] opacity-0 py-0"
+                  ? "grid-rows-[1fr] opacity-100 px-5 py-4 sm:px-8"
+                  : "grid-rows-[0fr] opacity-0 px-5 py-0 sm:px-8"
               }`}
             >
               <p className="text-sm text-secondary overflow-hidden text-justify">
@@ -266,10 +266,10 @@ export default function Home() {
             </div>
 
             <div
-              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-t-[25px] rounded-b-[70px] ${
+              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-[25px] ${
                 isOpenf2
-                  ? "grid-rows-[1fr] opacity-100 px-3 py-4"
-                  : "grid-rows-[0fr] opacity-0 py-0"
+                  ? "grid-rows-[1fr] opacity-100 px-5 py-4 sm:px-8"
+                  : "grid-rows-[0fr] opacity-0 px-5 py-0 sm:px-8"
               }`}
             >
               <p className="text-sm text-secondary overflow-hidden text-justify">
@@ -297,13 +297,13 @@ export default function Home() {
             </div>
 
             <div
-              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-t-[25px] rounded-b-[70px] ${
+              className={`grid transition-all overflow-hidden duration-200 ease-in-out bg-sunken rounded-[25px] ${
                 isOpenf3
-                  ? "grid-rows-[1fr] opacity-100 px-3 py-4"
-                  : "grid-rows-[0fr] opacity-0 py-0"
+                  ? "grid-rows-[1fr] opacity-100 px-5 py-4 sm:px-8"
+                  : "grid-rows-[0fr] opacity-0 px-5 py-0 sm:px-8"
               }`}
             >
-              <p className="text-sm text-secondary text-justify">
+              <p className="text-sm text-secondary overflow-hidden text-justify">
                 <span className="font-bold">Sim! O acesso inicial é gratuito!</span> É
                 só criar sua conta para adaptar  e personalizar atividades escolares, 
                 configurar o perfil individual do aluno e explorar todos os formatos.

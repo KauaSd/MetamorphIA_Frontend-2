@@ -119,7 +119,7 @@ export default function Escola(props: EscolaProps) {
   );
 
   return (
-    <div className={`relative w-full ${isOpen ? "z-40" : "z-0"}`}>
+    <div className={`relative w-full ${props.href ? "transition-transform hover:scale-[1.01]" : ""} ${isOpen ? "z-40" : "z-0"}`}>
       {props.href ? (
         <Link
           href={props.href}

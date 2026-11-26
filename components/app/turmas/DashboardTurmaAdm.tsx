@@ -226,7 +226,7 @@ export default function DashboardTurmaAdm({
               {turma?.nome ?? "Turma"}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-surface-info/45 px-3 py-0.5 text-xs font-medium text-primary">
+              <span className="rounded-full bg-surface-info px-3 py-0.5 text-xs font-medium text-ink">
                 {alunosDaTurmaList.length}{" "}
                 {alunosDaTurmaList.length === 1 ? "aluno" : "alunos"}
               </span>

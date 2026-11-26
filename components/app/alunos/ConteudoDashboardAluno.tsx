@@ -252,7 +252,7 @@ export default function ConteudoDashboardAluno() {
             <PeisDisciplinaCard
               dados={
                 insights?.peisPorDisciplina ?? {
-                  statusGeral: "EM ANDAMENTO",
+                  statusGeral: "NÃO INICIADA",
                   concluidos: 0,
                   total: 0,
                   disciplinas: [],

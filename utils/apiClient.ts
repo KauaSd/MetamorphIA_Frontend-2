@@ -18,6 +18,14 @@ export const PENDING_2FA_TOKEN_KEY = "metamorphia:auth:pending_2fa_token";
 export const PENDING_RESET_IDENTIFIER_KEY = "metamorphia:auth:pending_reset_identifier";
 export const PENDING_RESET_TOKEN_KEY = "metamorphia:auth:pending_reset_token";
 export const USER_PROFILE_KEY = "metamorphia:auth:user";
+export const AUTH_SESSION_CHANGED_EVENT = "metamorphia:auth-session-changed";
+
+function notificarMudancaSessao(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new Event(AUTH_SESSION_CHANGED_EVENT));
+  } catch {}
+}
 
 export interface UserPermissoes {
   eh_admin_rede?: boolean;
@@ -131,6 +139,7 @@ export function setAuthTokens(
   if (refreshToken !== undefined) {
     setRefreshToken(refreshToken);
   }
+  notificarMudancaSessao();
 }
 
 export function getPending2FAToken(): string | null {
@@ -237,6 +246,7 @@ export function clearAuthSession(): void {
       }
     } catch {}
   }
+  notificarMudancaSessao();
 }
 
 export function parseNumeroId(id: string | number | null | undefined): number | null {

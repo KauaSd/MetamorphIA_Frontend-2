@@ -7,7 +7,6 @@ import { ArrowLeft } from "lucide-react";
 import AdcAlunosIcon from "@/public/adcalunos.svg";
 import AdcProfIcon from "@/public/adcprof.svg";
 import GroupAdd from "@/public/group_add.svg";
-import AdicionarEscolaIcon from "@/public/adicionarEscola.svg";
 import Encaracolado from "@/components/common/Encaracolado";
 import EncaracoladoDesenvolvimentoSvg from "@/public/encaracolado_desenvolvimento.svg";
 import Button from "@/components/common/Button";
@@ -20,10 +19,8 @@ import {
   type DadosAluno,
   type DadosTurmaExtras,
 } from "@/components/app/forms/FormAlunoTurma";
-import { FormEscola } from "@/components/app/forms/FormEscola";
 import {
   createAluno,
-  createEscola,
   createTurma,
   type Resultado,
 } from "@/utils/data/controller";
@@ -78,7 +75,7 @@ export default function DashboardEscolaAdm({
 }: DashboardEscolaAdmProps) {
   const { alerta, mostrar, limpar } = useAlerta();
   const [modalAberto, setModalAberto] = useState<
-    "aluno" | "turma" | "escola" | "professor" | null
+    "aluno" | "turma" | "professor" | null
   >(null);
   const [professoresLocais, setProfessoresLocais] = useState<ProfessorEscolaSlot[]>(() =>
     lerProfessoresSalvos(escolaId),
@@ -171,12 +168,6 @@ export default function DashboardEscolaAdm({
       escolaId: novoEscolaId || escolaId || undefined,
       ...extras,
     });
-    if (resultado.ok) await onRecarregar();
-    return tentar(resultado);
-  }
-
-  async function aoCriarEscola(nome: string): Promise<Resultado> {
-    const resultado = await createEscola({ nome });
     if (resultado.ok) await onRecarregar();
     return tentar(resultado);
   }
@@ -279,7 +270,6 @@ export default function DashboardEscolaAdm({
             [
               { id: "aluno", label: "Adicionar Alunos", iconSrc: AdcAlunosIcon.src },
               { id: "turma", label: "Adicionar Turmas", iconSrc: GroupAdd.src },
-              { id: "escola", label: "Adicionar Escolas", iconSrc: AdicionarEscolaIcon.src },
               { id: "professor", label: "Adicionar Professores", iconSrc: AdcProfIcon.src },
             ] as const
           )
@@ -379,13 +369,6 @@ export default function DashboardEscolaAdm({
           escolaIdInicial={escolaId}
           onClose={() => setModalAberto(null)}
           onSalvar={aoCriarTurma}
-        />
-      )}
-
-      {modalAberto === "escola" && (
-        <FormEscola
-          onClose={() => setModalAberto(null)}
-          onSalvar={aoCriarEscola}
         />
       )}
 

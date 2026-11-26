@@ -4,9 +4,10 @@ import { corDoNome } from "@/utils/cores";
 interface ChatTgAlunoProps {
   nome: string;
   neuro: string;
+  peiAtivo?: boolean;
 }
 
-export default function ChatTgAluno({ nome, neuro }: ChatTgAlunoProps) {
+export default function ChatTgAluno({ nome, neuro, peiAtivo = true }: ChatTgAlunoProps) {
   const corAvatar = corDoNome(nome);
 
   return (
@@ -52,22 +53,24 @@ export default function ChatTgAluno({ nome, neuro }: ChatTgAlunoProps) {
         <div className="flex items-center gap-5 min-w-0">
           <p className="font-bold text-sm text-secondary shrink-0">{neuro}</p>
 
-          <div className="min-w-0 flex-1">
-            <div
-              className="
-                flex
-                items-center
-                justify-center
-                w-full
-                max-w-27
-                h-6
-                rounded-full
-                bg-surface-warning
-              "
-            >
-              <p className="font-bold text-sm text-ink whitespace-nowrap">PEI ativo</p>
+          {peiAtivo ? (
+            <div className="min-w-0 flex-1">
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-center
+                  w-full
+                  max-w-27
+                  h-6
+                  rounded-full
+                  bg-surface-warning
+                "
+              >
+                <p className="font-bold text-sm text-ink whitespace-nowrap">PEI ativo</p>
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
       </div>
     </div>

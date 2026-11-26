@@ -1,4 +1,6 @@
 import {
+  API_DB_URL,
+  AUTH_SESSION_CHANGED_EVENT,
   apiAiGatewayOrDirect,
   apiDbFetch,
   getAuthToken,
@@ -117,6 +119,21 @@ function normalizarCorIndicador(cor?: string, index = 0): CorIndicador {
 
 // Mantém apenas conversas recém-abertas em memória na sessão atual até a primeira mensagem ir para a API
 const conversasEmMemoria = new Map<string, Conversa>();
+
+if (typeof window !== "undefined") {
+  window.addEventListener(AUTH_SESSION_CHANGED_EVENT, () => {
+    conversasEmMemoria.clear();
+  });
+}
+
+export function substituirIdConversaEmMemoria(idAntigo: string, idNovo: string): void {
+  if (!idAntigo || !idNovo || idAntigo === idNovo) return;
+  const antiga = conversasEmMemoria.get(idAntigo);
+  conversasEmMemoria.delete(idAntigo);
+  if (antiga && !conversasEmMemoria.has(idNovo)) {
+    conversasEmMemoria.set(idNovo, { ...antiga, id: idNovo });
+  }
+}
 
 function formatarIsoParaDDMMAAAA(iso?: string | null): string {
   if (!iso) return hojeDDMMAAAA();
@@ -247,6 +264,43 @@ export async function buscarConversas(
     porId.set(cid, conv);
   }
 
+  try {
+    const respRecentes = await apiDbFetch(
+      "/conversas/recentes?ordenar_por=data&ordem=desc&limit=100",
+      { signal },
+    );
+    if (respRecentes.ok) {
+      const recentes = (await respRecentes.json()) as Array<{
+        conversa_id: string;
+        titulo?: string;
+        data?: string;
+        id_aluno?: number | string;
+      }>;
+      if (Array.isArray(recentes)) {
+        for (const resumo of recentes) {
+          const cid = resumo.conversa_id;
+          const aid = resumo.id_aluno !== undefined && resumo.id_aluno !== null
+            ? String(resumo.id_aluno)
+            : "";
+          if (!cid || !aid) continue;
+          const emMemoria = conversasEmMemoria.get(cid);
+          const conversaApi: Conversa = {
+            id: cid,
+            alunoId: aid,
+            titulo: resumo.titulo || "Nova conversa",
+            data: formatarIsoParaDDMMAAAA(resumo.data),
+            mensagens: emMemoria?.mensagens ?? [],
+          };
+          if (emMemoria?.mensagens?.length) {
+            conversasEmMemoria.set(cid, conversaApi);
+          }
+          porId.set(cid, conversaApi);
+        }
+        return Array.from(porId.values());
+      }
+    }
+  } catch {}
+
   await Promise.all(
     alunoIds.map(async (alunoId) => {
       const numAluno = parseNumeroId(alunoId);
@@ -286,6 +340,89 @@ export async function buscarConversas(
   );
 
   return Array.from(porId.values());
+}
+
+export interface ConversaCompletaApi {
+  conversa: Conversa;
+  nomeAluno?: string;
+  neuroAluno?: string;
+  peiAtivo?: boolean;
+}
+
+export async function buscarConversaPorId(
+  conversaId: string,
+  signal?: AbortSignal,
+): Promise<ConversaCompletaApi | null> {
+  if (!getAuthToken() || !conversaId) return null;
+  try {
+    const resp = await apiDbFetch(
+      `/conversas/${encodeURIComponent(conversaId)}`,
+      { signal },
+    );
+    if (!resp.ok) return null;
+    const det = (await resp.json()) as {
+      conversa_id?: string;
+      titulo?: string;
+      data?: string;
+      id_aluno?: number | string;
+      nome_aluno?: string;
+      neuro_aluno?: string;
+      pei_ativo?: boolean;
+      mensagens?: Array<{
+        role: string;
+        conteudo: string;
+        data: string;
+        anexos?: Array<{
+          name?: string;
+          nome?: string;
+          type?: string;
+          tipo?: string;
+          size?: number;
+          dataUrl?: string;
+          url?: string;
+        }> | null;
+      }>;
+    };
+    const cid = det.conversa_id || conversaId;
+    const mensagens: Mensagem[] = (det.mensagens ?? []).map((m, idx) => ({
+      id: `${cid}_m_${idx}`,
+      texto: m.conteudo,
+      autor: m.role === "user" ? "professor" : "aluno",
+      em: m.data || new Date().toISOString(),
+      ...(m.anexos && m.anexos.length > 0
+        ? {
+            anexos: m.anexos.map((a) => {
+              const rawUrl = a.dataUrl ?? a.url;
+              const dataUrl =
+                rawUrl && rawUrl.startsWith("/") ? `${API_DB_URL}${rawUrl}` : rawUrl;
+              return {
+                name: a.name ?? a.nome ?? "arquivo",
+                type: a.type ?? a.tipo ?? "application/octet-stream",
+                size: a.size ?? 0,
+                dataUrl,
+              };
+            }),
+          }
+        : {}),
+    }));
+    return {
+      conversa: {
+        id: cid,
+        alunoId:
+          det.id_aluno !== undefined && det.id_aluno !== null
+            ? String(det.id_aluno)
+            : "",
+        titulo: det.titulo || "Nova conversa",
+        data: formatarIsoParaDDMMAAAA(det.data),
+        mensagens,
+      },
+      nomeAluno: det.nome_aluno,
+      neuroAluno: det.neuro_aluno,
+      peiAtivo: det.pei_ativo,
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -752,11 +889,17 @@ export const apiRepository: DataRepository = {
     if (numAluno === null || !conversaId) return [];
 
     try {
-      const respDet = await apiAiGatewayOrDirect(
-        `/AI/chat/aluno/${numAluno}/conversas/${conversaId}`,
-        `/alunos/${numAluno}/conversas/${conversaId}`,
+      let respDet = await apiAiGatewayOrDirect(
+        `/AI/chat/aluno/${numAluno}/conversas/${encodeURIComponent(conversaId)}`,
+        `/alunos/${numAluno}/conversas/${encodeURIComponent(conversaId)}`,
         { signal },
       );
+      if (!respDet.ok) {
+        respDet = await apiDbFetch(
+          `/conversas/${encodeURIComponent(conversaId)}`,
+          { signal },
+        );
+      }
       if (!respDet.ok) return [];
       const det = (await respDet.json()) as {
         mensagens?: Array<{
@@ -764,11 +907,14 @@ export const apiRepository: DataRepository = {
           conteudo: string;
           data: string;
           anexos?: Array<{
-            name: string;
+            name?: string;
+            nome?: string;
             type?: string;
+            tipo?: string;
             size?: number;
             dataUrl?: string;
-          }>;
+            url?: string;
+          }> | null;
         }>;
       };
       return (det.mensagens ?? []).map((m, idx) => ({
@@ -778,12 +924,17 @@ export const apiRepository: DataRepository = {
         em: m.data || new Date().toISOString(),
         ...(m.anexos && m.anexos.length > 0
           ? {
-              anexos: m.anexos.map((a) => ({
-                name: a.name,
-                type: a.type ?? "application/octet-stream",
-                size: a.size ?? 0,
-                dataUrl: a.dataUrl,
-              })),
+              anexos: m.anexos.map((a) => {
+                const rawUrl = a.dataUrl ?? a.url;
+                const dataUrl =
+                  rawUrl && rawUrl.startsWith("/") ? `${API_DB_URL}${rawUrl}` : rawUrl;
+                return {
+                  name: a.name ?? a.nome ?? "arquivo",
+                  type: a.type ?? a.tipo ?? "application/octet-stream",
+                  size: a.size ?? 0,
+                  dataUrl,
+                };
+              }),
             }
           : {}),
       }));
@@ -990,6 +1141,7 @@ export const apiRepository: DataRepository = {
           atividades_adaptadas?: number;
           engajamento_percent?: number;
           pei_gerado?: boolean;
+          desc_aluno?: string | null;
           perfil_ia?: string | null;
           descricao_breve?: string | null;
           desempenho_por_area?: Record<string, number>;
@@ -1084,7 +1236,11 @@ export const apiRepository: DataRepository = {
           atividadesAdaptadas: dados.atividades_adaptadas ?? 0,
           engajamento: dados.engajamento_percent ?? 0,
           peiGerado: dados.pei_gerado ? 1 : 0,
-          resumo: dados.descricao_breve?.trim() || dados.perfil_ia?.trim() || "",
+          resumo:
+            dados.desc_aluno?.trim() ||
+            dados.descricao_breve?.trim() ||
+            dados.perfil_ia?.trim() ||
+            "",
           engajamentoPorMateria: mapearEngajamento(dados.desempenho_por_area),
           peisPorDisciplina,
           metasDoBimestre,

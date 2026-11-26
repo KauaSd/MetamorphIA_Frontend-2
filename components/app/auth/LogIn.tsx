@@ -65,6 +65,8 @@ export default function LogIn() {
   const [alerta, setAlerta] = useState<MensagemAlerta | null>(null);
 
   async function finalizarSessaoSocial(accessToken: string, refreshToken?: string | null) {
+    const { clearAuthSession } = await import("@/utils/apiClient");
+    clearAuthSession();
     setAuthTokens(accessToken, refreshToken);
     let rotaDestino = "/alunos";
     try {

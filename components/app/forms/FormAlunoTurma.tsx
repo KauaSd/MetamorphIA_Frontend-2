@@ -308,11 +308,13 @@ export function FormTurma({
   horarioInicial = "",
   componentesIniciais = [],
   escolaIdInicial = "",
+  escolas = [],
 }: FormTurmaProps) {
   const inicial = useMemo(() => parseNomeTurmaInicial(nomeInicial), [nomeInicial]);
   const [serieAno, setSerieAno] = useState(serieAnoInicial || inicial.serieAno);
   const [letra, setLetra] = useState(letraInicial || inicial.letra);
   const [horario, setHorario] = useState(horarioInicial || inicial.horario);
+  const [escolaId, setEscolaId] = useState(escolaIdInicial);
   const [salvando, setSalvando] = useState(false);
 
   const opcoesSerieAno = useMemo(() => {
@@ -342,7 +344,7 @@ export function FormTurma({
       const resultado = await onSalvar(
         nomeFinal,
         componentesIniciais,
-        escolaIdInicial || undefined,
+        escolaId || undefined,
         {
           serieAno: serieLimpa || undefined,
           letra: letraLimpa,
@@ -426,6 +428,24 @@ export function FormTurma({
               onChange={(e) => setHorario(e.target.value)}
             />
           </div>
+
+          {!escolaIdInicial && escolas.length > 0 ? (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-sm text-primary">Escola</p>
+              <DropDown
+                options={escolas}
+                value={escolaId}
+                onChange={setEscolaId}
+                placeholder="Selecione a escola"
+                maxVisibleItems={5}
+                font="poppins"
+                textSize="text-sm"
+                itemHeight={34}
+                itemGap={2}
+                className={!escolaId ? "text-secondary" : undefined}
+              />
+            </div>
+          ) : null}
 
           <div className="mt-auto flex gap-4 sm:mt-2 sm:justify-end">
             <Button

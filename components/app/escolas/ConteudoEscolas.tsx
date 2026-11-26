@@ -171,7 +171,9 @@ export default function ConteudoEscolas() {
         </div>
       ) : (
         <div className="flex flex-1 w-full items-center justify-center">
-          <BoxSemEscola onCriarEscola={() => setMostrarForm(true)} />
+          <BoxSemEscola
+            onCriarEscola={podeCriarEscolas ? () => setMostrarForm(true) : undefined}
+          />
         </div>
       )}
 

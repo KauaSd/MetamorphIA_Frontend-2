@@ -98,6 +98,8 @@ export function FormLogin() {
         return;
       }
 
+      const { clearAuthSession } = await import("@/utils/apiClient");
+      clearAuthSession();
       setAuthTokens(tokenData.access_token, tokenData.refresh_token);
       let rotaDestino = "/alunos";
       try {
@@ -502,6 +504,8 @@ export function FormToken() {
           refresh_token?: string | null;
         };
         setPending2FAToken(null);
+        const { clearAuthSession } = await import("@/utils/apiClient");
+        clearAuthSession();
         setAuthTokens(dados.access_token, dados.refresh_token);
         setAlerta(null);
         router.push("/alunos");

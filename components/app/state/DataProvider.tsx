@@ -26,7 +26,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const meQuery = useQuery({
     queryKey: ["me"],
     queryFn: ({ signal }) => buscarPerfilMe(signal),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
 
   const escolasQuery = useQuery({
@@ -101,9 +101,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       ? Boolean(permissoes.pode_gerenciar_turmas)
       : tipoNorm !== "prof_institucional";
   const podeCriarEscolas =
-    permissoes?.pode_criar_escolas !== undefined
+    (permissoes?.pode_criar_escolas !== undefined
       ? Boolean(permissoes.pode_criar_escolas)
-      : tipoNorm !== "prof_institucional";
+      : tipoNorm !== "prof_institucional") &&
+    !(ehAdmin && !ehAdminRede);
   const podeChat =
     permissoes?.pode_chat !== undefined
       ? Boolean(permissoes.pode_chat)

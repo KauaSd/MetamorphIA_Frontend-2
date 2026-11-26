@@ -10,7 +10,7 @@ import {
   escolaPorId,
   turmaPorId,
 } from "@/utils/data/types";
-import { updateAluno, deleteAluno, openChatWith, type Resultado } from "@/utils/data/controller";
+import { updateAluno, deleteAluno, type Resultado } from "@/utils/data/controller";
 import { repository } from "@/utils/data/dataRepository";
 import { apiDbFetch, getAuthToken, parseNumeroId } from "@/utils/apiClient";
 import { peiService } from "@/utils/pei/service";
@@ -130,32 +130,17 @@ export default function ConteudoDashboardAluno() {
   async function handleBatePapo() {
     if (!alunoId) return;
     setAbrindoChat(true);
-    const resultado = await openChatWith(alunoId, { nova: true });
-    if (!resultado.ok) {
-      setAbrindoChat(false);
-      mostrar(resultado.erro);
-      return;
-    }
-    await recarregar();
-    setAbrindoChat(false);
-    if (resultado.conversaId) {
-      router.push(`/chat?conversaId=${resultado.conversaId}`);
-    }
+    router.push(`/chat?alunoId=${alunoId}&nova=true`);
   }
 
   async function handleCriarPei() {
     if (!alunoId) return;
     setAbrindoChat(true);
-    const resultado = await openChatWith(alunoId);
-    if (!resultado.ok) {
-      setAbrindoChat(false);
-      mostrar(resultado.erro);
-      return;
-    }
-    await recarregar();
-    setAbrindoChat(false);
-    if (resultado.conversaId) {
-      router.push(`/chat?conversaId=${resultado.conversaId}&gerarPei=true`);
+    const convExistente = conversasDoAluno.find((c) => !c.id.startsWith("con_"));
+    if (convExistente) {
+      router.push(`/chat?conversaId=${convExistente.id}&gerarPei=true`);
+    } else {
+      router.push(`/chat?alunoId=${alunoId}&gerarPei=true`);
     }
   }
 

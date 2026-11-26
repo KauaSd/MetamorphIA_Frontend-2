@@ -146,27 +146,29 @@ export default function Turma( props:TurmaProps) {
                 </div>
             )}
 
-            <div
-                className={`absolute right-5 top-5 ${isOpen ? "z-50" : "z-20"}`}
-                ref={menuRef}
-            >
-                <button
-                    type="button"
-                    aria-label={`Opcoes da turma ${props.nomeTurma}`}
-                    aria-haspopup="menu"
-                    aria-expanded={isOpen}
-                    className="cursor-pointer"
-                    onClick={() => setIsOpen((prev) => !prev)}
+            {props.onEditar || props.onExcluir ? (
+                <div
+                    className={`absolute right-5 top-5 ${isOpen ? "z-50" : "z-20"}`}
+                    ref={menuRef}
                 >
-                    <EllipsisVertical height={"25px"} />
-                </button>
+                    <button
+                        type="button"
+                        aria-label={`Opcoes da turma ${props.nomeTurma}`}
+                        aria-haspopup="menu"
+                        aria-expanded={isOpen}
+                        className="cursor-pointer"
+                        onClick={() => setIsOpen((prev) => !prev)}
+                    >
+                        <EllipsisVertical height={"25px"} />
+                    </button>
 
-                {isOpen ? (
-                    <div className="absolute right-0 top-full mt-2 z-50">
-                        <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
-                    </div>
-                ) : null}
-            </div>
+                    {isOpen ? (
+                        <div className="absolute right-0 top-full mt-2 z-50">
+                            <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
+                        </div>
+                    ) : null}
+                </div>
+            ) : null}
         </div>
     );
 }

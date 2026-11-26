@@ -19,17 +19,68 @@ export const PENDING_RESET_IDENTIFIER_KEY = "metamorphia:auth:pending_reset_iden
 export const PENDING_RESET_TOKEN_KEY = "metamorphia:auth:pending_reset_token";
 export const USER_PROFILE_KEY = "metamorphia:auth:user";
 
+export interface UserPermissoes {
+  eh_admin_rede?: boolean;
+  pode_alternar_modo_professor?: boolean;
+  pode_acessar_painel_adm?: boolean;
+  pode_gerenciar_alunos?: boolean;
+  pode_gerenciar_turmas?: boolean;
+  pode_criar_escolas?: boolean;
+  pode_chat?: boolean;
+}
+
+export interface UserEscolaMe {
+  id_escola: number;
+  nome_escola: string;
+  plano?: string | null;
+  institucional?: boolean;
+  codigo_convite?: string | null;
+  papel?: "adm" | "professor" | string | null;
+}
+
 export interface UserProfile {
   id_usuario: number;
   nome_usuario: string;
   email_usuario?: string | null;
   telefone_usuario?: string | null;
   tipo_usuario?: string;
+  modo_ativo?: "adm" | "professor" | string;
+  escola_adm_id?: number | null;
   plano?: string;
   id_grupo?: number | null;
   pode_chat?: boolean;
   tags?: string[];
+  tags_areas?: string[];
   instrucoes_ia?: string | null;
+  nome_real?: string | null;
+  perfil_professor_feito?: boolean;
+  identificacao_feita?: boolean;
+  tutorial_visto?: boolean;
+  tutorial_institucional_visto?: boolean;
+  escola_institucional?: boolean;
+  escolas?: UserEscolaMe[];
+  permissoes?: UserPermissoes;
+}
+
+export function resolverRotaInicialPosLogin(perfil: UserProfile | null | undefined): string {
+  if (!perfil) return "/alunos";
+  const tipoNorm = (perfil.tipo_usuario ?? "").trim().toLowerCase();
+  const ehAdminRede = Boolean(perfil.permissoes?.eh_admin_rede ?? tipoNorm === "adm_institucional");
+  const podePainelAdm = Boolean(
+    perfil.permissoes?.pode_acessar_painel_adm ??
+      (ehAdminRede || (tipoNorm === "adm_escola" && perfil.modo_ativo !== "professor")),
+  );
+  const podeChat =
+    perfil.permissoes?.pode_chat !== undefined
+      ? Boolean(perfil.permissoes.pode_chat)
+      : perfil.pode_chat !== undefined
+        ? Boolean(perfil.pode_chat)
+        : !ehAdminRede;
+
+  if (!podeChat || ehAdminRede || podePainelAdm) {
+    return "/escolas";
+  }
+  return "/alunos";
 }
 
 export function getAuthToken(): string | null {

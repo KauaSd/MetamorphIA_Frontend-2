@@ -9,8 +9,10 @@ import { BarraCarregando } from "@/components/common/Carregando";
 import type { MensagemAlerta } from "@/utils/alertas";
 import {
   apiDbFetch,
+  resolverRotaInicialPosLogin,
   setAuthTokens,
   setSavedUserProfile,
+  type UserProfile,
 } from "@/utils/apiClient";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
@@ -64,14 +66,16 @@ export default function LogIn() {
 
   async function finalizarSessaoSocial(accessToken: string, refreshToken?: string | null) {
     setAuthTokens(accessToken, refreshToken);
+    let rotaDestino = "/alunos";
     try {
       const meResp = await apiDbFetch("/autenticar/me", {}, accessToken);
       if (meResp.ok) {
-        const me = await meResp.json();
+        const me = (await meResp.json()) as UserProfile;
         setSavedUserProfile(me);
+        rotaDestino = resolverRotaInicialPosLogin(me);
       }
     } catch {}
-    router.push("/alunos");
+    router.push(rotaDestino);
   }
 
   async function autenticarGoogle() {

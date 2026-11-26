@@ -1,11 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { usePeiFlow } from "@/components/app/state/PeiFlowProvider";
 import InfoNotice from "@/components/app/pei/InfoNotice";
 import QuestionCard from "@/components/app/pei/QuestionCard";
 import { BarraCarregando } from "@/components/common/Carregando";
 
-export default function GuidedQuestionsScreen() {
+export default function GuidedQuestionsScreen({ chatInput }: { chatInput?: ReactNode }) {
   const fluxo = usePeiFlow();
 
   const {
@@ -42,7 +43,7 @@ export default function GuidedQuestionsScreen() {
   }
 
   return (
-    <div className="flex w-full flex-col gap-3">
+    <div className="mx-auto flex w-full max-w-[66rem] flex-col gap-4">
       <InfoNotice componente={componente} />
       <QuestionCard
         question={pergunta}
@@ -52,6 +53,7 @@ export default function GuidedQuestionsScreen() {
         onVoltar={voltar}
         onAvancar={avancar}
         onTentarNovamente={tentarNovamente}
+        footer={chatInput}
       />
     </div>
   );

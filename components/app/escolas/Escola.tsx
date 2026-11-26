@@ -23,6 +23,7 @@ interface EscolaProps {
   nomeEscola: string;
   turmas: TurmaTag[];
   href?: string;
+  destaqueAdm?: boolean;
   onEditar?: () => void;
   onExcluir?: () => void;
 }
@@ -103,6 +104,7 @@ export default function Escola(props: EscolaProps) {
     relative flex w-full flex-col
     min-h-[130px] sm:min-h-[135px]
     bg-surface-base
+    ${props.destaqueAdm ? "border-2 border-surface-warning" : ""}
     rounded-[50px]
     px-7 sm:px-8
     py-3.5
@@ -140,24 +142,26 @@ export default function Escola(props: EscolaProps) {
         </div>
       )}
 
-      <div className={`absolute right-5 top-5 ${isOpen ? "z-50" : "z-20"}`} ref={menuRef}>
-        <button
-          type="button"
-          aria-label={`Opcoes da escola ${props.nomeEscola}`}
-          aria-haspopup="menu"
-          aria-expanded={isOpen}
-          className="cursor-pointer"
-          onClick={() => setIsOpen((prev) => !prev)}
-        >
-          <EllipsisVertical height={"25px"} />
-        </button>
+      {props.onEditar || props.onExcluir ? (
+        <div className={`absolute right-5 top-5 ${isOpen ? "z-50" : "z-20"}`} ref={menuRef}>
+          <button
+            type="button"
+            aria-label={`Opcoes da escola ${props.nomeEscola}`}
+            aria-haspopup="menu"
+            aria-expanded={isOpen}
+            className="cursor-pointer"
+            onClick={() => setIsOpen((prev) => !prev)}
+          >
+            <EllipsisVertical height={"25px"} />
+          </button>
 
-        {isOpen ? (
-          <div className="absolute right-0 top-full mt-2 z-50">
-            <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
-          </div>
-        ) : null}
-      </div>
+          {isOpen ? (
+            <div className="absolute right-0 top-full mt-2 z-50">
+              <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

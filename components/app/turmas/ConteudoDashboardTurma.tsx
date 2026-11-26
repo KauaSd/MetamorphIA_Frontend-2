@@ -13,6 +13,7 @@ import Button from "@/components/common/Button";
 import Toast, { useAlerta } from "@/components/common/Toast";
 import Add from "@/public/add.svg";
 import Aluno from "@/components/app/alunos/Aluno";
+import DashboardTurmaAdm from "@/components/app/turmas/DashboardTurmaAdm";
 import { FormAluno, FormDeletaAluno, type DadosAluno } from "@/components/app/forms/FormAlunoTurma";
 
 export default function ConteudoDashboardTurma(){
@@ -22,7 +23,7 @@ export default function ConteudoDashboardTurma(){
 
     const searchParams = useSearchParams();
     const turmaId = searchParams.get("id");
-    const { turmas, alunos, recarregar, hydrated } = useData();
+    const { turmas, alunos, escolas, ehAdmin, podeGerenciarAlunos, recarregar, hydrated } = useData();
     const { alerta, mostrar, limpar } = useAlerta();
 
     const turma = turmaId ? turmaPorId(turmas, turmaId) : undefined;
@@ -82,9 +83,38 @@ export default function ConteudoDashboardTurma(){
         return <CarregandoDashboard />;
     }
 
+    if (ehAdmin) {
+        return (
+            <DashboardTurmaAdm
+                turmaId={turmaId ?? ""}
+                turma={turma}
+                turmasParaForm={turmasParaForm}
+                alunosDaTurmaList={alunosDaTurmaList}
+                onCriarAluno={aoCriar}
+                onEditarAluno={async (id, dados) => {
+                    const resultado = await updateAluno(id, dados);
+                    if (resultado.ok) await recarregar();
+                    return tentar(resultado);
+                }}
+                onExcluirAluno={async (id) => {
+                    const resultado = await deleteAluno(id);
+                    if (resultado.ok) await recarregar();
+                    return tentar(resultado);
+                }}
+            />
+        );
+    }
+
+    const escolaDaTurma = turma?.escolaId
+        ? escolas.find((e) => e.id === turma.escolaId)
+        : undefined;
+    const podeEditarAlunosTurma =
+        podeGerenciarAlunos &&
+        !(escolaDaTurma?.institucional && escolaDaTurma?.papel === "professor");
+
     return(
         // dashboard da turma
-    <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
+    <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:max-w-none lg:px-12 lg:py-[70px] xl:px-[clamp(48px,13.5vw,259px)]">
                     {/* header */}
                     <div className="flex w-full flex-col">
                         <HeaderPag nomeTurma={turma?.nome} totalAlunos={alunosDaTurmaList.length} />
@@ -93,15 +123,21 @@ export default function ConteudoDashboardTurma(){
                     <div className="flex flex-col gap-7 pb-6">
                         <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                             <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Alunos</p>
-                            <Button type="button" onClick={() => setMostrarForm(true)} className="flex w-auto flex-row items-center justify-center gap-2 px-3 py-1 sm:px-4 sm:py-1">
-                                <img src={Add.src} className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" alt="" />
-                                <span className="whitespace-nowrap">Novo Aluno</span>
-                            </Button>
+                            {podeEditarAlunosTurma ? (
+                                <Button type="button" onClick={() => setMostrarForm(true)} className="flex w-auto flex-row items-center justify-center gap-2 px-3 py-1 sm:px-4 sm:py-1">
+                                    <img src={Add.src} className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" alt="" />
+                                    <span className="whitespace-nowrap">Novo Aluno</span>
+                                </Button>
+                            ) : null}
                         </div>
-                        {!temAlunos ? (
+                        {!temAlunos && podeEditarAlunosTurma ? (
                             <div className="flex w-full flex-1 items-center justify-center">
                                 <BoxSemAlunoTurma onCriarAluno={() => setMostrarForm(true)} />
                             </div>
+                        ) : !temAlunos ? (
+                            <p className="py-8 text-center text-sm text-secondary">
+                                Nenhum aluno vinculado a esta turma.
+                            </p>
                         ) : null}
                         <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
                         {alunosDaTurmaList.map((aluno) => (
@@ -111,8 +147,8 @@ export default function ConteudoDashboardTurma(){
                                 neuros={aluno.neuro}
                                 Turma={turma?.nome ?? ""}
                                 href={`/dashboardAluno?id=${aluno.id}`}
-                                onEditar={() => setIdEmEdicao(aluno.id)}
-                                onExcluir={() => setIdEmExclusao(aluno.id)}
+                                onEditar={podeEditarAlunosTurma ? () => setIdEmEdicao(aluno.id) : undefined}
+                                onExcluir={podeEditarAlunosTurma ? () => setIdEmExclusao(aluno.id) : undefined}
                             />
                         ))}
                         </div>

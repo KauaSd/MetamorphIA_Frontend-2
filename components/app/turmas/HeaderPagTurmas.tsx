@@ -3,6 +3,7 @@ import GroupAdd from "@/public/group_add.svg";
 
 interface HeaderPagTurmasProps {
     onCriarTurma: () => void;
+    podeCriar?: boolean;
 }
 
 const OPCOES_DROPDOWN = [
@@ -10,7 +11,7 @@ const OPCOES_DROPDOWN = [
     {value: "recente", label: "Atividade"}
 ]
 
-export default function HeaderPagTurmas({ onCriarTurma }: HeaderPagTurmasProps){
+export default function HeaderPagTurmas({ onCriarTurma, podeCriar = true }: HeaderPagTurmasProps){
     return(
         <div className="flex flex-col gap-[15px] w-full">
             <div className="flex flex-row items-center justify-between w-full gap-3">
@@ -20,9 +21,11 @@ export default function HeaderPagTurmas({ onCriarTurma }: HeaderPagTurmasProps){
                     <span className="hidden sm:inline text-sm text-secondary whitespace-nowrap">Ordenar por</span>
                     <DropDown options={OPCOES_DROPDOWN} small />
 
-                    <button type="button" onClick={onCriarTurma} aria-label="Criar Turma" className="flex w-8 h-8 sm:w-9 sm:h-9 bg-surface-accent rounded-full justify-center items-center cursor-pointer hover:bg-surface-accent-strong shrink-0">
-                        <img src={GroupAdd.src} className="flex w-5 h-5 sm:w-6 sm:h-6" alt="" />
-                    </button>
+                    {podeCriar ? (
+                        <button type="button" onClick={onCriarTurma} aria-label="Criar Turma" className="flex w-8 h-8 sm:w-9 sm:h-9 bg-surface-accent rounded-full justify-center items-center cursor-pointer hover:bg-surface-accent-strong shrink-0">
+                            <img src={GroupAdd.src} className="flex w-5 h-5 sm:w-6 sm:h-6" alt="" />
+                        </button>
+                    ) : null}
                 </div>
             </div>
         </div>

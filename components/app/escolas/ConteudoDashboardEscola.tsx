@@ -13,7 +13,8 @@ import Button from "@/components/common/Button";
 import Toast, { useAlerta } from "@/components/common/Toast";
 import Add from "@/public/add.svg";
 import Turma, { type AlunoTag } from "@/components/app/turmas/Turma";
-import { FormTurma, FormDeletaTurma } from "@/components/app/forms/FormAlunoTurma";
+import { FormTurma, FormDeletaTurma, type DadosTurmaExtras } from "@/components/app/forms/FormAlunoTurma";
+import DashboardEscolaAdm from "@/components/app/escolas/DashboardEscolaAdm";
 
 export default function ConteudoDashboardEscola() {
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -22,7 +23,17 @@ export default function ConteudoDashboardEscola() {
 
   const searchParams = useSearchParams();
   const escolaId = searchParams.get("id");
-  const { escolas, turmas, alunos, recarregar, hydrated } = useData();
+  const {
+    escolas,
+    turmas,
+    alunos,
+    ehAdmin,
+    ehAdminRede,
+    escolaAdmId,
+    podeGerenciarTurmas,
+    recarregar,
+    hydrated,
+  } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
 
   const escolasParaForm = useMemo(
@@ -65,10 +76,12 @@ export default function ConteudoDashboardEscola() {
     nome: string,
     _comp?: string[],
     novoEscolaId?: string,
+    extras?: DadosTurmaExtras,
   ): Promise<Resultado> {
     const resultado = await createTurma({
       nome,
       escolaId: novoEscolaId || undefined,
+      ...extras,
     });
     if (resultado.ok) {
       await recarregar();
@@ -80,6 +93,7 @@ export default function ConteudoDashboardEscola() {
     nome: string,
     _comp?: string[],
     novoEscolaId?: string,
+    extras?: DadosTurmaExtras,
   ): Promise<Resultado> {
     if (!idEmEdicao) {
       return tentar({ ok: false, erro: ALERTAS.TURMA_NAO_ENCONTRADA });
@@ -87,6 +101,7 @@ export default function ConteudoDashboardEscola() {
     const resultado = await updateTurma(idEmEdicao, {
       nome,
       escolaId: novoEscolaId || undefined,
+      ...extras,
     });
     if (resultado.ok) {
       await recarregar();
@@ -109,8 +124,36 @@ export default function ConteudoDashboardEscola() {
     return <CarregandoDashboard />;
   }
 
+  const escolaEhInstitucional =
+    Boolean(escola?.institucional) ||
+    (escola?.plano ?? "").toLowerCase().includes("institucional");
+  const exibirPainelAdm =
+    ehAdmin &&
+    (ehAdminRede ||
+      escolaEhInstitucional ||
+      (escolaAdmId !== null && escola?.id === escolaAdmId) ||
+      (!escola?.papel && !escolaAdmId));
+
+  if (exibirPainelAdm) {
+    const idsTurmas = new Set(turmasDaEscolaList.map((t) => t.id));
+    const alunosDaEscola = alunos.filter((a) => idsTurmas.has(a.turmaId));
+    return (
+      <DashboardEscolaAdm
+        escolaId={escolaId ?? ""}
+        escola={escola}
+        escolas={escolas}
+        turmasDaEscolaList={turmasDaEscolaList}
+        alunosDaEscola={alunosDaEscola}
+        onRecarregar={recarregar}
+      />
+    );
+  }
+
+  const podeEditarTurmasDaEscola =
+    podeGerenciarTurmas && !(escolaEhInstitucional && escola?.papel === "professor");
+
   return (
-    <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
+    <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:max-w-none lg:px-12 lg:py-[70px] xl:px-[clamp(48px,13.5vw,259px)]">
       {/* header */}
       <div className="flex w-full flex-col">
         <HeaderDashEscola
@@ -125,20 +168,26 @@ export default function ConteudoDashboardEscola() {
           <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">
             Turmas
           </p>
-          <Button
-            type="button"
-            onClick={() => setMostrarForm(true)}
-            className="flex w-auto flex-row items-center justify-center gap-2 px-3 py-1 sm:px-4 sm:py-1"
-          >
-            <img src={Add.src} className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" alt="" />
-            <span className="whitespace-nowrap">Nova Turma</span>
-          </Button>
+          {podeEditarTurmasDaEscola ? (
+            <Button
+              type="button"
+              onClick={() => setMostrarForm(true)}
+              className="flex w-auto flex-row items-center justify-center gap-2 px-3 py-1 sm:px-4 sm:py-1"
+            >
+              <img src={Add.src} className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" alt="" />
+              <span className="whitespace-nowrap">Nova Turma</span>
+            </Button>
+          ) : null}
         </div>
 
-        {!temTurmas ? (
+        {!temTurmas && podeEditarTurmasDaEscola ? (
           <div className="flex w-full flex-1 items-center justify-center">
             <BoxSemTurmaEscola onCriarTurma={() => setMostrarForm(true)} />
           </div>
+        ) : !temTurmas ? (
+          <p className="py-8 text-center text-sm text-secondary">
+            Nenhuma turma vinculada a esta escola.
+          </p>
         ) : null}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 xl:gap-8 w-full">
@@ -148,8 +197,8 @@ export default function ConteudoDashboardEscola() {
               nomeTurma={turma.nome}
               alunos={alunosPorTurmaId.get(turma.id) ?? []}
               href={`/dashboardTurma?id=${turma.id}`}
-              onEditar={() => setIdEmEdicao(turma.id)}
-              onExcluir={() => setIdEmExclusao(turma.id)}
+              onEditar={podeEditarTurmasDaEscola ? () => setIdEmEdicao(turma.id) : undefined}
+              onExcluir={podeEditarTurmasDaEscola ? () => setIdEmExclusao(turma.id) : undefined}
             />
           ))}
         </div>
@@ -167,8 +216,11 @@ export default function ConteudoDashboardEscola() {
         {turmaEmEdicao ? (
           <FormTurma
             key={turmaEmEdicao.id}
-          modo="editar"
+            modo="editar"
             nomeInicial={turmaEmEdicao.nome}
+            serieAnoInicial={turmaEmEdicao.serieAno}
+            letraInicial={turmaEmEdicao.letra}
+            horarioInicial={turmaEmEdicao.horario}
             escolaIdInicial={turmaEmEdicao.escolaId ?? ""}
             escolas={escolasParaForm}
             onClose={() => setIdEmEdicao(null)}

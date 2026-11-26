@@ -8,9 +8,16 @@ import DropDown, { type DropDownOption } from "@/components/common/DropDown";
 import CheckBox from "@/components/common/CheckBox";
 import Button from "@/components/common/Button";
 import { BarraCarregando } from "@/components/common/Carregando";
+import Toast, { useAlerta } from "@/components/common/Toast";
 import { UFS_BRASIL, buscarMunicipiosPorUf } from "@/utils/localidades";
 import { BENEFICIOS_PRO } from "@/components/public/Planos";
-import { apiDbFetch, getAuthToken } from "@/utils/apiClient";
+import {
+  apiDbFetch,
+  getAuthToken,
+  getSavedUserProfile,
+  setSavedUserProfile,
+  type UserProfile,
+} from "@/utils/apiClient";
 
 type Periodicidade = "mensal" | "anual";
 
@@ -78,35 +85,117 @@ export default function ComprarPlanoPage() {
   const [cienteRenovacao, setCienteRenovacao] = useState(false);
   const [etapaPagamento, setEtapaPagamento] = useState<
     "idle" | "aguardando" | "concluido"
-  >("idle");
+  >(() => {
+    if (typeof window === "undefined") return "idle";
+    const params = new URLSearchParams(window.location.search);
+    const statusRetorno = (
+      params.get("status") ??
+      params.get("collection_status") ??
+      ""
+    ).toLowerCase();
+    return statusRetorno === "approved" ? "aguardando" : "idle";
+  });
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const { alerta, mostrar, limpar } = useAlerta();
 
-  async function iniciarAssinatura() {
-    setEtapaPagamento("aguardando");
-    if (getAuthToken()) {
-      try {
-        const docDigitos = cpfCnpj.replace(/\D/g, "") || "12345678901";
-        const tipoCont = docDigitos.length === 14 ? "cnpj" : "cpf";
-        const resp = await apiDbFetch("/pagamentos/checkout", {
-          method: "POST",
-          body: JSON.stringify({
-            nome_plano: "pro",
-            tipo_cont: tipoCont,
-            documento_cont: docDigitos,
-          }),
-        });
-        if (resp.ok) {
-          const dados = (await resp.json()) as { checkout_url?: string };
-          if (dados.checkout_url && dados.checkout_url.startsWith("http")) {
-            window.open(dados.checkout_url, "_blank", "noopener,noreferrer");
-          }
-        }
-      } catch {}
+  function mostrarErro(descricao: string) {
+    mostrar({ tom: "danger", titulo: "Não foi possível continuar", descricao });
+  }
+
+  async function verificarPlanoAtivo(): Promise<boolean> {
+    if (!getAuthToken()) return false;
+    try {
+      const resp = await apiDbFetch("/autenticar/perfil");
+      if (!resp.ok) return false;
+      const perfil = (await resp.json()) as UserProfile;
+      const salvo = getSavedUserProfile();
+      setSavedUserProfile({ ...(salvo ?? {}), ...perfil });
+      return (perfil.plano ?? "").trim().toLowerCase() === "pro";
+    } catch {
+      return false;
     }
   }
+
+  async function iniciarAssinatura() {
+    if (!getAuthToken()) {
+      mostrarErro("Faça login para assinar o plano Pro.");
+      return;
+    }
+
+    const docDigitos = cpfCnpj.replace(/\D/g, "");
+    if (docDigitos.length !== 11 && docDigitos.length !== 14) {
+      mostrarErro("Informe um CPF ou CNPJ válido para continuar.");
+      return;
+    }
+
+    setEtapaPagamento("aguardando");
+    setCheckoutUrl(null);
+    try {
+      const tipoCont = docDigitos.length === 14 ? "cnpj" : "cpf";
+      const resp = await apiDbFetch("/pagamentos/checkout", {
+        method: "POST",
+        body: JSON.stringify({
+          nome_plano: "pro",
+          tipo_cont: tipoCont,
+          documento_cont: docDigitos,
+        }),
+      });
+      if (!resp.ok) {
+        const erroBody = (await resp.json().catch(() => null)) as
+          | { detail?: string; message?: string; erro?: string }
+          | null;
+        setEtapaPagamento("idle");
+        mostrarErro(
+          erroBody?.detail ??
+            erroBody?.message ??
+            erroBody?.erro ??
+            "Não foi possível iniciar o pagamento no Mercado Pago."
+        );
+        return;
+      }
+
+      const dados = (await resp.json()) as {
+        checkout_url?: string;
+        init_point?: string;
+        sandbox_init_point?: string;
+        url?: string;
+      };
+      const urlDestino =
+        dados.checkout_url ??
+        dados.init_point ??
+        dados.sandbox_init_point ??
+        dados.url;
+      if (!urlDestino || !urlDestino.startsWith("http")) {
+        setEtapaPagamento("idle");
+        mostrarErro("Link de pagamento do Mercado Pago não recebido.");
+        return;
+      }
+
+      setCheckoutUrl(urlDestino);
+      window.location.assign(urlDestino);
+    } catch {
+      setEtapaPagamento("idle");
+      mostrarErro("Erro ao conectar com o serviço de pagamentos.");
+    }
+  }
+
   useEffect(() => {
     if (etapaPagamento === "aguardando") {
-      const timer = setTimeout(() => setEtapaPagamento("concluido"), 2500);
-      return () => clearTimeout(timer);
+      let ativo = true;
+      const checar = async () => {
+        const virouPro = await verificarPlanoAtivo();
+        if (ativo && virouPro) {
+          setEtapaPagamento("concluido");
+        }
+      };
+      void checar();
+      const intervalo = setInterval(() => {
+        void checar();
+      }, 3000);
+      return () => {
+        ativo = false;
+        clearInterval(intervalo);
+      };
     }
     if (etapaPagamento === "concluido") {
       const timer = setTimeout(() => {
@@ -357,8 +446,31 @@ export default function ComprarPlanoPage() {
             </p>
 
             {etapaPagamento === "aguardando" ? (
-              <div className="flex w-full flex-col items-center justify-center gap-4 py-6">
+              <div className="flex w-full flex-col items-center justify-center gap-4 py-4">
                 <BarraCarregando className="h-2.5 w-56 sm:w-64" />
+                <p className="text-center text-xs text-secondary sm:text-sm">
+                  Conclua o pagamento na aba do Mercado Pago. Assim que for aprovado, atualizaremos seu plano automaticamente.
+                </p>
+                {checkoutUrl ? (
+                  <a
+                    href={checkoutUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-medium text-primary underline hover:text-secondary sm:text-sm"
+                  >
+                    Abrir checkout do Mercado Pago
+                  </a>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEtapaPagamento("idle");
+                    setCheckoutUrl(null);
+                  }}
+                  className="mt-1 cursor-pointer text-xs text-secondary underline hover:text-primary"
+                >
+                  Cancelar
+                </button>
               </div>
             ) : (
               <div className="flex h-32 w-32 items-center justify-center rounded-full bg-surface-success sm:h-[168px] sm:w-[168px]">
@@ -381,6 +493,7 @@ export default function ComprarPlanoPage() {
           </div>
         </div>
       )}
+      {alerta ? <Toast alerta={alerta} limpar={limpar} /> : null}
     </div>
   );
 }

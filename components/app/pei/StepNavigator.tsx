@@ -12,7 +12,7 @@ export interface StepNavigatorProps {
 }
 
 const BLOQUEADO =
-  "flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-xl text-secondary transition-colors hover:bg-surface-base-hover disabled:cursor-not-allowed disabled:opacity-40";
+  "flex h-9 w-9 items-center justify-center rounded-full text-xl text-primary transition-colors hover:bg-sunken/60 disabled:cursor-not-allowed disabled:opacity-40";
 
 export default function StepNavigator({
   podeAvancar,
@@ -34,7 +34,7 @@ export default function StepNavigator({
         aria-label="Pergunta anterior"
         className={BLOQUEADO}
       >
-        <ChevronLeft size={20} />
+        <ChevronLeft size={22} />
       </button>
       <button
         type="button"
@@ -50,7 +50,7 @@ export default function StepNavigator({
             className="h-4 w-4 animate-spin rounded-full border-2 border-surface-inverse/30 border-t-surface-inverse"
           />
         ) : (
-          <ChevronRight size={20} />
+          <ChevronRight size={22} />
         )}
       </button>
     </div>

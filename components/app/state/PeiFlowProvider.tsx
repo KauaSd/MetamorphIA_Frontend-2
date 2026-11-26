@@ -17,6 +17,8 @@ import {
   type StatusPEI,
 } from "@/utils/pei/types";
 import { peiService } from "@/utils/pei/service";
+import { updateAluno } from "@/utils/data/controller";
+import { apiDbFetch, getAuthToken, parseNumeroId } from "@/utils/apiClient";
 
 export const CHAVE_PEI = "metamorphia:pei:v3";
 
@@ -34,6 +36,7 @@ export interface PeiFlowContext {
   setComponente: (valor: string) => void;
   setPeriodo: (valor: string) => void;
   irParaQuestoes: () => void;
+  enviarConhecimentoAluno: (texto: string) => Promise<void>;
   irParaForm: () => void;
   tentarNovamente: () => void;
   avancar: () => Promise<void>;
@@ -66,18 +69,33 @@ export function PeiFlowProvider({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [respostas, setRespostas] = useState<Record<string, Answer>>({});
   const [mostrarRevisao, setMostrarRevisao] = useState(false);
+  const [conhecimentoRespondido, setConhecimentoRespondido] = useState(false);
+  const [descricaoConhecimento, setDescricaoConhecimento] = useState("");
 
-  const carregarPerguntas = useCallback(async () => {
-    if (!aluno || !componente || !periodo) return;
-    setStatus("carregando");
-    try {
-      const resultado = await peiService.buscarPerguntas({ aluno, componente, periodo });
-      setStatus("pronto");
-      setQuestions(resultado);
-    } catch {
-      setStatus("erro");
-    }
-  }, [aluno, componente, periodo]);
+  const carregarPerguntas = useCallback(
+    async (descricaoOverride?: string) => {
+      if (!aluno || !componente || !periodo) return;
+      setStatus("carregando");
+      try {
+        const descricaoAluno =
+          descricaoOverride?.trim() ||
+          descricaoConhecimento.trim() ||
+          aluno.descricao?.trim() ||
+          undefined;
+        const resultado = await peiService.buscarPerguntas({
+          aluno,
+          componente,
+          periodo,
+          descricaoAluno,
+        });
+        setStatus("pronto");
+        setQuestions(resultado);
+      } catch {
+        setStatus("erro");
+      }
+    },
+    [aluno, componente, periodo, descricaoConhecimento],
+  );
 
   const respostaAtual: Answer =
     respostas[questions[currentIndex]?.id] ?? respostaVazia(questions[currentIndex]?.id ?? "");
@@ -86,13 +104,48 @@ export function PeiFlowProvider({
     status !== "carregando" &&
     (respostaAtual.selectedOptionIds.length > 0 || Boolean(respostaAtual.freeText?.trim()));
 
-  const fluxoEmAndamento = componente !== "" || periodo !== "" || passo === "questoes";
+  const fluxoEmAndamento =
+    componente !== "" || periodo !== "" || passo === "conhecer" || passo === "questoes";
 
   const irParaQuestoes = useCallback(async () => {
     if (!componente || !periodo) return;
+    const descAtual = aluno?.descricao?.trim() ?? "";
+    const ehDescricaoPadrao = /^Estudante .+?, idade .+?, perfil .+\.?$/i.test(descAtual);
+    const precisaConhecer = Boolean(
+      aluno && (!descAtual || ehDescricaoPadrao) && !conhecimentoRespondido,
+    );
+    if (precisaConhecer) {
+      setPasso("conhecer");
+      return;
+    }
     setPasso("questoes");
     await carregarPerguntas();
-  }, [componente, periodo, carregarPerguntas]);
+  }, [componente, periodo, aluno, conhecimentoRespondido, carregarPerguntas]);
+
+  const enviarConhecimentoAluno = useCallback(
+    async (texto: string) => {
+      const limpo = texto.trim();
+      if (!limpo || !aluno || status === "salvando") return;
+      setStatus("salvando");
+      try {
+        const numId = parseNumeroId(aluno.id);
+        if (numId !== null && getAuthToken()) {
+          await apiDbFetch(`/Alunos/${numId}/descricao`, {
+            method: "PATCH",
+            body: JSON.stringify({ desc_aluno: limpo }),
+          }).catch(() => {});
+        }
+        await updateAluno(aluno.id, { descricao: limpo }).catch(() => {});
+        setDescricaoConhecimento(limpo);
+        setConhecimentoRespondido(true);
+        setPasso("questoes");
+        await carregarPerguntas(limpo);
+      } catch {
+        setStatus("pronto");
+      }
+    },
+    [aluno, status, carregarPerguntas],
+  );
 
   const irParaForm = useCallback(() => {
     setPasso("form");
@@ -207,6 +260,8 @@ export function PeiFlowProvider({
     setQuestions([]);
     setRespostas({});
     setMostrarRevisao(false);
+    setConhecimentoRespondido(false);
+    setDescricaoConhecimento("");
   }, []);
 
   const valor = useMemo<PeiFlowContext>(
@@ -224,6 +279,7 @@ export function PeiFlowProvider({
       setComponente,
       setPeriodo,
       irParaQuestoes,
+      enviarConhecimentoAluno,
       irParaForm,
       tentarNovamente,
       avancar,
@@ -249,6 +305,7 @@ export function PeiFlowProvider({
       respostas,
       mostrarRevisao,
       irParaQuestoes,
+      enviarConhecimentoAluno,
       irParaForm,
       tentarNovamente,
       avancar,

@@ -7,6 +7,7 @@ interface HeaderPagEscolasProps {
   onCriarEscola: () => void;
   ordenacao?: string;
   onMudarOrdenacao?: (val: string) => void;
+  podeCriar?: boolean;
 }
 
 const OPCOES_DROPDOWN = [
@@ -18,6 +19,7 @@ export default function HeaderPagEscolas({
   onCriarEscola,
   ordenacao = "az",
   onMudarOrdenacao,
+  podeCriar = true,
 }: HeaderPagEscolasProps) {
   return (
     <div className="flex flex-col gap-[15px] w-full">
@@ -37,14 +39,16 @@ export default function HeaderPagEscolas({
             small
           />
 
-          <button
-            type="button"
-            onClick={onCriarEscola}
-            aria-label="Criar Escola"
-            className="flex w-8 h-8 sm:w-9 sm:h-9 bg-surface-accent rounded-full justify-center items-center cursor-pointer hover:bg-surface-accent-strong shrink-0"
-          >
-            <img src={AdicionarEscolaIcon.src} className="flex w-5 h-5 sm:w-6 sm:h-6 object-contain" alt="" />
-          </button>
+          {podeCriar ? (
+            <button
+              type="button"
+              onClick={onCriarEscola}
+              aria-label="Criar Escola"
+              className="flex w-8 h-8 sm:w-9 sm:h-9 bg-surface-accent rounded-full justify-center items-center cursor-pointer hover:bg-surface-accent-strong shrink-0"
+            >
+              <img src={AdicionarEscolaIcon.src} className="flex w-5 h-5 sm:w-6 sm:h-6 object-contain" alt="" />
+            </button>
+          ) : null}
         </div>
       </div>
     </div>

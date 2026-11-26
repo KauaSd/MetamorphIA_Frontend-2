@@ -13,7 +13,7 @@ import { updateAluno, deleteAluno, type Resultado } from "@/utils/data/controlle
 import { ALERTAS } from "@/utils/alertas";
 
 export default function ConteudoAlunos(){
-    const { turmas, alunos, recarregar, hydrated } = useData();
+    const { turmas, alunos, escolas, podeGerenciarAlunos, recarregar, hydrated } = useData();
     const [busca, setBusca] = useState("");
     const [ordenacao, setOrdenacao] = useState("az");
     const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
@@ -25,9 +25,13 @@ export default function ConteudoAlunos(){
         [turmas],
     );
 
-    const nomeTurmaPorId = useMemo(
-        () => new Map(turmas.map((turma) => [turma.id, turma.nome])),
+    const turmasPorId = useMemo(
+        () => new Map(turmas.map((turma) => [turma.id, turma])),
         [turmas],
+    );
+    const escolasPorId = useMemo(
+        () => new Map(escolas.map((escola) => [escola.id, escola])),
+        [escolas],
     );
 
     const alunosFiltrados = useMemo(() => {
@@ -95,17 +99,26 @@ export default function ConteudoAlunos(){
             </div>
             {temResultado ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 mt-6 sm:mt-10 w-full">
-                    {alunosFiltrados.map((aluno) => (
-                        <Aluno
-                            key={aluno.id}
-                            nome={aluno.nome}
-                            neuros={aluno.neuro}
-                            Turma={nomeTurmaPorId.get(aluno.turmaId) ?? ""}
-                            href={`/dashboardAluno?id=${aluno.id}`}
-                            onEditar={() => setIdEmEdicao(aluno.id)}
-                            onExcluir={() => setIdEmExclusao(aluno.id)}
-                        />
-                    ))}
+                    {alunosFiltrados.map((aluno) => {
+                        const turmaAluno = turmasPorId.get(aluno.turmaId);
+                        const escAluno = turmaAluno?.escolaId
+                            ? escolasPorId.get(turmaAluno.escolaId)
+                            : undefined;
+                        const podeEditar =
+                            podeGerenciarAlunos &&
+                            !(escAluno?.institucional && escAluno?.papel === "professor");
+                        return (
+                            <Aluno
+                                key={aluno.id}
+                                nome={aluno.nome}
+                                neuros={aluno.neuro}
+                                Turma={turmaAluno?.nome ?? ""}
+                                href={`/dashboardAluno?id=${aluno.id}`}
+                                onEditar={podeEditar ? () => setIdEmEdicao(aluno.id) : undefined}
+                                onExcluir={podeEditar ? () => setIdEmExclusao(aluno.id) : undefined}
+                            />
+                        );
+                    })}
                 </div>
             ) : temAluno ? (
                 <div className="flex flex-1 w-full flex-col items-center justify-center gap-2 py-16">

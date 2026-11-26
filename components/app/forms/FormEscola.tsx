@@ -41,8 +41,11 @@ export function FormEscola({
 
   return (
     <Blurfundo onClose={salvando ? undefined : onClose}>
-      <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <form
+        onSubmit={handleSubmit}
+        className="fixed inset-0 z-50 h-dvh w-screen sm:static sm:h-auto sm:w-full sm:max-w-md"
+      >
+        <div className="relative flex h-full w-full flex-col gap-6 overflow-y-auto rounded-none bg-surface-base p-5 shadow-md sm:h-auto sm:gap-6 sm:overflow-hidden sm:rounded-[70px] sm:p-8">
           <OverlayCarregando ativo={salvando} mensagem="Salvando escola..." />
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -70,7 +73,7 @@ export function FormEscola({
             />
           </div>
 
-          <div className="flex gap-5">
+          <div className="mt-auto flex gap-5 sm:mt-0">
             <Button
               type="button"
               disabled={salvando}
@@ -117,8 +120,8 @@ export function FormDeletaEscola({
 
   return (
     <Blurfundo onClose={excluindo ? undefined : onClose}>
-      <div className="w-full max-w-md">
-        <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div className="fixed inset-0 z-50 h-dvh w-screen sm:static sm:h-auto sm:w-full sm:max-w-md">
+        <div className="relative flex h-full w-full flex-col gap-6 overflow-y-auto rounded-none bg-surface-base p-5 shadow-md sm:h-auto sm:gap-6 sm:overflow-hidden sm:rounded-[70px] sm:p-8">
           <OverlayCarregando ativo={excluindo} mensagem="Excluindo escola..." />
           <div className="flex items-center justify-between">
             <p className="text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)">
@@ -143,7 +146,7 @@ export function FormDeletaEscola({
             </p>
           </div>
 
-          <div className="flex gap-5 self-end">
+          <div className="mt-auto flex gap-5 self-end sm:mt-0">
             <Button
               type="button"
               disabled={excluindo}

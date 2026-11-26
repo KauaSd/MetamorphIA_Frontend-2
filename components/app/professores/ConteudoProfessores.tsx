@@ -326,16 +326,16 @@ export default function ConteudoProfessores() {
                     key={prof.id}
                     className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <p className="truncate text-base text-primary sm:text-lg">
+                    <p className="truncate font-(family-name:--font-poppins) text-base text-primary sm:text-lg">
                       {prof.nome}
                     </p>
 
                     <div className="flex min-w-0 shrink-0 items-center justify-between gap-4 sm:justify-end">
                       <div className="flex min-w-0 flex-col items-start sm:items-end">
-                        <span className="max-w-full truncate text-sm text-secondary">
+                        <span className="max-w-full truncate font-(family-name:--font-poppins) text-sm text-secondary">
                           {prof.turmasTexto}
                         </span>
-                        <span className="max-w-full truncate text-sm text-secondary">
+                        <span className="max-w-full truncate font-(family-name:--font-poppins) text-sm text-secondary">
                           {prof.lecionaTexto}
                         </span>
                       </div>

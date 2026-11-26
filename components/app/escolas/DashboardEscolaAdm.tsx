@@ -351,7 +351,7 @@ export default function DashboardEscolaAdm({
                   }`}
                   aria-hidden="true"
                 />
-                <span className="truncate text-[18px] text-[#797979]">
+                <span className="truncate text-[18px] text-primary">
                   {prof.nome} - {prof.turma} - {prof.concluidos}/{prof.total} concluídos
                 </span>
               </div>

@@ -250,11 +250,11 @@ export default function DashboardEscolaAdm({
               {escola?.nome ?? "Escola"}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-surface-info/45 px-3 py-0.5 text-xs font-medium text-primary">
+              <span className="rounded-full bg-surface-info px-3 py-0.5 text-xs font-medium text-ink">
                 {professores.length}{" "}
                 {professores.length === 1 ? "professor" : "professores"}
               </span>
-              <span className="rounded-full bg-surface-success/55 px-3 py-0.5 text-xs font-medium text-primary">
+              <span className="rounded-full bg-surface-success px-3 py-0.5 text-xs font-medium text-ink">
                 {turmasDaEscolaList.length}{" "}
                 {turmasDaEscolaList.length === 1 ? "turma" : "turmas"}
               </span>

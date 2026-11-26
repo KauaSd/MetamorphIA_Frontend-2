@@ -248,7 +248,7 @@ export default function ComprarPlanoPage() {
 
             <div className="mt-0.5 flex min-w-0 flex-1 flex-col gap-5 lg:mt-1 lg:pr-7 xl:mt-1.5 xl:gap-8 xl:pr-10 2xl:mt-2 2xl:gap-10 2xl:pr-12">
               <div className="flex flex-col gap-1 xl:gap-1.5 2xl:gap-2">
-                <div className="h-fit w-fit rounded-3xl bg-surface-accent/50 px-2.5 py-0.5 text-[11px] 2xl:px-3 2xl:py-1 2xl:text-xs">
+                <div className="h-fit w-fit rounded-3xl bg-surface-accent px-2.5 py-0.5 text-[11px] 2xl:px-3 2xl:py-1 2xl:text-xs">
                   <span className="font-bold text-ink">PRO</span>
                 </div>
                 <p className="text-xs text-secondary 2xl:text-sm">

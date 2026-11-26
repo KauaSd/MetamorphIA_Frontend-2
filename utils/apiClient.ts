@@ -377,15 +377,19 @@ async function apiFetchComBase(
   let resp = await executarFetchComBase(baseUrl, endpoint, init, token);
 
   // Se a API responder 401, tenta renovar o JWT uma vez e refaz a requisicao
-  if (resp.status === 401 && permiteRefresh && getRefreshToken()) {
-    const renovado = await renovarTokenJwt();
+  if (resp.status === 401 && permiteRefresh) {
+    const renovado = getRefreshToken() ? await renovarTokenJwt() : null;
     if (renovado) {
       resp = await executarFetchComBase(baseUrl, endpoint, init, renovado);
-    } else if (
-      typeof window !== "undefined" &&
-      !window.location.pathname.startsWith("/auth/")
-    ) {
-      window.location.href = "/auth/login";
+    } else {
+      setAuthToken(null);
+      setRefreshToken(null);
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/auth/")
+      ) {
+        window.location.href = "/auth/login";
+      }
     }
   }
 

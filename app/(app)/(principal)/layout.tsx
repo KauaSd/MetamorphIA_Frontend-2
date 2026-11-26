@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import Menu from "@/components/app/layout/Menu";
 import Tutorial, { type tutId } from "@/components/app/layout/Tutorial";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/components/app/forms/FormAlunoTurma";
 import FormVincularInstituicao from "@/components/app/forms/FormVincularInstituicao";
 import { useData } from "@/components/app/state/DataProvider";
+import { getAuthToken } from "@/utils/apiClient";
 import { alternarModo, markTutorialSeen } from "@/utils/data/controller";
 import StatusPlano, { resolverTipoPlano, type TipoPlanoStatus } from "@/components/app/layout/StatusPlano";
 
@@ -92,6 +94,19 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
   const [passoTutorial, setPassoTutorial] = useState<tutId | null>(null);
   const [perfilDispensado, setPerfilDispensado] = useState(false);
   const [alternandoModo, setAlternandoModo] = useState(false);
+  const [autenticado, setAutenticado] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const temToken = Boolean(getAuthToken());
+    setAutenticado(temToken);
+    if (!temToken) {
+      router.replace("/auth/login");
+    }
+  }, [pathname, hydrated, router]);
+
+  if (autenticado !== true) {
+    return <CarregandoDashboard mensagem="Verificando acesso..." />;
+  }
 
   async function handleAlternarModo() {
     if (alternandoModo) return;

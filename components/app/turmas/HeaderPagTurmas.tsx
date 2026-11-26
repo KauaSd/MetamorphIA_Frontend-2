@@ -2,7 +2,7 @@ import DropDown from "@/components/common/DropDown";
 import GroupAdd from "@/public/group_add.svg";
 
 interface HeaderPagTurmasProps {
-    onCriarTurma: () => void;
+    onCriarTurma?: () => void;
     podeCriar?: boolean;
 }
 
@@ -21,7 +21,7 @@ export default function HeaderPagTurmas({ onCriarTurma, podeCriar = true }: Head
                     <span className="hidden sm:inline text-sm text-secondary whitespace-nowrap">Ordenar por</span>
                     <DropDown options={OPCOES_DROPDOWN} small />
 
-                    {podeCriar ? (
+                    {podeCriar && onCriarTurma ? (
                         <button type="button" onClick={onCriarTurma} aria-label="Criar Turma" className="flex w-8 h-8 sm:w-9 sm:h-9 bg-surface-accent rounded-full justify-center items-center cursor-pointer hover:bg-surface-accent-strong shrink-0">
                             <img src={GroupAdd.src} className="flex w-5 h-5 sm:w-6 sm:h-6" alt="" />
                         </button>

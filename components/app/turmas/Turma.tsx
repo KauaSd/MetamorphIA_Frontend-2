@@ -6,6 +6,7 @@ import { EllipsisVertical } from 'lucide-react';
 import Encaracolado from "@/components/common/Encaracolado";
 import EncaracoladoSvg from "@/public/EncaracoladoTurma.svg";
 import VerMais from "@/components/common/VerMais";
+import { corDoNome } from "@/utils/cores";
 import Link from "next/link";
 
 /** quantos alunos aparecem no card antes do "+N" */
@@ -85,6 +86,7 @@ export default function Turma( props:TurmaProps) {
                             key={aluno.id || index}
                             nome={aluno.nome}
                             neuros={aluno.neuros}
+                            cor={corDoNome(aluno.nome)}
                         />
                     ))}
                 </div>
@@ -123,7 +125,7 @@ export default function Turma( props:TurmaProps) {
     );
 
     return (
-        <div className={`relative w-full ${isOpen ? "z-40" : "z-0"}`}>
+        <div className={`relative w-full ${props.href ? "transition-transform hover:scale-[1.01]" : ""} ${isOpen ? "z-40" : "z-0"}`}>
             {props.href ? (
                 <Link
                     href={props.href}

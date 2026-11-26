@@ -13,6 +13,7 @@ import { FormDeletaConta, FormDesconecta, FormAlterarSenha} from "@/components/a
 import CampoEditavel from "@/components/app/configuracoes/CampoEditavel";
 import BarraAlteracoes from "@/components/app/configuracoes/BarraAlteracoes";
 import { useData } from "@/components/app/state/DataProvider";
+import { resolverTipoPlano, type TipoPlanoStatus } from "@/components/app/layout/StatusPlano";
 import { saveTeacherName } from "@/utils/data/controller";
 import {
   apiDbFetch,
@@ -588,22 +589,40 @@ export function PrivacidadeConfig() {
   );
 }
 
+const CORES_BANNER_PLANO: Record<
+  TipoPlanoStatus,
+  { rotulo: string; classe: string }
+> = {
+  basico: { rotulo: "Básico", classe: "bg-ink text-inverse" },
+  pro: { rotulo: "PRO", classe: "bg-surface-accent text-ink" },
+  institucional: { rotulo: "Institucional", classe: "bg-surface-warning text-ink" },
+};
+
 export function PlanosConfig({ destaque }: { destaque: string | null }) {
-  const { plano } = useData();
-  const planoRaw = (plano ?? getSavedUserProfile()?.plano ?? "normal").toLowerCase();
-  const rotuloPlano =
-    planoRaw === "pro"
-      ? "PRO"
-      : planoRaw.includes("institucional")
-        ? "Institucional"
-        : "Gratuito";
+  const {
+    plano,
+    escolas,
+    escolaInstitucional,
+    podeAlternarModoProfessor,
+    modoAtivo,
+  } = useData();
+  const tipoPlano = resolverTipoPlano({
+    plano: plano ?? getSavedUserProfile()?.plano,
+    escolas,
+    escolaInstitucional,
+    podeAlternarModoProfessor,
+    modoAtivo,
+  });
+  const infoPlano = CORES_BANNER_PLANO[tipoPlano];
 
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Planos</h2>
 
-      <div className="w-full rounded-full bg-sunken/50 px-5 py-2.5 text-sm text-primary sm:text-base">
-        Você está no plano {rotuloPlano}
+      <div
+        className={`w-full rounded-full px-5 py-2.5 text-sm font-medium sm:text-base ${infoPlano.classe}`}
+      >
+        Você está no plano {infoPlano.rotulo}
       </div>
 
       <div className="divide-y-2 divide-sunken border-y-2 border-sunken">

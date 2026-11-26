@@ -85,7 +85,7 @@ export default function Aluno( props: AlunoProps) {
     );
 
     return (
-        <div className={`relative flex min-h-[84px] w-full items-center rounded-[50px] bg-surface-base pr-12 sm:rounded-[90px] sm:pr-16 ${isOpen ? "z-40" : "z-0"}`}>
+        <div className={`relative flex min-h-[84px] w-full items-center rounded-[50px] bg-surface-base pr-12 sm:rounded-[90px] sm:pr-16 ${props.href ? "transition-transform hover:scale-[1.01]" : ""} ${isOpen ? "z-40" : "z-0"}`}>
             {props.href ? (
                 <Link
                     href={props.href}

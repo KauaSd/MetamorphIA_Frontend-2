@@ -221,6 +221,22 @@ export function clearAuthSession(): void {
   setPendingResetIdentifier(null);
   setPendingResetToken(null);
   setSavedUserProfile(null);
+  if (typeof window !== "undefined") {
+    try {
+      for (const storage of [window.localStorage, window.sessionStorage]) {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < storage.length; i += 1) {
+          const key = storage.key(i);
+          if (key && key.startsWith("metamorphia:")) {
+            keysToRemove.push(key);
+          }
+        }
+        for (const key of keysToRemove) {
+          storage.removeItem(key);
+        }
+      }
+    } catch {}
+  }
 }
 
 export function parseNumeroId(id: string | number | null | undefined): number | null {

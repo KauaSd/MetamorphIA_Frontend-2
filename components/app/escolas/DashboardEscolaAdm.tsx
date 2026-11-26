@@ -63,6 +63,7 @@ interface DashboardEscolaAdmProps {
   escolas: Escola[];
   turmasDaEscolaList: Turma[];
   alunosDaEscola: Aluno[];
+  ehAdminRede?: boolean;
   onRecarregar: () => Promise<void>;
 }
 
@@ -72,6 +73,7 @@ export default function DashboardEscolaAdm({
   escolas,
   turmasDaEscolaList,
   alunosDaEscola,
+  ehAdminRede = false,
   onRecarregar,
 }: DashboardEscolaAdmProps) {
   const { alerta, mostrar, limpar } = useAlerta();
@@ -259,14 +261,16 @@ export default function DashboardEscolaAdm({
             </div>
           </div>
 
-          <div className="flex w-fit flex-col items-center rounded-[28px] bg-surface-base px-4 py-2.5">
-            <span className="rounded-full bg-surface-warning px-4 py-0.5 text-xs font-medium text-ink">
-              Código de acesso
-            </span>
-            <span className="mt-1.5 font-mono text-sm tracking-wider text-secondary">
-              {escola?.codigoConvite || (escolaId ? `ESC-${escolaId.padStart(6, "0")}` : "---")}
-            </span>
-          </div>
+          {!ehAdminRede ? (
+            <div className="flex w-fit flex-col items-center rounded-[28px] bg-surface-base px-4 py-2.5">
+              <span className="rounded-full bg-surface-warning px-4 py-0.5 text-xs font-medium text-ink">
+                Código de acesso
+              </span>
+              <span className="mt-1.5 font-mono text-sm tracking-wider text-secondary">
+                {escola?.codigoConvite || (escolaId ? `ESC-${escolaId.padStart(6, "0")}` : "---")}
+              </span>
+            </div>
+          ) : null}
         </div>
 
         {/* Botões de ação */}
@@ -278,7 +282,9 @@ export default function DashboardEscolaAdm({
               { id: "escola", label: "Adicionar Escolas", iconSrc: AdicionarEscolaIcon.src },
               { id: "professor", label: "Adicionar Professores", iconSrc: AdcProfIcon.src },
             ] as const
-          ).map((acao) => (
+          )
+            .filter((acao) => !(ehAdminRede && acao.id === "professor"))
+            .map((acao) => (
             <Button
               key={acao.id}
               type="button"
@@ -383,7 +389,7 @@ export default function DashboardEscolaAdm({
         />
       )}
 
-      {modalAberto === "professor" && (
+      {modalAberto === "professor" && !ehAdminRede && (
         <FormProfessor
           turmas={turmasParaForm}
           onClose={() => setModalAberto(null)}

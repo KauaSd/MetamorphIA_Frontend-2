@@ -7,7 +7,7 @@ interface PeisDisciplinaCardProps {
 const COR_STATUS_DISCIPLINA: Record<StatusPeiDisciplina, string> = {
   concluido: "bg-surface-success-strong",
   em_andamento: "bg-surface-warning-strong",
-  nao_iniciado: "bg-sunken",
+  nao_iniciado: "bg-surface-danger-strong",
 };
 
 function periodoPassou(proximoPeriodo?: string | null): boolean {
@@ -35,6 +35,16 @@ function resolverStatusGeralPei(dados: PeisPorDisciplinaResumo): {
     periodoPassou(dados.proximoPeriodo)
   ) {
     return { label: "PENDENTE", cor: "text-[#FF9999]" };
+  }
+  const algumaIniciada =
+    dados.concluidos > 0 ||
+    dados.disciplinas.some((d) => d.status !== "nao_iniciado");
+  if (
+    !algumaIniciada ||
+    dados.statusGeral.toUpperCase().includes("NÃO INICIAD") ||
+    dados.statusGeral.toUpperCase().includes("NAO INICIAD")
+  ) {
+    return { label: "NÃO INICIADA", cor: "text-danger" };
   }
   return { label: "EM ANDAMENTO", cor: "text-warning" };
 }

@@ -12,6 +12,7 @@ import Toast from "@/components/common/Toast";
 import type { MensagemAlerta } from "@/utils/alertas";
 import { validarSenha } from "@/utils/validacao";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   apiDbFetch,
   clearAuthSession,
@@ -94,6 +95,7 @@ function ModalConfirmacaoConta({
 
 export function FormDeletaConta({onClose}: FormProps){
   const router = useRouter();
+  const queryClient = useQueryClient();
   async function confirmar() {
     const perfil = getSavedUserProfile();
     if (getAuthToken() && perfil?.id_usuario) {
@@ -104,6 +106,7 @@ export function FormDeletaConta({onClose}: FormProps){
       } catch {}
     }
     clearAuthSession();
+    queryClient.clear();
     onClose();
     router.push("/auth/login");
   }
@@ -122,6 +125,7 @@ export function FormDeletaConta({onClose}: FormProps){
 
 export function FormDesconectaTodos({onClose}: FormProps){
   const router = useRouter();
+  const queryClient = useQueryClient();
   async function confirmar() {
     if (getAuthToken()) {
       try {
@@ -131,6 +135,7 @@ export function FormDesconectaTodos({onClose}: FormProps){
       } catch {}
     }
     clearAuthSession();
+    queryClient.clear();
     onClose();
     router.push("/auth/login");
   }
@@ -148,8 +153,10 @@ export function FormDesconectaTodos({onClose}: FormProps){
 
 export function FormDesconecta({onClose}: FormProps){
   const router = useRouter();
+  const queryClient = useQueryClient();
   function confirmar() {
     clearAuthSession();
+    queryClient.clear();
     onClose();
     router.push("/auth/login");
   }
@@ -166,6 +173,7 @@ export function FormDesconecta({onClose}: FormProps){
 
 export function FormAlterarSenha({onClose}: Partial<FormProps>){
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [senhaAtual, setSenhaAtual] = useState("");
   const [senha, setSenha] = useState("");
   const [senha2, setSenha2] = useState("");
@@ -274,6 +282,7 @@ export function FormAlterarSenha({onClose}: Partial<FormProps>){
         onClose();
       } else {
         clearAuthSession();
+        queryClient.clear();
         onClose();
         router.push("/auth/login");
       }
@@ -288,7 +297,14 @@ export function FormAlterarSenha({onClose}: Partial<FormProps>){
   };
 
   const formulario = (
-    <form onSubmit={handleSubmit} className="w-full max-w-md">
+    <form
+      onSubmit={handleSubmit}
+      className={
+        onClose
+          ? "fixed inset-0 z-50 h-dvh w-screen sm:static sm:h-auto sm:w-full sm:max-w-md"
+          : "w-full max-w-md"
+      }
+    >
       {alerta && (
         <Toast
           key={`${alerta.titulo}-${alerta.descricao ?? ""}`}
@@ -296,7 +312,13 @@ export function FormAlterarSenha({onClose}: Partial<FormProps>){
           limpar={setAlerta}
         />
       )}
-      <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+      <div
+        className={
+          onClose
+            ? "relative flex h-full w-full flex-col gap-6 overflow-y-auto rounded-none bg-surface-base p-5 shadow-md sm:h-auto sm:gap-6 sm:overflow-hidden sm:rounded-[70px] sm:p-8"
+            : "relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8"
+        }
+      >
         <OverlayCarregando ativo={salvando} mensagem="Alterando senha..." />
         <div className="flex flex-col  gap-6">
           <div className={`flex items-center ${onClose ? "justify-between" : "justify-center"}`}>

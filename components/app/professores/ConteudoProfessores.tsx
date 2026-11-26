@@ -25,6 +25,7 @@ interface ProfessorItem {
   nome: string;
   email?: string;
   turmasTexto: string;
+  lecionaTexto: string;
   local?: boolean;
 }
 
@@ -46,6 +47,7 @@ function lerProfessoresLocais(escolaId: string): ProfessorItem[] {
       id: p.id,
       nome: p.nome,
       turmasTexto: p.turma || "Sem turma",
+      lecionaTexto: "Professor",
       local: true,
     }));
   } catch {
@@ -55,7 +57,7 @@ function lerProfessoresLocais(escolaId: string): ProfessorItem[] {
 
 export default function ConteudoProfessores() {
   const router = useRouter();
-  const { escolas, turmas, ehAdmin, escolaAdmId, hydrated } = useData();
+  const { escolas, turmas, ehAdmin, ehAdminRede, escolaAdmId, hydrated } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
 
   const [busca, setBusca] = useState("");
@@ -129,13 +131,13 @@ export default function ConteudoProfessores() {
       id: String(p.id_usuario),
       nome: p.nome_usuario || p.email_usuario || "Professor",
       email: p.email_usuario ?? undefined,
-      turmasTexto:
-        p.turma ||
-        (p.tags_areas && p.tags_areas.length > 0
+      turmasTexto: p.turma?.trim() || "Sem turma",
+      lecionaTexto:
+        p.tags_areas && p.tags_areas.length > 0
           ? p.tags_areas.join(" • ")
           : p.papel === "adm"
             ? "Administrador"
-            : "Professor"),
+            : "Professor",
       local: false,
     }));
 
@@ -153,7 +155,8 @@ export default function ConteudoProfessores() {
       ? professores.filter(
           (p) =>
             p.nome.toLowerCase().includes(termo) ||
-            p.turmasTexto.toLowerCase().includes(termo),
+            p.turmasTexto.toLowerCase().includes(termo) ||
+            p.lecionaTexto.toLowerCase().includes(termo),
         )
       : professores;
 
@@ -208,6 +211,7 @@ export default function ConteudoProfessores() {
           nome: limpo,
           email: limpo,
           turmasTexto: turmaNome,
+          lecionaTexto: "Professor",
           local: true,
         },
       ];
@@ -280,23 +284,25 @@ export default function ConteudoProfessores() {
               onChange={setOrdenacao}
               small
             />
-            <button
-              type="button"
-              onClick={() => {
-                setEdicaoId(null);
-                setEmailProfessor("");
-                setTurmaProfessor("");
-                setMostrarForm(true);
-              }}
-              aria-label="Adicionar Professores"
-              className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-accent hover:bg-surface-accent-strong sm:h-9 sm:w-9"
-            >
-              <img
-                src={AdcProfIcon.src}
-                className="h-5 w-5 object-contain sm:h-6 sm:w-6"
-                alt=""
-              />
-            </button>
+            {!ehAdminRede ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setEdicaoId(null);
+                  setEmailProfessor("");
+                  setTurmaProfessor("");
+                  setMostrarForm(true);
+                }}
+                aria-label="Adicionar Professores"
+                className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-surface-accent hover:bg-surface-accent-strong sm:h-9 sm:w-9"
+              >
+                <img
+                  src={AdcProfIcon.src}
+                  className="h-5 w-5 object-contain sm:h-6 sm:w-6"
+                  alt=""
+                />
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -324,10 +330,15 @@ export default function ConteudoProfessores() {
                       {prof.nome}
                     </p>
 
-                    <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
-                      <span className="truncate text-sm text-secondary">
-                        {prof.turmasTexto}
-                      </span>
+                    <div className="flex min-w-0 shrink-0 items-center justify-between gap-4 sm:justify-end">
+                      <div className="flex min-w-0 flex-col items-start sm:items-end">
+                        <span className="max-w-full truncate text-sm text-secondary">
+                          {prof.turmasTexto}
+                        </span>
+                        <span className="max-w-full truncate text-sm text-secondary">
+                          {prof.lecionaTexto}
+                        </span>
+                      </div>
 
                       <div className={`relative ${aberto ? "z-50" : "z-20"}`}>
                         <button
@@ -379,14 +390,16 @@ export default function ConteudoProfessores() {
             titulo="Nenhum professor encontrado"
             descricao="Chame professores para a sua escola para visualizá-los nesta tela."
             acao={
-              <Button
-                type="button"
-                onClick={() => setMostrarForm(true)}
-                className="flex w-auto flex-row items-center justify-center gap-2 px-5 py-1.5"
-              >
-                <span className="whitespace-nowrap">Adicionar Professores</span>
-                <img src={AdcProfIcon.src} className="h-5 w-5 shrink-0" alt="" />
-              </Button>
+              !ehAdminRede ? (
+                <Button
+                  type="button"
+                  onClick={() => setMostrarForm(true)}
+                  className="flex w-auto flex-row items-center justify-center gap-2 px-5 py-1.5"
+                >
+                  <span className="whitespace-nowrap">Adicionar Professores</span>
+                  <img src={AdcProfIcon.src} className="h-5 w-5 shrink-0" alt="" />
+                </Button>
+              ) : undefined
             }
           />
         </div>

@@ -34,6 +34,7 @@ interface MenuSectionProps {
   onToggle: () => void;
   /** antes dos dados chegarem a linha nao navega, so espera */
   carregando?: boolean;
+  hidden?: boolean;
 }
 
 export default function MenuSection({
@@ -46,9 +47,12 @@ export default function MenuSection({
   isSidebarOpen,
   onToggle,
   carregando = false,
+  hidden = false,
 }: MenuSectionProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = React.useState(false);
+
+  if (hidden) return null;
 
   const hasItems = items && items.length > 0;
   // abre pelo clique ou pelo hover, usado pelo Menu - apenas se tiver itens

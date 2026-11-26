@@ -10,6 +10,22 @@ import { conversasRecentes } from "@/utils/data/types";
 import { corDoNome } from "@/utils/cores";
 
 const hrefEscolas = "/escolas";
+const hrefProfessores = "/professores";
+const iconProfessores = (
+  <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+    <g clipPath="url(#clip0_2041_5353)">
+      <path
+        d="M4.16657 10.9834V13.3251C4.16657 13.9334 4.4999 14.5001 5.03324 14.7917L9.1999 17.0667C9.6999 17.3417 10.2999 17.3417 10.7999 17.0667L14.9666 14.7917C15.4999 14.5001 15.8332 13.9334 15.8332 13.3251V10.9834L10.7999 13.7334C10.2999 14.0084 9.6999 14.0084 9.1999 13.7334L4.16657 10.9834ZM9.1999 2.9334L2.1749 6.76673C1.5999 7.0834 1.5999 7.91673 2.1749 8.2334L9.1999 12.0667C9.6999 12.3417 10.2999 12.3417 10.7999 12.0667L17.4999 8.4084V13.3334C17.4999 13.7917 17.8749 14.1667 18.3332 14.1667C18.7916 14.1667 19.1666 13.7917 19.1666 13.3334V7.99173C19.1666 7.6834 18.9999 7.4084 18.7332 7.2584L10.7999 2.9334C10.2999 2.66673 9.6999 2.66673 9.1999 2.9334V2.9334Z"
+        fill="var(--inverse)"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_2041_5353">
+        <rect width="20" height="20" fill="var(--muted)" />
+      </clipPath>
+    </defs>
+  </svg>
+);
 const hrefTurmas = "/turmas";
 const hrefAlunos = "/alunos";
 const hrefRecentes = "/recentes";
@@ -103,7 +119,7 @@ const iconRecentes = (
 
 export default function Menu() {
   const pathname = usePathname();
-  const { escolas, turmas, alunos, conversas, hydrated } = useData();
+  const { escolas, turmas, alunos, conversas, ehAdmin, podeChat, hydrated } = useData();
 
   const itensEscolas = React.useMemo(() => {
     return (escolas ?? []).slice(0, 3).map((escola) => ({
@@ -235,6 +251,19 @@ export default function Menu() {
         <Configuracoes onClose={() => setIsConfigOpen(false)} />
       )}
 
+      {/* botao flutuante com a logo no celular quando o menu esta fechado */}
+      {!isOpen && (
+        <button
+          type="button"
+          onClick={expandir}
+          aria-label="Abrir menu"
+          aria-expanded={false}
+          className="fixed left-4 top-4 z-40 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-surface-inverse shadow-md md:hidden"
+        >
+          <img src={Icon.src} alt="MetamorphIA" className="h-7 w-7 select-none" />
+        </button>
+      )}
+
       {/* fundo escuro do menu no mobile */}
       {isOpen && (
         <div
@@ -247,7 +276,7 @@ export default function Menu() {
         className={`z-50 h-[100dvh] shrink-0 bg-surface-inverse flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
           isOpen
             ? "fixed inset-y-0 left-0 w-[min(18rem,85vw)] md:sticky md:top-0 md:self-start md:z-auto md:w-72"
-            : "sticky top-0 self-start w-16 md:w-18 z-auto"
+            : "hidden md:flex md:sticky md:top-0 md:self-start md:w-18 md:z-auto"
         }`}
       >
         <div
@@ -356,9 +385,26 @@ export default function Menu() {
                 }}
               />
 
+
+
+              {/* professores (somente modo ADM) */}
+              <MenuSection
+                id="professores"
+                hidden={!ehAdmin}
+                label="Professores"
+                icon={iconProfessores}
+                href={hrefProfessores}
+                items={[]}
+                isOpen={false}
+                isSidebarOpen={isOpen}
+                carregando={!hydrated}
+                onToggle={() => {}}
+              />
+
               {/* alunos */}
               <MenuSection
                 id="alunos"
+                hidden={ehAdmin || !podeChat}
                 label="Alunos"
                 icon={iconAlunos}
                 href={hrefAlunos}
@@ -372,11 +418,12 @@ export default function Menu() {
               />
 
               {/* separador */}
-              <div className="h-px w-full bg-surface-base" />
+              <div className={ehAdmin || !podeChat ? "hidden" : "h-px w-full bg-surface-base"} />
 
               {/* recentes */}
               <MenuSection
                 id="recentes"
+                hidden={ehAdmin || !podeChat}
                 label="Recentes"
                 icon={iconRecentes}
                 href={hrefRecentes}

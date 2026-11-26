@@ -9,7 +9,7 @@ import engrenagem from "@/public/engrenagem.svg";
 import circulo_conta from "@/public/circulo_conta.svg";
 import cadeado from "@/public/cadeado.svg";
 import astroid from "@/public/astroid.svg";
-import { FormDeletaConta, FormDesconectaTodos, FormDesconecta, FormAlterarSenha} from "@/components/app/forms/FormConta";
+import { FormDeletaConta, FormDesconecta, FormAlterarSenha} from "@/components/app/forms/FormConta";
 import CampoEditavel from "@/components/app/configuracoes/CampoEditavel";
 import BarraAlteracoes from "@/components/app/configuracoes/BarraAlteracoes";
 import { useData } from "@/components/app/state/DataProvider";
@@ -34,6 +34,7 @@ interface SidebarProps {
   termo: string;
   setTermo: (termo: string) => void;
   onEscolher: (item: ItemBusca) => void;
+  onClose?: () => void;
 }
 
 interface PainelProps {
@@ -61,6 +62,7 @@ interface ConfiguracoesProps {
 // barra de salvar/cancelar fica fora da aba
 interface PerfilProps {
   nome: string;
+  nomeCompleto?: string;
   aoDigitar: (valor: string) => void;
   instrucoes: string;
   aoDigitarInstrucoes: (valor: string) => void;
@@ -95,14 +97,9 @@ const ITENS_BUSCA: ItemBusca[] = [
     rotulo: "Desconectar desse dispositivo",
     aba: "conta",
   },
-   {
-    id: "cfg-desconectar-todos",
-    rotulo: "Desconectar de todos os dispositivos",
-    aba: "conta",
-  },
   {
     id: "cfg-alterar-senha",
-    rotulo: "Alterar senha",
+    rotulo: "Trocar minha senha",
     aba: "conta",
   },
   { id: "cfg-apagar-conta", 
@@ -119,7 +116,6 @@ const ITENS_BUSCA: ItemBusca[] = [
     aba: "privacidade",
   },
   { id: "cfg-termos-uso", rotulo: "Termos de Uso", aba: "privacidade" },
-  { id: "cfg-exportar-dados", rotulo: "Exportar dados", aba: "privacidade" },
 ];
 
 const ROTULO_ABA: Record<string, string> = {
@@ -144,7 +140,7 @@ function filtrar(termo: string) {
 export default function Configuracoes({
   onClose,
 }: ConfiguracoesProps) {
-  const { teacherName, recarregar } = useData();
+  const { teacherName, nomeReal, recarregar } = useData();
   const [abaAtiva, setAbaAtiva] = useState("geral");
   const [termo, setTermo] = useState("");
   const [alvo, setAlvo] = useState<string | null>(null);
@@ -176,7 +172,6 @@ export default function Configuracoes({
   // salvar, cancelar ou digitar de novo
   const [bloqueada, setBloqueada] = useState(false);
   const [salvando, setSalvando] = useState(false);
-  const [exportando, setExportando] = useState(false);
   const caixaRef = useRef<HTMLDivElement>(null);
 
   async function salvarAlteracoes() {
@@ -224,27 +219,6 @@ export default function Configuracoes({
     setBloqueada(false);
   }
 
-  async function exportarDados() {
-    if (exportando) return;
-    setExportando(true);
-    try {
-      const resp = await apiDbFetch("/autenticar/exportar-dados?formato=json");
-      if (!resp.ok) return;
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "metamorphia_dados_lgpd.json";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-    } catch {
-    } finally {
-      setExportando(false);
-    }
-  }
-
   // o blur e o x chamam isso: sem alteracao fecha, com alteracao so alerta
   function tentarFechar() {
     if (!alterado) {
@@ -289,19 +263,33 @@ export default function Configuracoes({
   }
 
   return (
-    <Blurfundo onClose={salvando || exportando ? undefined : tentarFechar}>
-      <div ref={caixaRef} className="flex h-[590px] w-[890px] absolute overflow-hidden rounded-[40px] bg-surface-muted">
-        <OverlayCarregando ativo={salvando || exportando} mensagem={exportando ? "Exportando dados..." : "Salvando alterações..."} />
+    <Blurfundo onClose={salvando ? undefined : tentarFechar}>
+      <div
+        ref={caixaRef}
+        className="fixed inset-0 z-50 flex h-dvh w-screen flex-col overflow-hidden rounded-none bg-surface-muted md:relative md:inset-auto md:h-[min(88vh,590px)] md:w-full md:max-w-[890px] md:flex-row md:rounded-[40px]"
+      >
+        <OverlayCarregando ativo={salvando} mensagem="Salvando alterações..." />
         <SidebarEscura
           abaAtiva={abaAtiva}
           setAbaAtiva={setAbaAtiva}
           termo={termo}
           setTermo={setTermo}
           onEscolher={escolherItem}
+          onClose={tentarFechar}
         />
 
         <PainelClaro
-          Preencher={renderizarAba(abaAtiva, alvo, { nome, aoDigitar, instrucoes, aoDigitarInstrucoes }, exportarDados, exportando)}
+          Preencher={renderizarAba(
+            abaAtiva,
+            alvo,
+            {
+              nome,
+              nomeCompleto: nomeReal || teacherName || "Professor(a)",
+              aoDigitar,
+              instrucoes,
+              aoDigitarInstrucoes,
+            },
+          )}
           onClose={tentarFechar}
           painelRef={painelRef}
         />
@@ -324,12 +312,9 @@ function renderizarAba(
   aba: string,
   alvo: string | null,
   perfil: PerfilProps,
-  onExportarDados: () => Promise<void>,
-  exportando: boolean,
 ) {
   if (aba === "conta") return <ContaConfig destaque={alvo} />;
-  if (aba === "privacidade")
-    return <PrivacidadeConfig destaque={alvo} onExportarDados={onExportarDados} exportando={exportando} />;
+  if (aba === "privacidade") return <PrivacidadeConfig />;
   if (aba === "planos") return <PlanosConfig destaque={alvo} />;
   return <GeralConfig destaque={alvo} perfil={perfil} />;
 }
@@ -338,10 +323,10 @@ const ABAS = [
   { chave: "geral", rotulo: "Geral", icone: engrenagem },
   { chave: "conta", rotulo: "Conta", icone: circulo_conta },
   { chave: "privacidade", rotulo: "Privacidade", icone: cadeado },
-  { chave: "planos", rotulo: "Planos", icone: astroid },
+  { chave: "planos", rotulo: "Plano", icone: astroid },
 ];
 
-function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : SidebarProps) {
+function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher, onClose } : SidebarProps) {
   const buscaRef = useRef<HTMLDivElement>(null);
   const resultados = filtrar(termo);
   const searchingAberto = termo.trim() !== "";
@@ -360,8 +345,18 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
   }, [searchingAberto, setTermo]);
 
   return (
-    <div className="flex w-[210px] shrink-0 flex-col gap-2 bg-surface-inverse px-5 py-5 text-inverse-muted">
-      <h1 className="text-[28px] text-inverse-muted font-(family-name:--font-text-me-one)">Configurações</h1>
+    <div className="flex w-full shrink-0 flex-col gap-2 bg-surface-inverse px-4 py-4 text-inverse-muted md:w-[210px] md:px-5 md:py-5">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="font-(family-name:--font-text-me-one) text-2xl text-inverse-muted md:text-[28px]">Configurações</h1>
+        <button
+          type="button"
+          aria-label="Fechar"
+          onClick={onClose}
+          className="cursor-pointer text-inverse-muted hover:text-inverse md:hidden"
+        >
+          <X className="h-6 w-6" />
+        </button>
+      </div>
 
       <div className="relative min-w-0" ref={buscaRef}>
         <BarraPesquisa
@@ -374,7 +369,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
 
 {/* lista de resultados da busca */}
         <div
-          className={`absolute left-0 top-full z-30 mt-1 w-[260px] max-h-[136px] overflow-hidden rounded-[30px] bg-surface-base text-primary shadow-lg transition-all duration-200 ease-out origin-top ${
+          className={`absolute left-0 top-full z-30 mt-1 w-full max-w-[260px] max-h-[136px] overflow-hidden rounded-[30px] bg-surface-base text-primary shadow-lg transition-all duration-200 ease-out origin-top ${
             searchingAberto
               ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
               : "pointer-events-none -translate-y-2 scale-95 opacity-0"
@@ -407,7 +402,7 @@ function SidebarEscura({ abaAtiva, setAbaAtiva, termo, setTermo, onEscolher } : 
       </div>
 
       {/* abas geral, conta e privacidade */}
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-row flex-wrap gap-1 md:flex-col">
         {ABAS.map((aba) => (
           <div
             key={aba.chave}
@@ -430,7 +425,7 @@ function PainelClaro({ Preencher, onClose, painelRef }: PainelProps) {
   return (
     <section
       ref={painelRef}
-      className="relative flex-1 overflow-y-auto px-8 py-6 text-primary"
+      className="relative min-w-0 flex-1 overflow-y-auto px-5 py-5 text-primary sm:px-8 sm:py-6"
     >
       {/* o x sempre aparece: sem alteracao fecha; com alteracao o onclose vira
           tentarFechar (só alerta) */}
@@ -447,7 +442,7 @@ function BotaoFechar({onClose}: { onClose?: () => void;})
       type="button"
       aria-label="Fechar"
       onClick={onClose}
-      className="absolute top-6 right-6 cursor-pointer hover:text-secondary"
+      className="absolute top-6 right-6 hidden cursor-pointer hover:text-secondary md:block"
     >
       <X className="h-6 w-6" />
     </button>
@@ -462,7 +457,7 @@ export function GeralConfig({ destaque, perfil }: { destaque: string | null; per
         <div className="divide-y-2 divide-sunken"> 
 
           <LinhaConfig id="cfg-nome-completo" destaque={destaque} label="Nome Completo">
-            <CampoValor value={perfil.nome || "Professor(a)"} />
+            <CampoValor value={perfil.nomeCompleto || perfil.nome || "Professor(a)"} />
           </LinhaConfig>
 
           <LinhaConfig id="cfg-como-te-chamar" destaque={destaque} label="Como o MetamorphIA deveria te chamar">
@@ -506,36 +501,37 @@ export function GeralConfig({ destaque, perfil }: { destaque: string | null; per
 
 export function ContaConfig({ destaque }: { destaque: string | null }) {
   const [mostrarFormDeleta, setMostrarFormDeleta] = useState(false);
-  const [mostrarFormDesconectaTodos, setMostrarFormDesconectaTodos] = useState(false);
   const [mostrarFormDesconecta, setMostrarFormDesconecta] = useState(false);
   const [mostrarFormAlterarSenha, setMostrarFormAlterarSenha] = useState(false);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Conta</h2>
-        <div className="divide-y-2 divide-sunken">
-          
-          <LinhaConfig id="cfg-alterar-senha" destaque={destaque} label="Alterar minha senha">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover" onClick={() => setMostrarFormAlterarSenha(true)}>
-              Alterar senha
+        <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Conta</h2>
+        <div className="divide-y-2 divide-sunken border-b-2 border-sunken">
+          <LinhaConfig id="cfg-alterar-senha" destaque={destaque} label="Trocar minha senha">
+            <button
+              className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover"
+              onClick={() => setMostrarFormAlterarSenha(true)}
+            >
+              Trocar
             </button>
           </LinhaConfig>
 
           <LinhaConfig id="cfg-desconectar" destaque={destaque} label="Desconectar desse dispositivo">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover" onClick={() => setMostrarFormDesconecta(true)}>
+            <button
+              className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover"
+              onClick={() => setMostrarFormDesconecta(true)}
+            >
               Sair
             </button>
           </LinhaConfig>
 
-          <LinhaConfig id="cfg-desconectar-todos" destaque={destaque} label="Desconectar de todos os dispositivo">
-            <button className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover" onClick={() => setMostrarFormDesconectaTodos(true)}>
-              Desconectar todos
-            </button>
-          </LinhaConfig>
-
           <LinhaConfig id="cfg-apagar-conta" destaque={destaque} label="Apagar sua conta">
-            <button className="rounded-[70px] bg-surface-danger px-8 py-1 text-[18px] text-ink cursor-pointer transition-colors hover:bg-surface-danger/80" onClick={() => setMostrarFormDeleta(true)}>
+            <button
+              className="rounded-[70px] bg-surface-danger px-8 py-1 text-[18px] text-ink cursor-pointer transition-colors hover:bg-surface-danger/80"
+              onClick={() => setMostrarFormDeleta(true)}
+            >
               Apagar conta
             </button>
           </LinhaConfig>
@@ -556,86 +552,69 @@ export function ContaConfig({ destaque }: { destaque: string | null }) {
           onClose={() => setMostrarFormDesconecta(false)}
         />
       )}
-      {mostrarFormDesconectaTodos && (
-        <FormDesconectaTodos
-          onClose={() => setMostrarFormDesconectaTodos(false)}
-        />
-      )}
     </div>
   );
 }
 
-export function PrivacidadeConfig({
-  destaque,
-  onExportarDados,
-  exportando = false,
-}: {
-  destaque: string | null;
-  onExportarDados?: () => Promise<void>;
-  exportando?: boolean;
-}) {
+export function PrivacidadeConfig() {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Privacidade</h2>
-        <div className="divide-y-2 divide-sunken">
-          <div className="py-3 pl-6 w-full resize-none rounded-[30px] bg-sunken px-4 py-3">
-          <p className="px-3 text-[14px] text-secondary">A MetamorphIA acredita em práticas transparentes de dados. Saiba como suas informações são protegidas ao usar os produtos da MetamorphIA e visite nossos Termos de Privacidade e Termos de Uso para mais detalhes.</p>
-          <div className="flex space-x-20 gap-4 mt-3">
-          <Link href="./privacidade">
-          <div id="cfg-termos-privacidade" className="scroll-mt-6 px-3 text-[14px] text-secondary font-bold underline hover:cursor-pointer">
-              Termos de Privacidade
-          </div>
+      <div className="w-full rounded-[30px] bg-sunken px-7 py-5">
+        <p className="text-[14px] leading-relaxed text-secondary">
+          A MetamorphIA acredita em práticas transparentes de dados. Saiba como suas
+          informações são protegidas ao usar os produtos da MetamorphIA e visite nossos{" "}
+          <strong className="font-semibold">Termos de Privacidade</strong> e{" "}
+          <strong className="font-semibold">Termos de Uso</strong> para mais detalhes.
+        </p>
+        <div className="mt-3 flex flex-wrap justify-center gap-6 sm:gap-16">
+          <Link
+            id="cfg-termos-privacidade"
+            href="/privacidade"
+            className="scroll-mt-6 text-[14px] font-bold text-secondary underline hover:cursor-pointer"
+          >
+            Termos de Privacidade
           </Link>
-          <Link href="./uso">
-          <div id="cfg-termos-uso" className="scroll-mt-6 text-[14px] text-secondary font-bold underline hover:cursor-pointer">
-              Termos de Uso
-          </div>
+          <Link
+            id="cfg-termos-uso"
+            href="/uso"
+            className="scroll-mt-6 text-[14px] font-bold text-secondary underline hover:cursor-pointer"
+          >
+            Termos de Uso
           </Link>
-          </div>
-          </div>
         </div>
-
-      <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Seus dados</h2>
-        <div className="divide-y-2 divide-sunken">
-          
-          <LinhaConfig id="cfg-exportar-dados" destaque={destaque} label="Exportar dados">
-            <button
-              type="button"
-              disabled={exportando}
-              onClick={() => void onExportarDados?.()}
-              className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Exportar dados
-            </button>
-          </LinhaConfig>
-        </div>
+      </div>
     </div>
   );
 }
 
 export function PlanosConfig({ destaque }: { destaque: string | null }) {
-  const planoRaw = (getSavedUserProfile()?.plano ?? "normal").toLowerCase();
+  const { plano } = useData();
+  const planoRaw = (plano ?? getSavedUserProfile()?.plano ?? "normal").toLowerCase();
   const rotuloPlano =
     planoRaw === "pro"
       ? "PRO"
-      : planoRaw === "institucional"
+      : planoRaw.includes("institucional")
         ? "Institucional"
         : "Gratuito";
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className={`text-[25px] font-(family-name:--font-text-me-one)`}>Conta</h2>
-        <div className="divide-y-2 divide-sunken">
-          <LinhaConfig id="cfg-planos" destaque={destaque} label={`Plano Atual: ${rotuloPlano}`}>
-            <Link
-              href="/planos"
-              className="rounded-[70px] bg-sunken px-8 py-1 text-[18px] cursor-pointer transition-colors hover:bg-sunken-hover"
-            >
-              {planoRaw === "normal" ? "Evoluir para PRO" : "Ver planos"}
-            </Link>
-          </LinhaConfig>
-        </div>
+    <div className="flex flex-col gap-5">
+      <h2 className="text-[25px] font-(family-name:--font-text-me-one)">Planos</h2>
+
+      <div className="w-full rounded-full bg-sunken/50 px-5 py-2.5 text-sm text-primary sm:text-base">
+        Você está no plano {rotuloPlano}
+      </div>
+
+      <div className="divide-y-2 divide-sunken border-y-2 border-sunken">
+        <LinhaConfig id="cfg-planos" destaque={destaque} label="Conhecer outras assinaturas:">
+          <Link
+            href="/planos"
+            className="inline-flex items-center justify-center rounded-full bg-surface-accent px-6 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface-accent-strong sm:text-base whitespace-nowrap"
+          >
+            Evoluir plano
+          </Link>
+        </LinhaConfig>
       </div>
     </div>
   );
@@ -649,8 +628,8 @@ function LinhaConfig({ id, destaque, label, children } : LinhaConfigProps) {
         destaque === id ? "bg-surface-warning/40" : ""
       }`}
     >
-      <div className="flex items-center justify-between py-3">
-        <span className="text-[18px]">{label}</span>
+      <div className="flex flex-col items-start justify-between gap-2 py-3 sm:flex-row sm:items-center sm:gap-4">
+        <span className="text-base sm:text-[18px]">{label}</span>
         {children}
       </div>
     </div>

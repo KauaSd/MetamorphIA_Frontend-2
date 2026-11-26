@@ -1,4 +1,5 @@
 import Encaracolado from "@/components/common/Encaracolado";
+import AstroidSvg from "@/public/astroid.svg";
 import EncaracoladoDesenvolvimentoSvg from "@/public/encaracolado_desenvolvimento.svg";
 import type { CorIndicador, IndicadorDesenvolvimento } from "@/utils/data/types";
 
@@ -26,13 +27,11 @@ export default function IndicadoresDesenvolvimentoCard({
       />
 
       <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <h2 className="font-(family-name:--font-text-me-one) text-xl text-primary sm:text-2xl min-[1800px]:text-[24px] min-[1800px]:leading-tight">
             Indicadores de Desenvolvimento
           </h2>
-          <span className="text-base text-primary" aria-hidden="true">
-            ✦
-          </span>
+          <Encaracolado src={AstroidSvg.src} className="h-4 w-4 shrink-0" />
         </div>
         <p className="font-(family-name:--font-poppins) text-xs text-secondary sm:text-sm min-[1800px]:text-[14px]">
           Atualizado automaticamente com base nas interações
@@ -41,9 +40,10 @@ export default function IndicadoresDesenvolvimentoCard({
 
       <div className="flex flex-1 flex-col justify-between gap-4">
         {indicadores.map((ind) => {
-          const nivel = Math.max(1, Math.min(TOTAL_NIVEIS, ind.nivel));
+          const nivel = Math.max(0, Math.min(TOTAL_NIVEIS, ind.nivel ?? 0));
           const corAtiva = COR_INDICADOR_MAP[ind.cor] ?? COR_INDICADOR_MAP.warning;
-          const larguraPreenchida = `${((nivel - 1) / (TOTAL_NIVEIS - 1)) * 100}%`;
+          const larguraPreenchida =
+            nivel <= 1 ? "0%" : `${((nivel - 1) / (TOTAL_NIVEIS - 1)) * 100}%`;
 
           return (
             <div key={ind.id} className="flex w-full min-w-0 flex-col gap-1">
@@ -61,7 +61,7 @@ export default function IndicadoresDesenvolvimentoCard({
                 className="relative flex h-4 w-full items-center justify-between"
                 role="progressbar"
                 aria-label={ind.titulo}
-                aria-valuemin={1}
+                aria-valuemin={0}
                 aria-valuemax={TOTAL_NIVEIS}
                 aria-valuenow={nivel}
               >

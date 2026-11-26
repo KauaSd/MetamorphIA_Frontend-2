@@ -65,8 +65,11 @@ function ModalConfirmacaoConta({
 
   return (
     <Blurfundo onClose={processando ? undefined : onClose}>
-    <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className="relative overflow-hidden flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+    <form
+      onSubmit={handleSubmit}
+      className="fixed inset-0 z-50 h-dvh w-screen sm:static sm:h-auto sm:w-full sm:max-w-md"
+    >
+      <div className="relative flex h-full w-full flex-col gap-6 overflow-y-auto rounded-none bg-surface-base p-5 shadow-md sm:h-auto sm:gap-6 sm:overflow-hidden sm:rounded-[70px] sm:p-8">
         <OverlayCarregando ativo={processando} mensagem={mensagemCarregando} />
         <div className="flex flex-col  gap-6">
           <div className="flex items-center justify-between">
@@ -79,7 +82,7 @@ function ModalConfirmacaoConta({
           </div>
         </div>
 
-        <div className="flex gap-5 self-end">
+        <div className="mt-auto flex gap-5 self-end sm:mt-0">
             <Button type="button" disabled={processando} onClick={onClose} className={`bg-surface-inverse text-inverse hover:bg-surface-inverse-hover${larguraFixa ? " w-32" : ""}`}>Cancelar</Button>
             <Button type="button" disabled={processando} onClick={() => void executarConfirmacao()} className={`bg-surface-danger text-ink hover:bg-surface-danger/80${larguraFixa ? " w-32 whitespace-nowrap" : ""}`}>{textoConfirmar}</Button>
         </div>

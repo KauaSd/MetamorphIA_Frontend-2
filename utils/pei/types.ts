@@ -27,7 +27,7 @@ export type Answer = {
 
 export type StatusPEI = "pronto" | "carregando" | "salvando" | "erro";
 
-export type PassoPEI = "form" | "questoes";
+export type PassoPEI = "form" | "conhecer" | "questoes";
 
 export function respostaVazia(questionId: string): Answer {
   return { questionId, selectedOptionIds: [] };

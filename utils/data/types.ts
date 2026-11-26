@@ -3,12 +3,19 @@
 export interface Escola {
   id: string;
   nome: string;
+  plano?: string | null;
+  institucional?: boolean;
+  codigoConvite?: string | null;
+  papel?: string | null;
 }
 
 export interface Turma {
   id: string;
   nome: string;
   escolaId?: string;
+  serieAno?: string;
+  letra?: string;
+  horario?: string;
 }
 
 export interface Aluno {
@@ -47,6 +54,24 @@ export interface Conversa {
 // teacherName e a unica chave em ingles: e identidade do usuario logado, nao entidade de dominio
 export interface AppData {
   teacherName: string | null;
+  nomeReal: string | null;
+  tipoUsuario: string | null;
+  modoAtivo: string | null;
+  escolaAdmId: string | null;
+  ehAdmin: boolean;
+  ehAdminRede: boolean;
+  podeAlternarModoProfessor: boolean;
+  podeAcessarPainelAdm: boolean;
+  podeGerenciarAlunos: boolean;
+  podeGerenciarTurmas: boolean;
+  podeCriarEscolas: boolean;
+  podeChat: boolean;
+  plano: string | null;
+  escolaInstitucional: boolean;
+  perfilProfessorFeito: boolean;
+  identificacaoFeita: boolean;
+  tutorialVisto: boolean;
+  tutorialInstitucionalVisto: boolean;
   escolas: Escola[];
   turmas: Turma[];
   alunos: Aluno[];
@@ -85,6 +110,7 @@ export interface PeisPorDisciplinaResumo {
   disciplinas: PeiDisciplinaItem[];
   ultimoEnvio?: string | null;
   proximoPeriodo?: string | null;
+  atrasado?: boolean;
 }
 
 export type StatusMetaBimestre = "em_progresso" | "a_iniciar" | "atingida";
@@ -124,7 +150,31 @@ export interface StudentInsights {
 export const STORAGE_KEY = "metamorphia:dados:v1";
 
 export function dadosVazios(): AppData {
-  return { teacherName: null, escolas: [], turmas: [], alunos: [], conversas: [] };
+  return {
+    teacherName: null,
+    nomeReal: null,
+    tipoUsuario: null,
+    modoAtivo: null,
+    escolaAdmId: null,
+    ehAdmin: false,
+    ehAdminRede: false,
+    podeAlternarModoProfessor: false,
+    podeAcessarPainelAdm: false,
+    podeGerenciarAlunos: true,
+    podeGerenciarTurmas: true,
+    podeCriarEscolas: true,
+    podeChat: true,
+    plano: null,
+    escolaInstitucional: false,
+    perfilProfessorFeito: false,
+    identificacaoFeita: false,
+    tutorialVisto: false,
+    tutorialInstitucionalVisto: false,
+    escolas: [],
+    turmas: [],
+    alunos: [],
+    conversas: [],
+  };
 }
 
 // ---------- ids ----------

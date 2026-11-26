@@ -106,6 +106,11 @@ export const ALERTAS = {
     titulo: "Escolha a turma",
     descricao: "Selecione a turma em que o aluno vai ficar.",
   },
+  ALUNO_SEM_NEURO: {
+    tom: "danger",
+    titulo: "Escolha a neurodivergência",
+    descricao: "Selecione pelo menos uma neurodivergência para o aluno.",
+  },
   ALUNO_IDADE_INVALIDA: {
     tom: "danger",
     titulo: "Idade inválida",
@@ -149,5 +154,31 @@ export const ALERTAS = {
     tom: "success",
     titulo: "Cadastro realizado",
     descricao: "Sua conta foi criada. Agora é só entrar.",
+  },
+  LIMITE_ESCOLAS_ATINGIDO: {
+    tom: "warning",
+    titulo: "Limite de escolas atingido",
+    descricao: "Você atingiu o limite de escolas do seu plano atual. Faça upgrade para cadastrar mais escolas.",
+  },
+  PLANO_PRO_NAO_CONTRATADO: {
+    tom: "warning",
+    titulo: "Plano Pro necessário",
+    descricao: "Seu plano atual não inclui este recurso. Contrate o Plano Pro para continuar.",
+  },
+  LIMITE_TURMAS_ATINGIDO: {
+    tom: "warning",
+    titulo: "Limite de turmas atingido",
+    descricao: "Você atingiu o limite de turmas do seu plano atual. Faça upgrade para cadastrar mais turmas.",
+  },
+  LIMITE_ALUNOS_ATINGIDO: {
+    tom: "warning",
+    titulo: "Limite de alunos atingido",
+    descricao: "Você atingiu o limite de alunos do seu plano atual. Faça upgrade para cadastrar mais alunos.",
+  },
+  ALTERACAO_PEI: {
+    tom: "warning",
+    titulo: "Alteração do PEI",
+    descricao:
+      "Editou o documento por conta própria? Envie o arquivo de volta para mantermos as informações do aluno atualizadas.",
   },
 } as const;

@@ -7,13 +7,13 @@ import Turma, { type AlunoTag } from "@/components/app/turmas/Turma";
 import BoxSemTurma from "@/components/app/turmas/BoxSemTurma";
 import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import Toast, { useAlerta } from "@/components/common/Toast";
-import { FormTurma, FormDeletaTurma } from "@/components/app/forms/FormAlunoTurma";
+import { FormTurma, FormDeletaTurma, type DadosTurmaExtras } from "@/components/app/forms/FormAlunoTurma";
 import { useData } from "@/components/app/state/DataProvider";
 import { createTurma, deleteTurma, updateTurma, type Resultado } from "@/utils/data/controller";
 import { ALERTAS } from "@/utils/alertas";
 
 export default function ConteudoTurmas() {
-  const { turmas, alunos, escolas, recarregar, hydrated } = useData();
+  const { turmas, alunos, escolas, podeGerenciarTurmas, recarregar, hydrated } = useData();
   const [mostrarForm, setMostrarForm] = useState(false);
   const [busca, setBusca] = useState("");
   const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
@@ -50,19 +50,19 @@ export default function ConteudoTurmas() {
     return resultado;
   }
 
-  async function aoCriar(nome: string, _comp?: string[], escolaId?: string): Promise<Resultado> {
-    const resultado = await createTurma({ nome, escolaId: escolaId || undefined });
+  async function aoCriar(nome: string, _comp?: string[], escolaId?: string, extras?: DadosTurmaExtras): Promise<Resultado> {
+    const resultado = await createTurma({ nome, escolaId: escolaId || undefined, ...extras });
     if (resultado.ok) {
       await recarregar();
     }
     return tentar(resultado);
   }
 
-  async function aoEditar(nome: string, _comp?: string[], escolaId?: string): Promise<Resultado> {
+  async function aoEditar(nome: string, _comp?: string[], escolaId?: string, extras?: DadosTurmaExtras): Promise<Resultado> {
     if (!idEmEdicao) {
       return tentar({ ok: false, erro: ALERTAS.TURMA_NAO_ENCONTRADA });
     }
-    const resultado = await updateTurma(idEmEdicao, { nome, escolaId: escolaId || undefined });
+    const resultado = await updateTurma(idEmEdicao, { nome, escolaId: escolaId || undefined, ...extras });
     if (resultado.ok) {
       await recarregar();
     }
@@ -96,7 +96,7 @@ export default function ConteudoTurmas() {
   return (
     <div className="flex flex-col w-full min-h-screen items-center">
       <div className="flex flex-col w-full gap-4 sm:gap-5 mt-8 sm:mt-12 lg:mt-20">
-        <HeaderPag onCriarTurma={() => setMostrarForm(true)} />
+        <HeaderPag onCriarTurma={() => setMostrarForm(true)} podeCriar={podeGerenciarTurmas} />
         <BarraPesquisa
           type="search"
           placeholder="Procurar turmas..."
@@ -114,8 +114,26 @@ export default function ConteudoTurmas() {
                 nomeTurma={turma.nome}
                 alunos={alunosPorTurmaId.get(turma.id) ?? []}
                 href={`/dashboardTurma?id=${turma.id}`}
-                onEditar={() => setIdEmEdicao(turma.id)}
-                onExcluir={() => setIdEmExclusao(turma.id)}
+                onEditar={
+                  podeGerenciarTurmas &&
+                  !(
+                    turma.escolaId &&
+                    escolas.find((e) => e.id === turma.escolaId)?.institucional &&
+                    escolas.find((e) => e.id === turma.escolaId)?.papel === "professor"
+                  )
+                    ? () => setIdEmEdicao(turma.id)
+                    : undefined
+                }
+                onExcluir={
+                  podeGerenciarTurmas &&
+                  !(
+                    turma.escolaId &&
+                    escolas.find((e) => e.id === turma.escolaId)?.institucional &&
+                    escolas.find((e) => e.id === turma.escolaId)?.papel === "professor"
+                  )
+                    ? () => setIdEmExclusao(turma.id)
+                    : undefined
+                }
               />
             ))}
           </div>
@@ -127,7 +145,11 @@ export default function ConteudoTurmas() {
         </div>
       ) : (
         <div className="flex flex-1 w-full items-center justify-center">
-          <BoxSemTurma onCriarTurma={() => setMostrarForm(true)} />
+          {podeGerenciarTurmas ? (
+            <BoxSemTurma onCriarTurma={() => setMostrarForm(true)} />
+          ) : (
+            <p className="text-sm text-secondary">Nenhuma turma vinculada ainda.</p>
+          )}
         </div>
       )}
 
@@ -140,6 +162,9 @@ export default function ConteudoTurmas() {
           key={turmaEmEdicao.id}
           modo="editar"
           nomeInicial={turmaEmEdicao.nome}
+          serieAnoInicial={turmaEmEdicao.serieAno}
+          letraInicial={turmaEmEdicao.letra}
+          horarioInicial={turmaEmEdicao.horario}
           escolaIdInicial={turmaEmEdicao.escolaId ?? ""}
           escolas={escolasParaForm}
           onClose={() => setIdEmEdicao(null)}

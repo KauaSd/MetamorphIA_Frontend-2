@@ -99,28 +99,30 @@ export default function Aluno( props: AlunoProps) {
                 </div>
             )}
 
-            <div
-                className={`absolute right-4 top-1/2 -translate-y-1/2 sm:right-6 ${isOpen ? "z-50" : "z-20"}`}
-                ref={menuRef}
-                onClick={(event) => event.stopPropagation()}
-            >
-                <button
-                    type="button"
-                    aria-label={`Opcoes de ${props.nome}`}
-                    aria-haspopup="menu"
-                    aria-expanded={isOpen}
-                    className="cursor-pointer"
-                    onClick={() => setIsOpen((prev) => !prev)}
+            {props.onEditar || props.onExcluir ? (
+                <div
+                    className={`absolute right-4 top-1/2 -translate-y-1/2 sm:right-6 ${isOpen ? "z-50" : "z-20"}`}
+                    ref={menuRef}
+                    onClick={(event) => event.stopPropagation()}
                 >
-                    <EllipsisVertical height={"28px"}/>
-                </button>
+                    <button
+                        type="button"
+                        aria-label={`Opcoes de ${props.nome}`}
+                        aria-haspopup="menu"
+                        aria-expanded={isOpen}
+                        className="cursor-pointer"
+                        onClick={() => setIsOpen((prev) => !prev)}
+                    >
+                        <EllipsisVertical height={"28px"}/>
+                    </button>
 
-                {isOpen ? (
-                    <div className="absolute right-0 top-full mt-2 z-50">
-                        <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
-                    </div>
-                ) : null}
-            </div>
+                    {isOpen ? (
+                        <div className="absolute right-0 top-full mt-2 z-50">
+                            <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
+                        </div>
+                    ) : null}
+                </div>
+            ) : null}
         </div>
             );
 }

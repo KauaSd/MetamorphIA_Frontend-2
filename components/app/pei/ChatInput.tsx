@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Paperclip } from "lucide-react";
+import { twMerge } from "tailwind-merge";
 import type { Anexo } from "@/utils/pei/types";
 import { AVISO_DADOS_SENSIVEIS, detectarDadosSensiveis } from "@/utils/pei/dadosSensiveis";
 
@@ -14,6 +15,7 @@ export interface ChatInputProps {
   enviarLabel?: string;
   value?: string;
   limparAoEnviar?: boolean;
+  className?: string;
   onChangeTexto?: (texto: string) => void;
   anexos?: Anexo[];
   onAdicionarAnexos?: (files: File[]) => void;
@@ -30,6 +32,7 @@ export default function ChatInput({
   enviarLabel = "Enviar mensagem",
   value,
   limparAoEnviar = true,
+  className,
   onChangeTexto,
   anexos,
   onAdicionarAnexos,
@@ -147,9 +150,12 @@ export default function ChatInput({
       )}
 
       <div
-        className={`flex w-full items-center rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6 ${
-          multiline ? "py-2" : "h-11"
-        }`}
+        className={twMerge(
+          `flex w-full items-center rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6 ${
+            multiline ? "py-2" : "h-11"
+          }`,
+          className
+        )}
       >
         <div className="flex w-full items-center justify-between">
           <div className="flex shrink-0 items-center gap-3">

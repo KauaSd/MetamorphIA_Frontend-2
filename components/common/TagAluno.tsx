@@ -19,7 +19,7 @@ export default function TagAluno({ nome, neuros, ismenu, cor }: TagProps) {
         className={`h-3 w-3 shrink-0 rounded-full ${corFinal ?? ""}`}
         style={corFinal ? undefined : { background: gradienteNeuro(neuros) }}
       />
-      <p className={`text-[10px] sm:text-xs truncate min-w-0 ${ismenu ? "text-inverse" : "text-secondary"}`}>
+      <p className={`truncate min-w-0 ${ismenu ? "text-sm sm:text-xs text-inverse" : "text-[10px] sm:text-xs text-secondary"}`}>
         {nome}
       </p>
     </span>

@@ -4,6 +4,8 @@ interface CheckBoxAlunoprops {
   label: string
   checked: boolean
   onChange: (checked: boolean) => void
+  className?: string
+  labelClassName?: string
 }
 
 const ICONE_CHECK = (
@@ -12,9 +14,9 @@ const ICONE_CHECK = (
   </svg>
 )
 
-export default function CheckBoxAluno({ label, checked, onChange }: CheckBoxAlunoprops) {
+export default function CheckBoxAluno({ label, checked, onChange, className, labelClassName }: CheckBoxAlunoprops) {
   return (
-    <label className="inline-flex items-center gap-2.5 rounded-full bg-surface-muted px-4 py-2 cursor-pointer select-none hover:bg-surface-base-hover transition-colors w-42">
+    <label className={`inline-flex items-center gap-2.5 rounded-full bg-surface-muted px-4 py-2 cursor-pointer select-none hover:bg-surface-base-hover transition-colors ${className ?? "w-42"}`}>
       <input
         type="checkbox"
         checked={checked}
@@ -30,7 +32,7 @@ export default function CheckBoxAluno({ label, checked, onChange }: CheckBoxAlun
         {checked ? ICONE_CHECK : null}
       </div>
 
-      <span className="text-sm font-medium text-tertiary">{label}</span>
+      <span className={`font-medium text-tertiary ${labelClassName ?? "text-sm"}`}>{label}</span>
     </label>
   )
 }

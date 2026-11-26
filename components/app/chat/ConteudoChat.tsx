@@ -4,18 +4,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { FileText } from "lucide-react";
 
 import ChatTgAluno from "@/components/app/chat/ChatTgAluno";
 import Conteudopei from "@/components/app/pei/Conteudopei";
-import EditaPEI from "@/components/app/chat/EditaPEI";
-import GeraPEI from "@/components/app/chat/GeraPEI";
 import ChatInput from "@/components/app/pei/ChatInput";
 import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import Toast, { useAlerta } from "@/components/common/Toast";
 
 import { useData } from "@/components/app/state/DataProvider";
-import { primeiraNeuro, resolverChat, type AnexoMensagem } from "@/utils/data/types";
+import { primeiraNeuro, resolverChat, type AnexoMensagem, type Mensagem } from "@/utils/data/types";
 import { addMessage, openChatWith } from "@/utils/data/controller";
+import { repository } from "@/utils/data/dataRepository";
 import { ALERTAS } from "@/utils/alertas";
 import {
   apiAiGatewayOrDirect,
@@ -62,11 +62,18 @@ export default function ConteudoChat() {
   const alunoId = searchParams.get("alunoId");
   const deveAbrirPei = searchParams.get("gerarPei") === "true" || searchParams.get("pei") === "true";
 
-  const { conversas, alunos, teacherName, hydrated, recarregar } = useData();
+  const { conversas, alunos, teacherName, podeChat, hydrated, recarregar } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
+
+  useEffect(() => {
+    if (hydrated && !podeChat) {
+      router.replace("/escolas");
+    }
+  }, [hydrated, podeChat, router]);
 
   // o que o stream esta escrevendo agora; o que ja foi salvo vem do store
   const [rascunho, setRascunho] = useState<Bolha[]>([]);
+  const [mensagensLazy, setMensagensLazy] = useState<Record<string, Mensagem[]>>({});
   const [ultimasOpcoes, setUltimasOpcoes] = useState<OpcaoAdaptacao[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const [mostrarPainel, setMostrarPainel] = useState(deveAbrirPei);
@@ -120,9 +127,39 @@ export default function ConteudoChat() {
     };
   }, [hydrated, precisaCriar, idDoAluno, recarregar, router, mostrar]);
 
+  // carrega mensagens da conversa apenas quando ela for aberta no chat
+  useEffect(() => {
+    if (!hydrated || !conversa) return;
+    if (conversa.mensagens.length > 0 || conversa.id.startsWith("con_")) return;
+    if (conversa.id in mensagensLazy) return;
+
+    let cancelado = false;
+    repository
+      .getConversaMensagens(conversa.alunoId, conversa.id)
+      .then((msgs) => {
+        if (!cancelado) {
+          setMensagensLazy((prev) => ({ ...prev, [conversa.id]: msgs }));
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelado = true;
+    };
+  }, [hydrated, conversa, mensagensLazy]);
+
+  const mensagensSalvas = useMemo(() => {
+    if (!conversa) return [];
+    const lazy = mensagensLazy[conversa.id] ?? [];
+    if (lazy.length === 0) return conversa.mensagens;
+    if (conversa.mensagens.length === 0) return lazy;
+    const ids = new Set(lazy.map((m) => m.id));
+    return [...lazy, ...conversa.mensagens.filter((m) => !ids.has(m.id))];
+  }, [conversa, mensagensLazy]);
+
   // mensagens salvas + o que ainda esta em transito
   const bolhas: Bolha[] = [
-    ...(conversa?.mensagens ?? []).map((mensagem) => ({
+    ...mensagensSalvas.map((mensagem) => ({
       id: mensagem.id,
       texto: mensagem.texto,
       autor: mensagem.autor,
@@ -155,9 +192,25 @@ export default function ConteudoChat() {
     return true;
   }
 
-  const handleConcluirPei = async (mensagemPei: string, anexosPei?: AnexoMensagem[]) => {
+  const [peiPendenteAnexos, setPeiPendenteAnexos] = useState<AnexoMensagem[] | null>(null);
+  const [peiEditadoNoChat, setPeiEditadoNoChat] = useState(false);
+
+  const handleConcluirPei = async (
+    mensagemPei: string,
+    anexosPei?: AnexoMensagem[],
+    opcoes?: { aguardarDocumento?: boolean },
+  ) => {
     setMostrarPainel(false);
     setMostrarCriacao(false);
+
+    const anexosIniciais = opcoes?.aguardarDocumento ? undefined : anexosPei;
+    if (opcoes?.aguardarDocumento && anexosPei?.length) {
+      setPeiPendenteAnexos(anexosPei);
+      setPeiEditadoNoChat(false);
+    } else {
+      setPeiPendenteAnexos(null);
+      setPeiEditadoNoChat(false);
+    }
 
     const idDoBot = `pei-${Date.now()}-bot`;
     setIsThinking(true);
@@ -170,7 +223,7 @@ export default function ConteudoChat() {
     try {
       await new Promise((resolver) => setTimeout(resolver, 400));
 
-      const persistiu = await persistir(mensagemPei, "aluno", anexosPei);
+      const persistiu = await persistir(mensagemPei, "aluno", anexosIniciais);
       if (persistiu) {
         await recarregar();
         setRascunho([]);
@@ -178,7 +231,7 @@ export default function ConteudoChat() {
         setRascunho((prev) =>
           prev.map((item) =>
             item.id === idDoBot
-              ? { ...item, texto: mensagemPei, streaming: false, anexos: anexosPei }
+              ? { ...item, texto: mensagemPei, streaming: false, anexos: anexosIniciais }
               : item,
           ),
         );
@@ -187,7 +240,7 @@ export default function ConteudoChat() {
       setRascunho((prev) =>
         prev.map((item) =>
           item.id === idDoBot
-            ? { ...item, texto: mensagemPei, streaming: false, anexos: anexosPei }
+            ? { ...item, texto: mensagemPei, streaming: false, anexos: anexosIniciais }
             : item,
         ),
       );
@@ -218,6 +271,35 @@ export default function ConteudoChat() {
     }));
     if (!conteudo && listaAnexos.length === 0) return;
     if (isThinking) return;
+
+    const pediuDocumento = conteudo.toLowerCase() === "documento";
+    if (pediuDocumento && peiPendenteAnexos?.length && !peiEditadoNoChat && listaAnexos.length === 0) {
+      const idDaMinha = `enviada-${Date.now()}`;
+      const idDoBot = `${idDaMinha}-bot`;
+      const anexosDoc = peiPendenteAnexos;
+      setPeiPendenteAnexos(null);
+      setIsThinking(true);
+      setRascunho((prev) => [
+        ...prev,
+        { id: idDaMinha, texto: conteudo, autor: "professor" },
+        { id: idDoBot, texto: "", autor: "aluno", streaming: false, anexos: anexosDoc },
+      ]);
+      try {
+        await persistir(conteudo, "professor");
+        const persistiuBot = await persistir("", "aluno", anexosDoc);
+        if (persistiuBot) {
+          await recarregar();
+          setRascunho([]);
+        }
+      } finally {
+        setIsThinking(false);
+      }
+      return;
+    }
+
+    if (peiPendenteAnexos?.length && !pediuDocumento) {
+      setPeiEditadoNoChat(true);
+    }
 
     const textoExibicao =
       conteudo || `📎 Arquivo enviado para adaptação: ${listaAnexos.map((a) => a.name).join(", ")}`;
@@ -265,7 +347,9 @@ export default function ConteudoChat() {
           const respApi = await apiAiGatewayOrDirect(dbRoute, iaRoute, {
             method: "POST",
             body: JSON.stringify({
-              mensagem: conteudo,
+              mensagem: pediuDocumento
+                ? "Gere e envie o documento .docx atualizado do PEI do aluno."
+                : conteudo,
               conversa_id: idConvAtual,
               anexos: temAnexo ? listaAnexos : undefined,
               gerar_arquivo_atividade: querAdaptar ? true : undefined,
@@ -286,6 +370,8 @@ export default function ConteudoChat() {
               formato_arquivo?: string | null;
               documento_docx_base64?: string;
               documento_pdf_base64?: string;
+              download_url?: string | null;
+              download_url_persistente?: string | null;
               opcoes_adaptacao?: OpcaoAdaptacao[] | null;
             };
             respostaCompleta = dados.resposta ?? "";
@@ -312,6 +398,29 @@ export default function ConteudoChat() {
                   dataUrl: `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${dados.documento_docx_base64}`,
                 },
               ];
+            } else if (dados.download_url_persistente || dados.download_url) {
+              const urlDownload = dados.download_url_persistente || dados.download_url!;
+              try {
+                const respArq = await apiAiGatewayOrDirect(urlDownload, urlDownload);
+                if (respArq.ok) {
+                  const blob = await respArq.blob();
+                  const dataUrl = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(String(reader.result));
+                    reader.readAsDataURL(blob);
+                  });
+                  anexosDaResposta = [
+                    {
+                      name: dados.arquivo_nome || "PEI_Aluno.docx",
+                      type:
+                        blob.type ||
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                      size: blob.size,
+                      dataUrl,
+                    },
+                  ];
+                }
+              } catch {}
             } else if (dados.atividade_id) {
               const fmt = (dados.formato_arquivo || "docx").toLowerCase() === "pdf" ? "pdf" : "docx";
               try {
@@ -338,6 +447,15 @@ export default function ConteudoChat() {
               } catch {}
             }
             respondeuViaApiAutenticada = true;
+            if (pediuDocumento) {
+              if (!anexosDaResposta?.length && peiPendenteAnexos?.length) {
+                anexosDaResposta = peiPendenteAnexos;
+              }
+              if (anexosDaResposta?.length) {
+                respostaCompleta = "";
+              }
+              setPeiPendenteAnexos(null);
+            }
           }
         } catch {}
       }
@@ -382,6 +500,15 @@ export default function ConteudoChat() {
               ];
             }
             respondeuViaApiAutenticada = true;
+            if (pediuDocumento) {
+              if (!anexosDaResposta?.length && peiPendenteAnexos?.length) {
+                anexosDaResposta = peiPendenteAnexos;
+              }
+              if (anexosDaResposta?.length) {
+                respostaCompleta = "";
+              }
+              setPeiPendenteAnexos(null);
+            }
           }
         } catch {}
       }
@@ -432,7 +559,7 @@ export default function ConteudoChat() {
   };
 
   // chat sem aluno nao existe: a rota so renderiza com aluno resolvido
-  if (!hydrated) return <CarregandoDashboard mensagem="Carregando conversa..." />;
+  if (!hydrated || !podeChat) return <CarregandoDashboard mensagem="Carregando conversa..." />;
   if (semAluno) return null;
 
   // barra de escrita: fica sozinha no chat normal e entra dentro do painel de PEI
@@ -443,18 +570,6 @@ export default function ConteudoChat() {
       enviarLabel="Enviar mensagem"
       onSubmit={handleSendMessage}
     />
-  );
-
-  // editar/gerar: dentro do painel quando ele esta aberto, no chat quando fechado
-  const botoesPei = (
-    <div className="flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row sm:justify-center md:justify-end">
-      <EditaPEI ativado={true} desabilitado={mostrarPainel} />
-      <GeraPEI
-        ativado={true}
-        desabilitado={mostrarPainel}
-        onClick={() => setMostrarPainel(true)}
-      />
-    </div>
   );
 
   return (
@@ -505,18 +620,47 @@ export default function ConteudoChat() {
                       : "relative max-h-[55vh] w-full opacity-100 translate-y-0"
                   }`}
                 >
-                  {bolhas.map((bolha) => (
+                  {bolhas.map((bolha) => {
+                    const textoLimpo = bolha.texto.trim();
+                    const ehPlaceholderAnexo =
+                      bolha.autor === "aluno" &&
+                      textoLimpo.startsWith("📎 Arquivo enviado:");
+                    const apenasAnexos =
+                      (!textoLimpo || ehPlaceholderAnexo) &&
+                      !bolha.streaming &&
+                      Boolean(bolha.anexos?.length);
+                    return (
                     <div
                       key={bolha.id}
                       className={`flex w-full ${
                         bolha.autor === "professor" ? "justify-end" : "justify-start"
                       }`}
                     >
+                      {apenasAnexos ? (
+                        <div className="flex max-w-[75%] flex-wrap gap-2">
+                          {bolha.anexos!.map((anexo, idx) => (
+                            <button
+                              key={`${anexo.name}-${idx}`}
+                              type="button"
+                              onClick={() => {
+                                baixarArquivoDeAnexo(anexo);
+                                if (anexo.name.toLowerCase().includes("pei")) {
+                                  mostrar(ALERTAS.ALTERACAO_PEI);
+                                }
+                              }}
+                              className="flex cursor-pointer items-center gap-4 rounded-[70px] rounded-bl-none bg-surface-accent px-8 py-5 text-left text-sm font-medium text-ink transition-colors hover:bg-surface-accent-strong sm:text-base"
+                            >
+                              <FileText className="h-6 w-6 shrink-0 text-ink" />
+                              <span className="break-all">{anexo.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
                       <div
-                        className={`max-w-[75%] break-words rounded-t-[36px] px-6 py-4 ${
+                        className={`max-w-[75%] break-words rounded-t-[70px] px-6 py-4 ${
                           bolha.autor === "professor"
-                            ? "rounded-bl-[36px] bg-sunken"
-                            : "rounded-br-[36px] bg-surface-base"
+                            ? "rounded-bl-[70px] bg-sunken"
+                            : "rounded-br-[70px] bg-surface-base"
                         }`}
                       >
                         {bolha.streaming && !bolha.texto && <Dots />}
@@ -554,21 +698,26 @@ export default function ConteudoChat() {
                                 <button
                                   key={`${anexo.name}-${idx}`}
                                   type="button"
-                                  onClick={() => baixarArquivoDeAnexo(anexo)}
-                                  className="flex cursor-pointer items-center gap-2 rounded-2xl bg-surface-warning/30 px-4 py-2 text-left text-xs font-medium text-primary transition-colors hover:bg-surface-warning/60 sm:text-sm"
+                                  onClick={() => {
+                                    baixarArquivoDeAnexo(anexo);
+                                    if (anexo.name.toLowerCase().includes("pei")) {
+                                      mostrar(ALERTAS.ALTERACAO_PEI);
+                                    }
+                                  }}
+                                  className="flex cursor-pointer items-center gap-3 rounded-[70px] rounded-bl-none bg-surface-accent px-5 py-3 text-left text-xs font-medium text-ink transition-colors hover:bg-surface-accent-strong sm:text-sm"
                                 >
-                                  <span>📄 {anexo.name}</span>
-                                  {anexo.dataUrl && (
-                                    <span className="underline">Baixar</span>
-                                  )}
+                                  <FileText className="h-4 w-4 shrink-0 text-ink" />
+                                  <span className="break-all">{anexo.name}</span>
                                 </button>
                               ))}
                             </div>
                           )}
                         </div>
                       </div>
+                      )}
                     </div>
-                  ))}
+                  );
+                  })}
                   {ultimasOpcoes.length > 0 && !isThinking && (
                     <div className="flex flex-wrap gap-2 pl-2">
                       {ultimasOpcoes.map((op, idx) => {
@@ -603,7 +752,7 @@ export default function ConteudoChat() {
                 </div>
               )}
 
-              {/* painel de criacao/importacao do PEI, com a barra e os botoes dentro */}
+              {/* painel de criacao/importacao do PEI, com a barra dentro */}
               {mostrarPainel ? (
                 <Conteudopei 
                   className="animate-[painel-entrar_700ms_cubic-bezier(0.16,1,0.3,1)]"
@@ -621,13 +770,10 @@ export default function ConteudoChat() {
                   onEnviarChat={handleSendMessage}
                   chatPlaceholder={hasStarted ? "" : "Digite uma mensagem..."}
                   chatDisabled={isThinking}
-                >
-                  {botoesPei}
-                </Conteudopei>
+                />
               ) : (
                 <div className="animate-[chat-subir_700ms_cubic-bezier(0.16,1,0.3,1)] flex w-full flex-col gap-6">
                   {barra}
-                  {botoesPei}
                 </div>
               )}
             </div>

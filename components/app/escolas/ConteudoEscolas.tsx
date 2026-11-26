@@ -16,7 +16,16 @@ import { createEscola, deleteEscola, updateEscola, type Resultado } from "@/util
 import { ALERTAS } from "@/utils/alertas";
 
 export default function ConteudoEscolas() {
-  const { escolas, turmas, recarregar, hydrated } = useData();
+  const {
+    escolas,
+    turmas,
+    ehAdmin,
+    ehAdminRede,
+    escolaAdmId,
+    podeCriarEscolas,
+    recarregar,
+    hydrated,
+  } = useData();
   const [mostrarForm, setMostrarForm] = useState(false);
   const [mostrarBoasVindasPro, setMostrarBoasVindasPro] = useState(false);
   const [busca, setBusca] = useState("");
@@ -115,6 +124,7 @@ export default function ConteudoEscolas() {
           onCriarEscola={() => setMostrarForm(true)}
           ordenacao={ordenacao}
           onMudarOrdenacao={setOrdenacao}
+          podeCriar={podeCriarEscolas}
         />
         <BarraPesquisa
           type="search"
@@ -127,16 +137,31 @@ export default function ConteudoEscolas() {
       {temResultado ? (
         <div className="w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 xl:gap-8 mt-6 sm:mt-10 w-full">
-            {escolasFiltradas.map((escola) => (
-              <Escola
-                key={escola.id}
-                nomeEscola={escola.nome}
-                turmas={turmasPorEscolaId.get(escola.id) ?? []}
-                href={`/dashboardEscola?id=${escola.id}`}
-                onEditar={() => setIdEmEdicao(escola.id)}
-                onExcluir={() => setIdEmExclusao(escola.id)}
-              />
-            ))}
+            {escolasFiltradas.map((escola) => {
+              const ehEscolaAdm =
+                ehAdmin &&
+                (ehAdminRede ||
+                  escola.papel === "adm" ||
+                  (escolaAdmId !== null && escola.id === escolaAdmId) ||
+                  (!escola.papel && !escolaAdmId));
+              const ehInstitucional =
+                Boolean(escola.institucional) ||
+                (escola.plano ?? "").toLowerCase().includes("institucional");
+              const destacarAdm = ehEscolaAdm && (ehAdminRede || ehInstitucional || !escola.papel);
+              const podeEditarEscola =
+                podeCriarEscolas && !(ehInstitucional && escola.papel === "professor");
+              return (
+                <Escola
+                  key={escola.id}
+                  nomeEscola={escola.nome}
+                  turmas={turmasPorEscolaId.get(escola.id) ?? []}
+                  href={`/dashboardEscola?id=${escola.id}`}
+                  destaqueAdm={destacarAdm}
+                  onEditar={podeEditarEscola ? () => setIdEmEdicao(escola.id) : undefined}
+                  onExcluir={podeEditarEscola ? () => setIdEmExclusao(escola.id) : undefined}
+                />
+              );
+            })}
           </div>
         </div>
       ) : temEscola ? (
@@ -173,8 +198,8 @@ export default function ConteudoEscolas() {
 
       {mostrarBoasVindasPro ? (
         <Blurfundo onClose={() => setMostrarBoasVindasPro(false)}>
-          <div className="w-full max-w-md">
-            <div className="flex w-full flex-col gap-6 rounded-[40px] bg-surface-base p-5 shadow-md sm:gap-6 sm:rounded-[70px] sm:p-8">
+          <div className="fixed inset-0 z-50 h-dvh w-screen sm:static sm:h-auto sm:w-full sm:max-w-md">
+            <div className="flex h-full w-full flex-col gap-6 overflow-y-auto rounded-none bg-surface-base p-5 shadow-md sm:h-auto sm:gap-6 sm:rounded-[70px] sm:p-8">
               <div className="flex items-center justify-between">
                 <p className="font-(family-name:--font-text-me-one) text-3xl text-primary sm:text-4xl">
                   Plano PRO

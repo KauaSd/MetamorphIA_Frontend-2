@@ -10,20 +10,48 @@ const COR_STATUS_DISCIPLINA: Record<StatusPeiDisciplina, string> = {
   nao_iniciado: "bg-sunken",
 };
 
+function periodoPassou(proximoPeriodo?: string | null): boolean {
+  if (!proximoPeriodo) return false;
+  const matches = proximoPeriodo.match(/\d{2}\/\d{2}\/\d{2,4}/g);
+  if (!matches || matches.length === 0) return false;
+  const ultimaData = matches[matches.length - 1];
+  const [dia, mes, anoStr] = ultimaData.split("/");
+  const ano = anoStr.length === 2 ? 2000 + Number(anoStr) : Number(anoStr);
+  const fimPeriodo = new Date(ano, Number(mes) - 1, Number(dia), 23, 59, 59);
+  if (Number.isNaN(fimPeriodo.getTime())) return false;
+  return Date.now() > fimPeriodo.getTime();
+}
+
+function resolverStatusGeralPei(dados: PeisPorDisciplinaResumo): {
+  label: string;
+  cor: string;
+} {
+  if (dados.total > 0 && dados.concluidos >= dados.total) {
+    return { label: "CONCLUÍDO", cor: "text-secondary" };
+  }
+  if (
+    dados.atrasado ||
+    dados.statusGeral.toUpperCase().includes("PENDENTE") ||
+    periodoPassou(dados.proximoPeriodo)
+  ) {
+    return { label: "PENDENTE", cor: "text-[#FF9999]" };
+  }
+  return { label: "EM ANDAMENTO", cor: "text-warning" };
+}
+
 export default function PeisDisciplinaCard({ dados }: PeisDisciplinaCardProps) {
-  const todosConcluidos = dados.total > 0 && dados.concluidos >= dados.total;
-  const corStatusGeral = todosConcluidos ? "text-accent" : "text-warning";
+  const statusGeral = resolverStatusGeralPei(dados);
 
   return (
-    <div className="flex w-full flex-col justify-between gap-2 rounded-[50px] bg-surface-base px-8 py-4 lg:h-[277px]">
+    <div className="flex w-full flex-col gap-3 rounded-[50px] bg-surface-base px-8 py-4 lg:h-[277px]">
       <div className="flex flex-col gap-0.5">
         <h2 className="font-(family-name:--font-text-me-one) text-xl text-primary sm:text-2xl lg:text-[24px] lg:leading-tight">
           PEIs por Disciplina
         </h2>
         <p className="font-(family-name:--font-poppins) text-sm text-secondary sm:text-base lg:text-[18px] lg:leading-snug">
           Status:{" "}
-          <span className={`font-bold uppercase ${corStatusGeral}`}>
-            {dados.statusGeral} ({dados.concluidos}/{dados.total})
+          <span className={`font-bold uppercase ${statusGeral.cor}`}>
+            {statusGeral.label} ({dados.concluidos}/{dados.total})
           </span>
         </p>
       </div>
@@ -52,7 +80,7 @@ export default function PeisDisciplinaCard({ dados }: PeisDisciplinaCardProps) {
       )}
 
       {(dados.ultimoEnvio || dados.proximoPeriodo) && (
-        <div className="flex flex-col gap-0.5 font-(family-name:--font-poppins) text-[11px] text-secondary lg:text-[12px]">
+        <div className="mt-auto flex flex-col gap-0.5 font-(family-name:--font-poppins) text-[11px] text-secondary lg:text-[12px]">
           {dados.ultimoEnvio ? <p>Último envio : {dados.ultimoEnvio}</p> : null}
           {dados.proximoPeriodo ? <p>Próx. período: {dados.proximoPeriodo}</p> : null}
         </div>

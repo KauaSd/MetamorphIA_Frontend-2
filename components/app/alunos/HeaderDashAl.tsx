@@ -26,6 +26,7 @@ interface HeaderDashAlProps {
   /** retrocompatibilidade com onGerarPei */
   onGerarPei?: () => void;
   abrindoChat: boolean;
+  chatLiberado?: boolean;
   onEditar?: () => void;
   onExcluir?: () => void;
 }
@@ -40,6 +41,7 @@ export default function HeaderDashAl({
   onBaixarPei,
   onGerarPei,
   abrindoChat,
+  chatLiberado = true,
   onEditar,
   onExcluir,
 }: HeaderDashAlProps) {
@@ -152,21 +154,22 @@ export default function HeaderDashAl({
           </div>
         </div>
 
-        <div className="flex w-full flex-row gap-2 sm:w-auto sm:gap-3 lg:gap-5">
+        <div className="flex w-full flex-row items-stretch gap-2 sm:w-auto sm:gap-3 lg:gap-5">
           <Button
             type="button"
             onClick={onBatePapo}
-            disabled={abrindoChat}
-            className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-info px-3 py-1 text-ink hover:bg-surface-positive-strong sm:py-1"
+            disabled={abrindoChat || !chatLiberado}
+            title={!chatLiberado ? "Crie o PEI do aluno primeiro para liberar o chat" : undefined}
+            className="flex flex-1 flex-row items-center justify-center gap-1.5 bg-surface-info px-3 py-1.5 text-ink hover:bg-surface-positive-strong disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface-info sm:flex-initial sm:w-auto sm:min-w-[104px] sm:py-1"
           >
             <img src={Add.src} className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" alt="" />
-            <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-xs sm:text-xl">
+            <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-base sm:text-xl">
               {abrindoChat ? "Abrindo..." : "Chat"}
             </p>
           </Button>
 
           {/* menu de acoes do PEI */}
-          <div className="relative shrink-0" ref={menuPeiRef}>
+          <div className="relative flex-1 sm:flex-initial sm:shrink-0" ref={menuPeiRef}>
             <Button
               type="button"
               onClick={() => {
@@ -175,10 +178,10 @@ export default function HeaderDashAl({
               }}
               aria-haspopup="menu"
               aria-expanded={isPeiOpen}
-              className="flex w-auto flex-row items-center justify-center gap-1.5 bg-surface-accent px-3 py-1 text-ink hover:bg-surface-accent-strong sm:py-1"
+              className="flex h-full w-full flex-row items-center justify-center gap-1.5 bg-surface-accent px-3 py-1.5 text-ink hover:bg-surface-accent-strong sm:w-auto sm:min-w-[104px] sm:py-1"
             >
               <img src={FilePEIIcon.src} className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" alt="" />
-              <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-xs sm:text-xl">
+              <p className="whitespace-nowrap font-(family-name:--font-text-me-one) text-base sm:text-xl">
                 PEI
               </p>
             </Button>
@@ -191,27 +194,29 @@ export default function HeaderDashAl({
           </div>
 
           {/* menu de acoes do aluno - mesma linguagem do card Aluno */}
-          <div className={`relative shrink-0 ${isOpen ? "z-50" : "z-20"}`} ref={menuRef}>
-            <button
-              type="button"
-              aria-label={`Opcoes de ${aluno.nome}`}
-              aria-haspopup="menu"
-              aria-expanded={isOpen}
-              className="flex h-full w-auto cursor-pointer items-center justify-center rounded-[70px] px-1 text-secondary transition-colors hover:bg-surface-muted"
-              onClick={() => {
-                setIsPeiOpen(false);
-                setIsOpen((prev) => !prev);
-              }}
-            >
-              <EllipsisVertical height={"28px"} />
-            </button>
+          {onEditar || onExcluir ? (
+            <div className={`relative shrink-0 ${isOpen ? "z-50" : "z-20"}`} ref={menuRef}>
+              <button
+                type="button"
+                aria-label={`Opcoes de ${aluno.nome}`}
+                aria-haspopup="menu"
+                aria-expanded={isOpen}
+                className="flex h-full w-auto cursor-pointer items-center justify-center rounded-[70px] px-1 text-secondary transition-colors hover:bg-surface-muted"
+                onClick={() => {
+                  setIsPeiOpen(false);
+                  setIsOpen((prev) => !prev);
+                }}
+              >
+                <EllipsisVertical height={"28px"} />
+              </button>
 
-            {isOpen ? (
-              <div className="absolute right-0 top-full mt-2 z-50">
-                <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
-              </div>
-            ) : null}
-          </div>
+              {isOpen ? (
+                <div className="absolute right-0 top-full mt-2 z-50">
+                  <VerMais onEditar={handleEditar} onExcluir={handleExcluir} />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

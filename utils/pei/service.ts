@@ -1,5 +1,6 @@
 import {
   apiAiGatewayOrDirect,
+  apiDbFetch,
   baixarArquivoDeAnexo,
   parseNumeroId,
 } from "@/utils/apiClient";
@@ -286,3 +287,94 @@ export const peiService: PeiService = {
     return true;
   },
 };
+
+export async function baixarPeiAlunoPorFiltro(
+  aluno: Aluno,
+  opcoes?: { bimestre?: string; disciplina?: string },
+): Promise<boolean> {
+  const numId = parseNumeroId(aluno.id);
+  if (numId === null) return false;
+
+  const respLista = await apiAiGatewayOrDirect(
+    `/AI/pei/aluno/${numId}`,
+    `/alunos/${numId}/pei`,
+  );
+  if (!respLista.ok) return false;
+
+  const lista = (await respLista.json()) as Array<{
+    pei_id: string;
+    arquivo_nome?: string | null;
+    bimestre?: string | number | null;
+    periodo?: string | null;
+    componente?: string | null;
+    disciplina?: string | null;
+  }>;
+  if (!Array.isArray(lista) || lista.length === 0) return false;
+
+  const bimNum = opcoes?.bimestre ? extrairBimestre(opcoes.bimestre) : null;
+  const discNorm = (opcoes?.disciplina ?? "").trim().toLowerCase();
+  const filtrarDisc = discNorm && !discNorm.includes("todas");
+
+  const correspondente =
+    lista.find((item) => {
+      const itemBim =
+        item.bimestre != null
+          ? Number(item.bimestre)
+          : item.periodo
+            ? extrairBimestre(item.periodo)
+            : null;
+      const itemDisc = (item.disciplina ?? item.componente ?? "").trim().toLowerCase();
+      const bateBim = !bimNum || itemBim === null || itemBim === bimNum;
+      const bateDisc = !filtrarDisc || !itemDisc || itemDisc.includes(discNorm);
+      return bateBim && bateDisc;
+    }) ?? lista[0];
+
+  const peiId = correspondente.pei_id;
+  const respDoc = await apiAiGatewayOrDirect(
+    `/AI/pei/aluno/${numId}/${peiId}/docx`,
+    `/alunos/${numId}/pei/${peiId}/docx`,
+  );
+  if (!respDoc.ok) return false;
+
+  const blob = await respDoc.blob();
+  const url = URL.createObjectURL(blob);
+  const nomeArquivo =
+    correspondente.arquivo_nome || `PEI_${aluno.nome.replace(/\s+/g, "_")}.docx`;
+  baixarArquivoDeAnexo({
+    name: nomeArquivo,
+    dataUrl: url,
+  });
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return true;
+}
+
+export async function baixarPeisTurmaZip(
+  escolaId: string | undefined,
+  turmaId: string,
+  turmaNome?: string,
+): Promise<{ ok: boolean; erro?: string }> {
+  const numTurma = parseNumeroId(turmaId);
+  const numEscola = parseNumeroId(escolaId ?? "");
+  if (numTurma === null || numEscola === null) {
+    return { ok: false, erro: "Turma ou escola inválida para exportação." };
+  }
+
+  const resp = await apiDbFetch(`/escolas/${numEscola}/turmas/${numTurma}/peis/download`);
+  if (!resp.ok) {
+    const corpo = (await resp.json().catch(() => ({}))) as { detail?: string };
+    return {
+      ok: false,
+      erro: corpo.detail || "Nenhum PEI disponível para download nesta turma.",
+    };
+  }
+
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+  const nomeBase = (turmaNome || `turma_${numTurma}`).replace(/\s+/g, "_");
+  baixarArquivoDeAnexo({
+    name: `PEIs_${nomeBase}.zip`,
+    dataUrl: url,
+  });
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return { ok: true };
+}

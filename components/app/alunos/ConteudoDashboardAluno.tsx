@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useData } from "@/components/app/state/DataProvider";
 import {
   alunoPorId,
   conversasDoAluno as filtrarConversasDoAluno,
   escolaPorId,
   turmaPorId,
-  type StudentInsights,
 } from "@/utils/data/types";
 import { updateAluno, deleteAluno, openChatWith, type Resultado } from "@/utils/data/controller";
 import { repository } from "@/utils/data/dataRepository";
@@ -31,8 +31,24 @@ export default function ConteudoDashboardAluno() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const alunoId = searchParams.get("id");
-  const { alunos, turmas, escolas, conversas, recarregar, hydrated } = useData();
+  const {
+    alunos,
+    turmas,
+    escolas,
+    conversas,
+    ehAdmin,
+    podeGerenciarAlunos,
+    recarregar,
+    hydrated,
+    carregandoConversas,
+  } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
+
+  useEffect(() => {
+    if (hydrated && ehAdmin) {
+      router.replace("/escolas");
+    }
+  }, [hydrated, ehAdmin, router]);
 
   const [idEmEdicao, setIdEmEdicao] = useState<string | null>(null);
   const [idEmExclusao, setIdEmExclusao] = useState<string | null>(null);
@@ -58,21 +74,13 @@ export default function ConteudoDashboardAluno() {
       `Nome: ${aluno.nome} | Idade: ${aluno.idade} anos | Neurodivergência: ${aluno.neuro.join(", ") || "Nenhuma informada"} | Turma: ${turma?.nome || "Sem turma"}`
     : "";
   const [resumo, setResumo] = useState("");
-  const [insights, setInsights] = useState<StudentInsights | null>(null);
-
-  useEffect(() => {
-    if (!alunoId) return;
-    let cancelado = false;
-    repository
-      .getStudentInsights(alunoId)
-      .then((dados) => {
-        if (!cancelado) setInsights(dados);
-      })
-      .catch(() => {});
-    return () => {
-      cancelado = true;
-    };
-  }, [alunoId, conversas.length]);
+  const insightsQuery = useQuery({
+    queryKey: ["student-insights", alunoId, conversas.length],
+    queryFn: ({ signal }) => repository.getStudentInsights(alunoId!, signal),
+    enabled: Boolean(alunoId),
+  });
+  const insights = insightsQuery.data ?? null;
+  const carregandoInsights = insightsQuery.isPending;
 
   async function handleSalvarResumo(novoResumo: string) {
     setResumo(novoResumo);
@@ -155,22 +163,22 @@ export default function ConteudoDashboardAluno() {
     if (!aluno || baixandoPei) return;
     setBaixandoPei(true);
     try {
-      mostrar({
-        tom: "info",
-        titulo: "Baixar PEI",
-        descricao: `Iniciando o download do PEI de ${aluno.nome}.`,
-      });
       const baixou = await peiService.baixarUltimoPeiAluno(aluno);
-      if (!baixou) {
-        const gerado = await peiService.gerarPeiDocumento({
-          aluno,
-          componente: "Língua Portuguesa",
-          periodo: "1º Bimestre",
-          questions: [],
-          respostas: {},
-        });
-        if (gerado?.anexo) {
-          await peiService.baixarUltimoPeiAluno(aluno);
+      if (baixou) {
+        mostrar(ALERTAS.ALTERACAO_PEI);
+        return;
+      }
+      const gerado = await peiService.gerarPeiDocumento({
+        aluno,
+        componente: "Língua Portuguesa",
+        periodo: "1º Bimestre",
+        questions: [],
+        respostas: {},
+      });
+      if (gerado?.anexo) {
+        const baixouGerado = await peiService.baixarUltimoPeiAluno(aluno);
+        if (baixouGerado) {
+          mostrar(ALERTAS.ALTERACAO_PEI);
         }
       }
     } finally {
@@ -178,18 +186,25 @@ export default function ConteudoDashboardAluno() {
     }
   }
 
-  if (!hydrated) {
+  if (!hydrated || ehAdmin) {
     return <CarregandoDashboard />;
   }
 
   if (!aluno) {
     return (
-      <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12 lg:py-[70px]">
+      <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:max-w-none lg:px-12 lg:py-[70px] xl:px-[clamp(48px,13.5vw,259px)]">
         <p className="text-center text-secondary">Aluno não encontrado</p>
         {alerta ? <Toast alerta={alerta} limpar={limpar} /> : null}
       </div>
     );
   }
+
+  const peiFeito = Boolean(
+    insights &&
+      (insights.peiGerado > 0 ||
+        insights.peisPorDisciplina.concluidos > 0 ||
+        insights.peisPorDisciplina.disciplinas.some((d) => d.status === "concluido")),
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-[1056px] flex-col gap-6 px-5 py-8 sm:px-8 lg:max-w-none lg:px-12 lg:py-[70px] xl:px-[clamp(48px,13.5vw,259px)]">
@@ -203,8 +218,17 @@ export default function ConteudoDashboardAluno() {
           onCriarPei={handleCriarPei}
           onBaixarPei={() => void handleBaixarPei()}
           abrindoChat={abrindoChat}
-          onEditar={() => setIdEmEdicao(aluno.id)}
-          onExcluir={() => setIdEmExclusao(aluno.id)}
+          chatLiberado={peiFeito}
+          onEditar={
+            podeGerenciarAlunos && !(escola?.institucional && escola?.papel === "professor")
+              ? () => setIdEmEdicao(aluno.id)
+              : undefined
+          }
+          onExcluir={
+            podeGerenciarAlunos && !(escola?.institucional && escola?.papel === "professor")
+              ? () => setIdEmExclusao(aluno.id)
+              : undefined
+          }
         />
       </div>
 
@@ -214,35 +238,58 @@ export default function ConteudoDashboardAluno() {
         onSave={handleSalvarResumo}
       />
 
-      <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[minmax(0,383fr)_minmax(0,624fr)] xl:grid-cols-[minmax(0,383px)_minmax(0,624px)] xl:justify-between">
-        <div className="flex flex-col gap-5 lg:h-[548px] lg:justify-between lg:gap-[14px]">
-          <PeisDisciplinaCard
-            dados={
-              insights?.peisPorDisciplina ?? {
-                statusGeral: "EM ANDAMENTO",
-                concluidos: 0,
-                total: 0,
-                disciplinas: [],
+      {carregandoInsights ? (
+        <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[minmax(0,383fr)_minmax(0,624fr)] lg:gap-8">
+          <div className="flex flex-col gap-5 lg:h-[548px] lg:justify-between lg:gap-[14px]">
+            <div className="h-[277px] w-full animate-pulse rounded-[50px] bg-surface-base/70" />
+            <div className="h-[257px] w-full animate-pulse rounded-[50px] bg-surface-base/70" />
+          </div>
+          <div className="h-[548px] w-full animate-pulse rounded-[50px] bg-surface-base/70" />
+        </div>
+      ) : (
+        <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[minmax(0,383fr)_minmax(0,624fr)] lg:gap-8">
+          <div className="flex flex-col gap-5 lg:h-[548px] lg:justify-between lg:gap-[14px]">
+            <PeisDisciplinaCard
+              dados={
+                insights?.peisPorDisciplina ?? {
+                  statusGeral: "EM ANDAMENTO",
+                  concluidos: 0,
+                  total: 0,
+                  disciplinas: [],
+                }
               }
-            }
-          />
-          <MetasBimestreCard metas={insights?.metasDoBimestre ?? []} />
-        </div>
+            />
+            <MetasBimestreCard metas={insights?.metasDoBimestre ?? []} />
+          </div>
 
-        <div className="min-w-0">
-          <IndicadoresDesenvolvimentoCard
-            indicadores={insights?.indicadoresDesenvolvimento ?? []}
-          />
+          <div className="min-w-0">
+            <IndicadoresDesenvolvimentoCard
+              indicadores={(insights?.indicadoresDesenvolvimento ?? []).map((ind) =>
+                conversasDoAluno.length === 0 &&
+                !peiFeito &&
+                (insights?.atividadesAdaptadas ?? 0) === 0
+                  ? { ...ind, nivel: 0 }
+                  : ind,
+              )}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col gap-7 pb-6">
         <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
           <p className="font-(family-name:--font-text-me-one) text-2xl sm:text-3xl">Histórico de Conversas</p>
-          <p className="text-sm text-secondary">{conversasDoAluno.length} conversas</p>
+          <p className="text-sm text-secondary">
+            {carregandoConversas ? "Carregando..." : `${conversasDoAluno.length} conversas`}
+          </p>
         </div>
 
-        {conversasDoAluno.length === 0 ? (
+        {carregandoConversas && conversasDoAluno.length === 0 ? (
+          <div className="flex flex-col gap-3">
+            <div className="h-14 w-full animate-pulse rounded-[70px] bg-surface-base/70" />
+            <div className="h-14 w-full animate-pulse rounded-[70px] bg-surface-base/70" />
+          </div>
+        ) : conversasDoAluno.length === 0 ? (
           <div className="flex w-full flex-1 items-center justify-center">
             <BoxSemConversa alunoId={aluno.id} />
           </div>

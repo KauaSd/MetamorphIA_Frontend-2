@@ -24,11 +24,13 @@ import {
   apiDbFetch,
   getPending2FAToken,
   getPendingResetIdentifier,
+  resolverRotaInicialPosLogin,
   setAuthTokens,
   setPending2FAToken,
   setPendingResetIdentifier,
   setPendingResetToken,
   setSavedUserProfile,
+  type UserProfile,
 } from "@/utils/apiClient";
 import { saveTeacherName } from "@/utils/data/controller";
 
@@ -97,18 +99,13 @@ export function FormLogin() {
       }
 
       setAuthTokens(tokenData.access_token, tokenData.refresh_token);
+      let rotaDestino = "/alunos";
       try {
         const meResp = await apiDbFetch("/autenticar/me", {}, tokenData.access_token);
         if (meResp.ok) {
-          const me = (await meResp.json()) as {
-            id_usuario: number;
-            nome_usuario: string;
-            email_usuario?: string;
-            telefone_usuario?: string;
-            tipo_usuario?: string;
-            plano?: string;
-          };
+          const me = (await meResp.json()) as UserProfile;
           setSavedUserProfile(me);
+          rotaDestino = resolverRotaInicialPosLogin(me);
           if (me.nome_usuario) {
             await saveTeacherName(me.nome_usuario);
           }
@@ -116,7 +113,7 @@ export function FormLogin() {
       } catch {}
 
       setAlerta(null);
-      router.push("/alunos");
+      router.push(rotaDestino);
     } catch {
       setAlerta({
         tom: "danger",

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Encaracolado from "@/components/common/Encaracolado";
 import { OverlayCarregando } from "@/components/common/Carregando";
+import AstroidSvg from "@/public/astroid.svg";
 import EncaracoladoSvg from "@/public/EncaracoladoResumo.svg";
 import Lapis from "@/public/mode_edit.svg";
 
@@ -66,7 +67,7 @@ export default function Resumo(props : ResumoProps) {
                 <div className="flex items-center gap-2">
                     <p className="font-(family-name:--font-text-me-one) text-xl text-primary sm:text-2xl"> {config.titulo} </p>
                     {props.tipo === 2 ? (
-                        <span className="text-base text-primary" aria-hidden="true">✦</span>
+                        <Encaracolado src={AstroidSvg.src} className="h-4 w-4 shrink-0" />
                     ) : null}
                 </div>
 

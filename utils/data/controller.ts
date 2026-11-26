@@ -1,4 +1,5 @@
 import { ALERTAS, type MensagemAlerta } from "@/utils/alertas";
+import { ApiError } from "./apiRepository";
 import { repository } from "./dataRepository";
 import { conversaDoAluno, gerarId, hojeDDMMAAAA } from "./types";
 import type { Aluno, AnexoMensagem } from "./types";
@@ -15,12 +16,56 @@ function falha(erro: MensagemAlerta): Resultado {
   return { ok: false, erro };
 }
 
+const CODIGOS_LIMITE_ALERTA = {
+  LIMITE_ESCOLAS_ATINGIDO: ALERTAS.LIMITE_ESCOLAS_ATINGIDO,
+  PLANO_PRO_NAO_CONTRATADO: ALERTAS.PLANO_PRO_NAO_CONTRATADO,
+  LIMITE_TURMAS_ATINGIDO: ALERTAS.LIMITE_TURMAS_ATINGIDO,
+  LIMITE_ALUNOS_ATINGIDO: ALERTAS.LIMITE_ALUNOS_ATINGIDO,
+} as const;
+
+const TIPO_LIMITE_ALERTA = {
+  escola: ALERTAS.LIMITE_ESCOLAS_ATINGIDO,
+  turma: ALERTAS.LIMITE_TURMAS_ATINGIDO,
+  aluno: ALERTAS.LIMITE_ALUNOS_ATINGIDO,
+} as const;
+
 function falhaApi(err: unknown, titulo = "Erro ao comunicar com o servidor"): Resultado {
+  if (err instanceof ApiError) {
+    const alertaPorCodigo = err.codigoErro
+      ? CODIGOS_LIMITE_ALERTA[err.codigoErro as keyof typeof CODIGOS_LIMITE_ALERTA]
+      : undefined;
+    const alertaPorTipo =
+      !alertaPorCodigo && err.status === 403 && err.tipoLimite
+        ? TIPO_LIMITE_ALERTA[err.tipoLimite as keyof typeof TIPO_LIMITE_ALERTA]
+        : undefined;
+    const alertaLimite = alertaPorCodigo ?? alertaPorTipo;
+
+    if (alertaLimite) {
+      const temMensagemApi = err.message && !err.message.includes(`(HTTP ${err.status})`);
+      return falha({
+        ...alertaLimite,
+        descricao: temMensagemApi ? err.message : alertaLimite.descricao,
+      });
+    }
+  }
+
   const descricao =
     err instanceof Error && err.message
       ? err.message
       : "Verifique se a API está em execução e tente novamente.";
   return falha({ tom: "danger", titulo, descricao });
+}
+
+export async function saveProfessorPerfil(nomeReal: string, tags: string[]): Promise<Resultado> {
+  const limpo = nomeReal.trim();
+  if (!limpo) return falha(ALERTAS.IDENTIFICACAO_NOME_VAZIO);
+
+  try {
+    await repository.saveProfessorPerfil(limpo, tags);
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível salvar seus dados");
+  }
 }
 
 export async function saveTeacherName(nome: string): Promise<Resultado> {
@@ -76,14 +121,33 @@ export async function deleteEscola(id: string): Promise<Resultado> {
   }
 }
 
-export async function createTurma(dados?: { nome: string; escolaId?: string | null } | string): Promise<Resultado> {
+export async function createTurma(
+  dados?:
+    | {
+        nome: string;
+        escolaId?: string | null;
+        serieAno?: string;
+        letra?: string;
+        horario?: string;
+      }
+    | string,
+): Promise<Resultado> {
   const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
   const escolaId = typeof dados === "object" && dados.escolaId ? dados.escolaId : undefined;
+  const serieAno = typeof dados === "object" ? dados?.serieAno : undefined;
+  const letra = typeof dados === "object" ? dados?.letra : undefined;
+  const horario = typeof dados === "object" ? dados?.horario : undefined;
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
 
   try {
-    await repository.createTurma({ nome: limpo, escolaId });
+    await repository.createTurma({
+      nome: limpo,
+      escolaId,
+      serieAno,
+      letra,
+      horario,
+    });
     return ok();
   } catch (err) {
     return falhaApi(err, "Não foi possível criar a turma");
@@ -92,11 +156,22 @@ export async function createTurma(dados?: { nome: string; escolaId?: string | nu
 
 export async function updateTurma(
   id: string,
-  dados: { nome: string; escolaId?: string | null } | string,
+  dados:
+    | {
+        nome: string;
+        escolaId?: string | null;
+        serieAno?: string;
+        letra?: string;
+        horario?: string;
+      }
+    | string,
 ): Promise<Resultado> {
   const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
   const temEscolaId = typeof dados === "object" && "escolaId" in dados;
   const escolaId = typeof dados === "object" && dados.escolaId ? dados.escolaId : undefined;
+  const serieAno = typeof dados === "object" ? dados?.serieAno : undefined;
+  const letra = typeof dados === "object" ? dados?.letra : undefined;
+  const horario = typeof dados === "object" ? dados?.horario : undefined;
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
 
@@ -107,6 +182,9 @@ export async function updateTurma(
     await repository.updateTurma(id, {
       nome: limpo,
       ...(temEscolaId ? { escolaId } : {}),
+      ...(serieAno !== undefined ? { serieAno } : {}),
+      ...(letra !== undefined ? { letra } : {}),
+      ...(horario !== undefined ? { horario } : {}),
     });
     return ok();
   } catch (err) {
@@ -139,6 +217,9 @@ export async function createAluno(input: {
   const turmaId = input.turmaId.trim();
   if (!turmaId) return falha(ALERTAS.ALUNO_SEM_TURMA);
 
+  const neuro = (input.neuro ?? []).map((n) => n.trim()).filter(Boolean);
+  if (neuro.length === 0) return falha(ALERTAS.ALUNO_SEM_NEURO);
+
   if (input.idade !== null && input.idade < 0) {
     return falha(ALERTAS.ALUNO_IDADE_INVALIDA);
   }
@@ -149,7 +230,7 @@ export async function createAluno(input: {
       return falha(ALERTAS.ALUNO_SEM_TURMA_NAO_ENCONTRADA);
     }
 
-    await repository.createAluno({ nome, idade: input.idade, neuro: input.neuro ?? [], turmaId });
+    await repository.createAluno({ nome, idade: input.idade, neuro, turmaId });
     return ok();
   } catch (err) {
     return falhaApi(err, "Não foi possível cadastrar o aluno");
@@ -274,13 +355,44 @@ export async function addMessage(
   return ok();
 }
 
+export async function markTutorialSeen(
+  variante: "padrao" | "institucional" = "padrao",
+): Promise<void> {
+  await repository.markTutorialSeen(variante);
+}
+
+export async function alternarModo(): Promise<Resultado> {
+  try {
+    const { alternarModoConta } = await import("./apiRepository");
+    await alternarModoConta();
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível alternar o modo da conta");
+  }
+}
+
 export async function carregarDados() {
+  const alunosPromise = repository.listAlunos();
   const [escolas, turmas, alunos, conversas, teacherName] = await Promise.all([
     repository.listEscolas(),
     repository.listTurmas(),
-    repository.listAlunos(),
-    repository.listConversas(),
+    alunosPromise,
+    alunosPromise.then((lista) => repository.listConversas(lista)),
     repository.getTeacherName(),
   ]);
-  return { escolas, turmas, alunos, conversas, teacherName };
+  const onboarding = await repository.getOnboardingStatus();
+  return {
+    escolas,
+    turmas,
+    alunos,
+    conversas,
+    teacherName,
+    nomeReal: null as string | null,
+    plano: onboarding.plano,
+    escolaInstitucional: onboarding.escolaInstitucional,
+    perfilProfessorFeito: onboarding.perfilProfessorFeito,
+    identificacaoFeita: onboarding.identificacaoFeita,
+    tutorialVisto: onboarding.tutorialVisto,
+    tutorialInstitucionalVisto: onboarding.tutorialInstitucionalVisto,
+  };
 }

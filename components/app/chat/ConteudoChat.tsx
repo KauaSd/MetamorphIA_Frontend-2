@@ -95,9 +95,16 @@ export default function ConteudoChat() {
   const [peiEditadoNoChat, setPeiEditadoNoChat] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const transicionandoIdRef = useRef<string | null>(null);
+  const ultimoAlunoIdRef = useRef<string | null>(alunoId);
   const mensagensEndRef = useRef<HTMLDivElement | null>(null);
   const chaveRotaAtual = `${conversaId ?? ""}|${alunoId ?? ""}|${deveAbrirPei ? "pei" : ""}|${novaConversa ? "nova" : ""}`;
   const chaveRotaAnteriorRef = useRef(chaveRotaAtual);
+
+  useEffect(() => {
+    if (alunoId) {
+      ultimoAlunoIdRef.current = alunoId;
+    }
+  }, [alunoId]);
 
   useEffect(() => {
     if (chaveRotaAnteriorRef.current === chaveRotaAtual) return;
@@ -122,15 +129,26 @@ export default function ConteudoChat() {
   const jaTemConversaEmMemoria = Boolean(
     conversaId && conversas.some((item) => item.id === conversaId),
   );
-  const aguardandoConversa = Boolean(conversaId && carregandoConversas && !jaTemConversaEmMemoria);
+  const aguardandoConversa = Boolean(
+    conversaId && (carregandoConversas || isThinking || rascunho.length > 0) && !jaTemConversaEmMemoria,
+  );
 
   // regra: chat sem aluno nao existe. Antes da hidratacao os dados ainda estao
   // vazios, entao nada e decidido nesse meio-tempo
   const resolucao = useMemo(
-    () => resolverChat(conversas, alunos, { conversaId, alunoId }),
+    () =>
+      resolverChat(conversas, alunos, {
+        conversaId,
+        alunoId: alunoId ?? ultimoAlunoIdRef.current,
+      }),
     [conversas, alunos, conversaId, alunoId],
   );
-  const semAluno = hydrated && !aguardandoConversa && resolucao.status === "sem-aluno";
+  const semAluno =
+    hydrated &&
+    !aguardandoConversa &&
+    !isThinking &&
+    rascunho.length === 0 &&
+    resolucao.status === "sem-aluno";
   const aluno = resolucao.status === "ok" ? resolucao.aluno : undefined;
   const conversa = resolucao.status === "ok" ? resolucao.conversa : undefined;
 
@@ -257,7 +275,11 @@ export default function ConteudoChat() {
         setRascunho([]);
         if (idConvAlvo && !conversaId) {
           transicionandoIdRef.current = idConvAlvo;
-          router.replace(`/chat?conversaId=${idConvAlvo}`);
+          router.replace(
+            `/chat?conversaId=${encodeURIComponent(idConvAlvo)}${
+              aluno?.id ? `&alunoId=${encodeURIComponent(aluno.id)}` : ""
+            }`,
+          );
         }
       } else {
         setRascunho((prev) =>
@@ -465,7 +487,11 @@ export default function ConteudoChat() {
               }
               idConvFinal = idConvApi;
               transicionandoIdRef.current = idConvApi;
-              router.replace(`/chat?conversaId=${encodeURIComponent(idConvApi)}`);
+              router.replace(
+                `/chat?conversaId=${encodeURIComponent(idConvApi)}${
+                  aluno?.id ? `&alunoId=${encodeURIComponent(aluno.id)}` : ""
+                }`,
+              );
             }
             respostaCompleta = dados.resposta ?? "";
             if (Array.isArray(dados.opcoes_adaptacao) && dados.opcoes_adaptacao.length > 0) {
@@ -884,7 +910,7 @@ export default function ConteudoChat() {
                                 modo_adaptacao: op.modo_adaptacao,
                                 template_id: op.template_id,
                                 formato_saida: op.formato_saida || "docx",
-                                gerar_arquivo_atividade: true,
+                                gerar_arquivo_atividade: false,
                               })
                             }
                             className="cursor-pointer rounded-full bg-surface-accent px-4 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-surface-accent-strong sm:text-sm"

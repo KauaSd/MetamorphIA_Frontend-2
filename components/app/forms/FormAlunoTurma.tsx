@@ -315,7 +315,14 @@ export function FormTurma({
   const [letra, setLetra] = useState(letraInicial || inicial.letra);
   const [horario, setHorario] = useState(horarioInicial || inicial.horario);
   const [escolaId, setEscolaId] = useState(escolaIdInicial);
+  const [materiasSelecionadas, setMateriasSelecionadas] = useState<string[]>(componentesIniciais);
   const [salvando, setSalvando] = useState(false);
+
+  function alternarMateria(materia: string) {
+    setMateriasSelecionadas((atual) =>
+      atual.includes(materia) ? atual.filter((item) => item !== materia) : [...atual, materia],
+    );
+  }
 
   const opcoesSerieAno = useMemo(() => {
     if (!serieAno || SERIES_ANO.some((opt) => opt.value === serieAno)) {
@@ -343,7 +350,7 @@ export function FormTurma({
       // quem valida o nome vazio e o controller; o form so fecha se der ok
       const resultado = await onSalvar(
         nomeFinal,
-        componentesIniciais,
+        materiasSelecionadas,
         escolaId || undefined,
         {
           serieAno: serieLimpa || undefined,
@@ -447,6 +454,32 @@ export function FormTurma({
             </div>
           ) : null}
 
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-primary">
+              Matérias da turma{" "}
+              <span className="text-[11px] font-normal text-secondary">
+                (aparecerão para o PEI)
+              </span>
+            </p>
+            <div className="grid grid-cols-1 gap-x-4 gap-y-2.5 pl-2 sm:grid-cols-2">
+              {MATERIAS_PROFESSOR.map((materia) => (
+                <div key={materia} className="relative inline-flex w-full">
+                  <Encaracolado
+                    src={EncaracoladoIdentificaSvg.src}
+                    className="pointer-events-none absolute -left-2.5 top-1/2 z-10 h-[34px] w-[18px] -translate-y-1/2"
+                  />
+                  <CheckBoxAluno
+                    label={materia}
+                    checked={materiasSelecionadas.includes(materia)}
+                    onChange={() => alternarMateria(materia)}
+                    className="w-full"
+                    labelClassName="text-sm whitespace-nowrap"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-auto flex gap-4 sm:mt-2 sm:justify-end">
             <Button
               type="button"
@@ -476,175 +509,6 @@ const MATERIAS_PROFESSOR = [
   "L. Inglesa",
   "Geografia",
 ] as const;
-
-interface FormIdentificacaoProfessorProps {
-  onSalvar?: () => Promise<void>;
-  onClose?: () => void;
-}
-
-export function FormIdentificacaoProfessor({ onSalvar, onClose }: FormIdentificacaoProfessorProps) {
-  const [nome, setNome] = useState("");
-  const [materiasSelecionadas, setMateriasSelecionadas] = useState<string[]>([]);
-  const [outroMarcado, setOutroMarcado] = useState(false);
-  const [outroTexto, setOutroTexto] = useState("");
-  const [salvando, setSalvando] = useState(false);
-
-  function alternarMateria(materia: string) {
-    setMateriasSelecionadas((atual) =>
-      atual.includes(materia) ? atual.filter((item) => item !== materia) : [...atual, materia],
-    );
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (salvando) return;
-
-    const nomeTrim = nome.trim();
-    if (nomeTrim.length === 0) return;
-
-    const outroTrim = outroMarcado ? outroTexto.trim() : "";
-    const tags = outroTrim
-      ? [...materiasSelecionadas, outroTrim]
-      : [...materiasSelecionadas];
-
-    setSalvando(true);
-    try {
-      const resultado = await saveProfessorPerfil(nomeTrim, tags);
-      if (resultado.ok && onSalvar) {
-        await onSalvar();
-      }
-    } finally {
-      setSalvando(false);
-    }
-  };
-
-  return (
-    <Blurfundo onClose={salvando ? undefined : onClose}>
-      <form
-        onSubmit={handleSubmit}
-        className="fixed inset-0 z-50 h-dvh w-screen sm:static sm:h-auto sm:w-full sm:max-w-[528px]"
-      >
-        <div className="relative flex h-full w-full flex-col gap-5 overflow-y-auto rounded-none bg-surface-base p-6 shadow-md sm:h-auto sm:overflow-hidden sm:rounded-[60px] sm:p-8 xl:h-[602px] xl:w-[528px] xl:justify-between">
-          <OverlayCarregando ativo={salvando} mensagem="Salvando..." />
-
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <p className="font-(family-name:--font-text-me-one) text-3xl text-primary sm:text-4xl">
-                Identificação
-              </p>
-              {onClose ? (
-                <button
-                  type="button"
-                  aria-label="Fechar"
-                  onClick={onClose}
-                  className="cursor-pointer text-primary transition-opacity hover:opacity-70"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              ) : null}
-            </div>
-            <p className="text-sm text-primary sm:text-base">
-              Precisamos te conhecer melhor!
-            </p>
-          </div>
-
-          <Input
-            type="text"
-            placeholder="Digite seu nome completo"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-          />
-
-          <div className="flex flex-col gap-3">
-            <p className="text-xs font-medium text-primary sm:text-sm">
-              Matérias que leciona{" "}
-              <span className="font-normal text-secondary">
-                (selecione todas que se apliquem)
-              </span>
-            </p>
-
-            <div className="grid grid-cols-1 gap-x-5 gap-y-2.5 sm:grid-cols-2">
-              {MATERIAS_PROFESSOR.map((materia) => (
-                <div key={materia} className="flex justify-center">
-                  <div className="relative inline-flex">
-                    <Encaracolado
-                      src={EncaracoladoIdentificaSvg.src}
-                      className="pointer-events-none absolute -left-2.5 top-1/2 z-10 h-[38px] w-[20px] -translate-y-1/2"
-                    />
-                    <CheckBoxAluno
-                      label={materia}
-                      checked={materiasSelecionadas.includes(materia)}
-                      onChange={() => alternarMateria(materia)}
-                      className="w-52"
-                      labelClassName="text-base sm:text-[18px] whitespace-nowrap"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-center pt-1">
-              <div className="relative inline-flex w-52 items-center gap-2.5 rounded-full bg-surface-muted px-4 py-2 transition-colors hover:bg-surface-base-hover">
-                <Encaracolado
-                  src={EncaracoladoIdentificaSvg.src}
-                  className="pointer-events-none absolute -left-2.5 top-1/2 z-10 h-[38px] w-[20px] -translate-y-1/2"
-                />
-                <label className="flex cursor-pointer items-center gap-2.5 select-none">
-                  <input
-                    type="checkbox"
-                    checked={outroMarcado}
-                    onChange={(e) => setOutroMarcado(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center border-2 transition-colors ${
-                      outroMarcado
-                        ? "border-secondary bg-surface-secondary text-inverse-muted"
-                        : "border-secondary bg-transparent"
-                    }`}
-                  >
-                    {outroMarcado ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
-                  </span>
-                  <span className="text-base font-medium text-tertiary sm:text-[18px]">Outro</span>
-                </label>
-                <input
-                  type="text"
-                  value={outroTexto}
-                  onChange={(e) => {
-                    setOutroTexto(e.target.value);
-                    if (e.target.value.trim() && !outroMarcado) {
-                      setOutroMarcado(true);
-                    }
-                  }}
-                  placeholder="_____"
-                  aria-label="Outra matéria"
-                  className="min-w-0 flex-1 bg-transparent text-base text-tertiary outline-none placeholder:text-tertiary sm:text-[18px]"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-auto flex justify-end gap-3 pt-1 sm:mt-0">
-            {onClose ? (
-              <Button
-                type="button"
-                onClick={onClose}
-                disabled={salvando}
-                className="w-auto bg-surface-inverse px-6 text-inverse hover:bg-surface-inverse-hover"
-              >
-                Cancelar
-              </Button>
-            ) : null}
-            <Button type="submit" disabled={salvando || nome.trim().length === 0} className="w-auto px-7">
-              Salvar
-            </Button>
-          </div>
-        </div>
-      </form>
-    </Blurfundo>
-  );
-}
 
 interface FormIdentificacaoProps {
   onSalvar?: () => Promise<void>;
@@ -680,26 +544,31 @@ export function FormIdentificacao({ onSalvar }: FormIdentificacaoProps) {
       >
         <div className="relative flex h-full w-full flex-col gap-6 overflow-y-auto rounded-none bg-surface-base p-5 shadow-md sm:h-auto sm:gap-6 sm:overflow-hidden sm:rounded-[70px] sm:p-8">
           <OverlayCarregando ativo={salvando} mensagem="Salvando..." />
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <p className={`text-3xl text-primary sm:text-4xl font-(family-name:--font-text-me-one)`}>
                 Identificação
               </p>
             </div>
-            <p className="text-md text-primary text-justify">Como devemos te chamar?</p>
+            <p className="text-md text-primary">
+              Como você gostaria que a IA te chamasse?
+            </p>
+            <p className="text-xs text-secondary">
+              Você poderá trocar isso depois nas configurações.
+            </p>
           </div>
 
           <div className="flex flex-col items-center">
             <Input
               type="text"
-              placeholder="Digite seu nome completo"
+              placeholder="Digite como a IA deve te chamar"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
             />
           </div>
 
           <div className="mt-auto flex gap-5 sm:mt-0">
-            <Button type="submit" disabled={salvando}>
+            <Button type="submit" disabled={salvando || nome.trim().length === 0}>
               Salvar
             </Button>
           </div>

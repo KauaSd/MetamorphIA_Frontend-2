@@ -29,6 +29,7 @@ import {
   enviarConviteProfessorEscola,
   listarConvitesEscola,
   listarProfessoresEscola,
+  vincularProfessorTurma,
 } from "@/utils/data/apiRepository";
 import type { Aluno, Escola, Turma } from "@/utils/data/types";
 
@@ -130,8 +131,13 @@ export default function DashboardEscolaAdm({
     () => escolas.map((e) => ({ value: e.id, label: e.nome })),
     [escolas],
   );
-  const turmasParaForm = useMemo<DropDownOption[]>(
-    () => turmasDaEscolaList.map((t) => ({ value: t.id, label: t.nome })),
+  const turmasParaForm = useMemo(
+    () =>
+      turmasDaEscolaList.map((t) => ({
+        value: t.id,
+        label: t.nome,
+        disciplinas: t.disciplinas,
+      })),
     [turmasDaEscolaList],
   );
 
@@ -163,29 +169,42 @@ export default function DashboardEscolaAdm({
 
   async function aoCriarTurma(
     nome: string,
-    _comp?: string[],
+    comp?: string[],
     novoEscolaId?: string,
     extras?: DadosTurmaExtras,
   ): Promise<Resultado> {
     const resultado = await createTurma({
       nome,
       escolaId: novoEscolaId || escolaId || undefined,
+      disciplinas: comp,
       ...extras,
     });
     if (resultado.ok) await onRecarregar();
     return tentar(resultado);
   }
 
-  async function salvarProfessor(dados: { email: string; turmaId: string }) {
+  async function salvarProfessor(dados: {
+    email: string;
+    disciplinas: string[];
+    vinculos: Array<{ turmaId: string; disciplinas: string[] }>;
+  }): Promise<boolean> {
     const limpo = dados.email.trim();
-    if (!limpo) return;
+    if (!limpo) return false;
 
     if (escolaId) {
       try {
         const res = await enviarConviteProfessorEscola(escolaId, {
           email: limpo,
-          tags_areas: [],
+          tags_areas: dados.disciplinas,
         });
+        await Promise.allSettled(
+          dados.vinculos.map((v) =>
+            vincularProfessorTurma(v.turmaId, {
+              email: limpo,
+              disciplinas: v.disciplinas,
+            }),
+          ),
+        );
         mostrar({
           tom: "info",
           titulo: "Convite enviado",
@@ -204,10 +223,10 @@ export default function DashboardEscolaAdm({
           titulo: "Não foi possível enviar o convite",
           descricao: err instanceof Error ? err.message : "Tente novamente.",
         });
-        return;
+        return false;
       }
     }
-    setModalAberto(null);
+    return true;
   }
 
   return (
@@ -363,7 +382,7 @@ export default function DashboardEscolaAdm({
         <FormProfessor
           turmas={turmasParaForm}
           onClose={() => setModalAberto(null)}
-          onSalvar={(dados) => void salvarProfessor(dados)}
+          onSalvar={(dados) => salvarProfessor(dados)}
         />
       )}
 

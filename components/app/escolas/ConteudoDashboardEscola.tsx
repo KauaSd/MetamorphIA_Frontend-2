@@ -74,13 +74,14 @@ export default function ConteudoDashboardEscola() {
 
   async function aoCriar(
     nome: string,
-    _comp?: string[],
+    comp?: string[],
     novoEscolaId?: string,
     extras?: DadosTurmaExtras,
   ): Promise<Resultado> {
     const resultado = await createTurma({
       nome,
       escolaId: novoEscolaId || escolaId || undefined,
+      disciplinas: comp,
       ...extras,
     });
     if (resultado.ok) {
@@ -91,7 +92,7 @@ export default function ConteudoDashboardEscola() {
 
   async function aoEditar(
     nome: string,
-    _comp?: string[],
+    comp?: string[],
     novoEscolaId?: string,
     extras?: DadosTurmaExtras,
   ): Promise<Resultado> {
@@ -101,6 +102,7 @@ export default function ConteudoDashboardEscola() {
     const resultado = await updateTurma(idEmEdicao, {
       nome,
       escolaId: novoEscolaId || undefined,
+      disciplinas: comp,
       ...extras,
     });
     if (resultado.ok) {
@@ -191,7 +193,7 @@ export default function ConteudoDashboardEscola() {
           </p>
         ) : null}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 xl:gap-8 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 xl:gap-8 w-full">
           {turmasDaEscolaList.map((turma) => (
             <Turma
               key={turma.id}
@@ -222,6 +224,7 @@ export default function ConteudoDashboardEscola() {
             serieAnoInicial={turmaEmEdicao.serieAno}
             letraInicial={turmaEmEdicao.letra}
             horarioInicial={turmaEmEdicao.horario}
+            componentesIniciais={turmaEmEdicao.disciplinas ?? []}
             escolaIdInicial={turmaEmEdicao.escolaId ?? ""}
             escolas={escolasParaForm}
             onClose={() => setIdEmEdicao(null)}

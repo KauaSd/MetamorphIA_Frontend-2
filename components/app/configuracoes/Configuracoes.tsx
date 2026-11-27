@@ -14,7 +14,7 @@ import CampoEditavel from "@/components/app/configuracoes/CampoEditavel";
 import BarraAlteracoes from "@/components/app/configuracoes/BarraAlteracoes";
 import { useData } from "@/components/app/state/DataProvider";
 import { resolverTipoPlano, type TipoPlanoStatus } from "@/components/app/layout/StatusPlano";
-import { saveTeacherName } from "@/utils/data/controller";
+import { saveFullName, saveTeacherName } from "@/utils/data/controller";
 import {
   apiDbFetch,
   getSavedUserProfile,
@@ -63,8 +63,10 @@ interface ConfiguracoesProps {
 // barra de salvar/cancelar fica fora da aba
 interface PerfilProps {
   nome: string;
-  nomeCompleto?: string;
+  nomeCompleto: string;
+  diasParaTrocarNomeReal: number;
   aoDigitar: (valor: string) => void;
+  aoDigitarNomeCompleto: (valor: string) => void;
   instrucoes: string;
   aoDigitarInstrucoes: (valor: string) => void;
 }
@@ -141,7 +143,7 @@ function filtrar(termo: string) {
 export default function Configuracoes({
   onClose,
 }: ConfiguracoesProps) {
-  const { teacherName, nomeReal, recarregar } = useData();
+  const { teacherName, nomeReal, diasParaTrocarNomeReal, recarregar } = useData();
   const [abaAtiva, setAbaAtiva] = useState("geral");
   const [termo, setTermo] = useState("");
   const [alvo, setAlvo] = useState<string | null>(null);
@@ -151,6 +153,9 @@ export default function Configuracoes({
   // pela barra de alteracoes do rodape
   const [nome, setNome] = useState(teacherName ?? "");
   const [ultimoNomeServidor, setUltimoNomeServidor] = useState(teacherName ?? "");
+  const [nomeCompleto, setNomeCompleto] = useState(nomeReal ?? teacherName ?? "");
+  const [ultimoNomeRealServidor, setUltimoNomeRealServidor] = useState(nomeReal ?? teacherName ?? "");
+  const [erroPerfil, setErroPerfil] = useState<string | null>(null);
   const [instrucoesSalvas, setInstrucoesSalvas] = useState(
     () => getSavedUserProfile()?.instrucoes_ia ?? "",
   );
@@ -164,10 +169,19 @@ export default function Configuracoes({
       setNome(teacherName ?? "");
     }
   }
+  if ((nomeReal ?? teacherName ?? "") !== ultimoNomeRealServidor) {
+    setUltimoNomeRealServidor(nomeReal ?? teacherName ?? "");
+    if (nomeCompleto === ultimoNomeRealServidor) {
+      setNomeCompleto(nomeReal ?? teacherName ?? "");
+    }
+  }
 
   const nomeAlterado = nome.trim() !== (teacherName ?? "").trim();
+  const nomeCompletoAlterado =
+    diasParaTrocarNomeReal === 0 &&
+    nomeCompleto.trim() !== (nomeReal ?? teacherName ?? "").trim();
   const instrucoesAlteradas = instrucoes.trim() !== instrucoesSalvas.trim();
-  const alterado = nomeAlterado || instrucoesAlteradas;
+  const alterado = nomeAlterado || nomeCompletoAlterado || instrucoesAlteradas;
 
   // saida tentada com pendencia: a barra de alteracoes fica vermelha ate
   // salvar, cancelar ou digitar de novo
@@ -177,11 +191,22 @@ export default function Configuracoes({
 
   async function salvarAlteracoes() {
     setSalvando(true);
+    setErroPerfil(null);
     try {
       const limpo = nome.trim();
+      if (nomeCompletoAlterado) {
+        const resFull = await saveFullName(nomeCompleto.trim());
+        if (!resFull.ok) {
+          setErroPerfil(resFull.erro.descricao || resFull.erro.titulo);
+          return;
+        }
+      }
       if (nomeAlterado) {
         const resultado = await saveTeacherName(limpo);
-        if (!resultado.ok) throw new Error(resultado.erro.titulo);
+        if (!resultado.ok) {
+          setErroPerfil(resultado.erro.descricao || resultado.erro.titulo);
+          return;
+        }
         setNome(limpo);
       }
       if (instrucoesAlteradas) {
@@ -206,12 +231,21 @@ export default function Configuracoes({
 
   function cancelarAlteracoes() {
     setNome(teacherName ?? "");
+    setNomeCompleto(nomeReal ?? teacherName ?? "");
     setInstrucoes(instrucoesSalvas);
+    setErroPerfil(null);
     setBloqueada(false);
   }
 
   function aoDigitar(valor: string) {
     setNome(valor);
+    setErroPerfil(null);
+    setBloqueada(false);
+  }
+
+  function aoDigitarNomeCompleto(valor: string) {
+    setNomeCompleto(valor);
+    setErroPerfil(null);
     setBloqueada(false);
   }
 
@@ -285,8 +319,10 @@ export default function Configuracoes({
             alvo,
             {
               nome,
-              nomeCompleto: nomeReal || teacherName || "Professor(a)",
+              nomeCompleto,
+              diasParaTrocarNomeReal,
               aoDigitar,
+              aoDigitarNomeCompleto,
               instrucoes,
               aoDigitarInstrucoes,
             },
@@ -295,6 +331,12 @@ export default function Configuracoes({
           painelRef={painelRef}
         />
       </div>
+
+      {erroPerfil ? (
+        <div className="fixed bottom-20 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-surface-danger px-5 py-2 text-sm text-ink shadow-md">
+          {erroPerfil}
+        </div>
+      ) : null}
 
       {alterado && (
         <BarraAlteracoes
@@ -458,7 +500,19 @@ export function GeralConfig({ destaque, perfil }: { destaque: string | null; per
         <div className="divide-y-2 divide-sunken"> 
 
           <LinhaConfig id="cfg-nome-completo" destaque={destaque} label="Nome Completo">
-            <CampoValor value={perfil.nomeCompleto || perfil.nome || "Professor(a)"} />
+            {perfil.diasParaTrocarNomeReal > 0 ? (
+              <div className="flex flex-col items-end gap-0.5">
+                <CampoValor value={perfil.nomeCompleto || perfil.nome || "Professor(a)"} />
+                <span className="text-[11px] text-secondary">
+                  Alteração liberada em {perfil.diasParaTrocarNomeReal} dia(s)
+                </span>
+              </div>
+            ) : (
+              <CampoEditavel
+                valor={perfil.nomeCompleto}
+                aoDigitar={perfil.aoDigitarNomeCompleto}
+              />
+            )}
           </LinhaConfig>
 
           <LinhaConfig id="cfg-como-te-chamar" destaque={destaque} label="Como o MetamorphIA deveria te chamar">

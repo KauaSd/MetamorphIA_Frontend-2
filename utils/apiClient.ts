@@ -63,6 +63,8 @@ export interface UserProfile {
   tags_areas?: string[];
   instrucoes_ia?: string | null;
   nome_real?: string | null;
+  nome_real_atualizado_em?: string | null;
+  dias_para_trocar_nome_real?: number;
   perfil_professor_feito?: boolean;
   identificacao_feita?: boolean;
   tutorial_visto?: boolean;

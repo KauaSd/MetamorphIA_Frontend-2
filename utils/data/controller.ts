@@ -80,6 +80,18 @@ export async function saveTeacherName(nome: string): Promise<Resultado> {
   }
 }
 
+export async function saveFullName(nomeReal: string): Promise<Resultado> {
+  const limpo = nomeReal.trim();
+  if (!limpo) return falha(ALERTAS.IDENTIFICACAO_NOME_VAZIO);
+
+  try {
+    await repository.saveFullName(limpo);
+    return ok();
+  } catch (err) {
+    return falhaApi(err, "Não foi possível atualizar o nome completo");
+  }
+}
+
 export async function createEscola(dados?: { nome: string } | string): Promise<Resultado> {
   const nome = typeof dados === "string" ? dados : dados?.nome ?? "";
   const limpo = nome.trim();
@@ -123,6 +135,7 @@ export async function createTurma(
         serieAno?: string;
         letra?: string;
         horario?: string;
+        disciplinas?: string[];
       }
     | string,
 ): Promise<Resultado> {
@@ -131,6 +144,7 @@ export async function createTurma(
   const serieAno = typeof dados === "object" ? dados?.serieAno : undefined;
   const letra = typeof dados === "object" ? dados?.letra : undefined;
   const horario = typeof dados === "object" ? dados?.horario : undefined;
+  const disciplinas = typeof dados === "object" ? dados?.disciplinas : undefined;
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
 
@@ -141,6 +155,7 @@ export async function createTurma(
       serieAno,
       letra,
       horario,
+      ...(disciplinas !== undefined ? { disciplinas } : {}),
     });
     return ok();
   } catch (err) {
@@ -157,6 +172,7 @@ export async function updateTurma(
         serieAno?: string;
         letra?: string;
         horario?: string;
+        disciplinas?: string[];
       }
     | string,
 ): Promise<Resultado> {
@@ -166,6 +182,7 @@ export async function updateTurma(
   const serieAno = typeof dados === "object" ? dados?.serieAno : undefined;
   const letra = typeof dados === "object" ? dados?.letra : undefined;
   const horario = typeof dados === "object" ? dados?.horario : undefined;
+  const disciplinas = typeof dados === "object" ? dados?.disciplinas : undefined;
   const limpo = nome.trim();
   if (!limpo) return falha(ALERTAS.TURMA_NOME_VAZIO);
 
@@ -176,6 +193,7 @@ export async function updateTurma(
       ...(serieAno !== undefined ? { serieAno } : {}),
       ...(letra !== undefined ? { letra } : {}),
       ...(horario !== undefined ? { horario } : {}),
+      ...(disciplinas !== undefined ? { disciplinas } : {}),
     });
     return ok();
   } catch (err) {

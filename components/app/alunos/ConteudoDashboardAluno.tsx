@@ -13,7 +13,7 @@ import {
 import { updateAluno, deleteAluno, type Resultado } from "@/utils/data/controller";
 import { repository } from "@/utils/data/dataRepository";
 import { apiDbFetch, getAuthToken, parseNumeroId } from "@/utils/apiClient";
-import { peiService } from "@/utils/pei/service";
+import { baixarPeiAlunoPorFiltro, peiService } from "@/utils/pei/service";
 import { ALERTAS } from "@/utils/alertas";
 import Resumo from "@/components/app/alunos/Resumo";
 import Toast, { useAlerta } from "@/components/common/Toast";
@@ -139,6 +139,50 @@ export default function ConteudoDashboardAluno() {
     router.push(`/chat?alunoId=${alunoId}&gerarPei=true&nova=true`);
   }
 
+  async function handleBaixarPeiDisciplina(disciplina: string) {
+    if (!aluno || baixandoPei) return;
+    setBaixandoPei(true);
+    try {
+      const baixou = await baixarPeiAlunoPorFiltro(aluno, { disciplina });
+      if (baixou) {
+        mostrar(ALERTAS.ALTERACAO_PEI);
+      } else {
+        mostrar({
+          tom: "danger",
+          titulo: "PEI não encontrado",
+          descricao: `Não foi encontrado documento para ${disciplina}.`,
+        });
+      }
+    } finally {
+      setBaixandoPei(false);
+    }
+  }
+
+  async function handleBaixarTodosPeis() {
+    if (!aluno || baixandoPei) return;
+    const concluidas =
+      insights?.peisPorDisciplina?.disciplinas
+        .filter((d) => d.status === "concluido")
+        .map((d) => d.disciplina) ?? [];
+    if (concluidas.length === 0) {
+      await handleBaixarPei();
+      return;
+    }
+    setBaixandoPei(true);
+    try {
+      let baixouAlgum = false;
+      for (const disc of concluidas) {
+        const ok = await baixarPeiAlunoPorFiltro(aluno, { disciplina: disc });
+        if (ok) baixouAlgum = true;
+      }
+      if (baixouAlgum) {
+        mostrar(ALERTAS.ALTERACAO_PEI);
+      }
+    } finally {
+      setBaixandoPei(false);
+    }
+  }
+
   async function handleBaixarPei() {
     if (!aluno || baixandoPei) return;
     setBaixandoPei(true);
@@ -200,6 +244,13 @@ export default function ConteudoDashboardAluno() {
           onBatePapo={handleBatePapo}
           onCriarPei={handleCriarPei}
           onBaixarPei={() => void handleBaixarPei()}
+          disciplinasConcluidas={
+            insights?.peisPorDisciplina?.disciplinas
+              .filter((d) => d.status === "concluido")
+              .map((d) => d.disciplina) ?? []
+          }
+          onBaixarDisciplina={(disc) => void handleBaixarPeiDisciplina(disc)}
+          onBaixarTodos={() => void handleBaixarTodosPeis()}
           abrindoChat={abrindoChat}
           chatLiberado={peiFeito}
           onEditar={

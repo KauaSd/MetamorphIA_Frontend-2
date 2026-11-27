@@ -25,12 +25,13 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const limparCache = () => {
+      void queryClient.cancelQueries();
       queryClient.clear();
     };
     const atualizarPerfilCache = (event: Event) => {
       const customEvent = event as CustomEvent<UserProfile>;
       if (customEvent.detail) {
-        queryClient.setQueryData(["me"], customEvent.detail);
+        queryClient.setQueriesData({ queryKey: ["me"] }, customEvent.detail);
       }
     };
     window.addEventListener(AUTH_SESSION_CHANGED_EVENT, limparCache);

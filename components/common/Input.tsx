@@ -10,6 +10,7 @@ type InputProps = {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
   disabled?: boolean;
+  inputRef?: React.Ref<HTMLInputElement>;
 };
 
 export default function Input({
@@ -19,6 +20,7 @@ export default function Input({
   onChange,
   className = "",
   disabled = false,
+  inputRef,
 }: InputProps) {
   const isSearch = type === "search";
 
@@ -28,6 +30,7 @@ export default function Input({
         <Search className="absolute left-3.5 w-5 h-5 text-secondary pointer-events-none" />
       ) : null}
       <input
+        ref={inputRef}
         type={type}
         placeholder={placeholder}
         value={value}

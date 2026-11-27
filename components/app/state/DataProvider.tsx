@@ -4,9 +4,15 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useState,
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AUTH_SESSION_CHANGED_EVENT,
+  getAuthToken,
+} from "@/utils/apiClient";
 import { buscarConversas, buscarPerfilMe } from "@/utils/data/apiRepository";
 import { repository } from "@/utils/data/dataRepository";
 import type { AppData } from "@/utils/data/types";
@@ -22,35 +28,54 @@ const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
+  const [sessionToken, setSessionToken] = useState<string | null>(() => getAuthToken());
+
+  useEffect(() => {
+    const sincronizarSessao = () => {
+      setSessionToken(getAuthToken());
+    };
+    sincronizarSessao();
+    window.addEventListener(AUTH_SESSION_CHANGED_EVENT, sincronizarSessao);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, sincronizarSessao);
+    };
+  }, []);
+
+  const sessionKey = sessionToken ?? "anon";
+  const temSessao = Boolean(sessionToken);
 
   const meQuery = useQuery({
-    queryKey: ["me"],
+    queryKey: ["me", sessionKey],
     queryFn: ({ signal }) => buscarPerfilMe(signal),
+    enabled: temSessao,
     staleTime: 30 * 1000,
   });
 
   const escolasQuery = useQuery({
-    queryKey: ["escolas"],
+    queryKey: ["escolas", sessionKey],
     queryFn: ({ signal }) => repository.listEscolas(signal),
+    enabled: temSessao,
   });
 
   const turmasQuery = useQuery({
-    queryKey: ["turmas"],
+    queryKey: ["turmas", sessionKey],
     queryFn: ({ signal }) => repository.listTurmas(signal),
+    enabled: temSessao,
   });
 
   const alunosQuery = useQuery({
-    queryKey: ["alunos"],
+    queryKey: ["alunos", sessionKey],
     queryFn: ({ signal }) => repository.listAlunos(signal),
+    enabled: temSessao,
   });
 
   const alunos = useMemo(() => alunosQuery.data ?? [], [alunosQuery.data]);
   const alunoIds = useMemo(() => alunos.map((a) => a.id), [alunos]);
 
   const conversasQuery = useQuery({
-    queryKey: ["conversas", alunoIds],
+    queryKey: ["conversas", sessionKey, alunoIds],
     queryFn: ({ signal }) => buscarConversas(alunoIds, signal),
-    enabled: alunosQuery.isSuccess,
+    enabled: temSessao && alunosQuery.isSuccess,
   });
 
   const recarregar = useCallback(async () => {
@@ -67,6 +92,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const perfil = meQuery.data ?? null;
   const teacherName = perfil?.nome_usuario || null;
   const nomeReal = perfil?.nome_real || null;
+  const diasParaTrocarNomeReal = Number(perfil?.dias_para_trocar_nome_real ?? 0);
   const tipoUsuario = perfil?.tipo_usuario || null;
   const tipoNorm = (tipoUsuario ?? "").trim().toLowerCase();
   const modoAtivo = perfil?.modo_ativo ?? null;
@@ -177,6 +203,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     () => ({
       teacherName,
       nomeReal,
+      diasParaTrocarNomeReal,
       tipoUsuario,
       modoAtivo,
       escolaAdmId,
@@ -206,6 +233,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     [
       teacherName,
       nomeReal,
+      diasParaTrocarNomeReal,
       tipoUsuario,
       modoAtivo,
       escolaAdmId,

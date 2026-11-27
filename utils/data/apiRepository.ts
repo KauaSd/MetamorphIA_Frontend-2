@@ -485,6 +485,28 @@ export interface ConviteCriadoApi {
   codigo_convite?: string | null;
 }
 
+export async function vincularProfessorTurma(
+  turmaId: string,
+  dados: { email?: string; id_usuario?: number; disciplinas: string[] },
+): Promise<void> {
+  exigirToken();
+  const numTurma = parseNumeroId(turmaId);
+  if (numTurma === null) {
+    throw new Error("Selecione uma turma válida.");
+  }
+  const resp = await apiDbFetch(`/turma/${numTurma}/professores`, {
+    method: "PUT",
+    body: JSON.stringify({
+      ...(dados.email ? { email: dados.email } : {}),
+      ...(dados.id_usuario ? { id_usuario: dados.id_usuario } : {}),
+      disciplinas: dados.disciplinas,
+    }),
+  });
+  if (!resp.ok) {
+    throw await extrairErroApi(resp, "Não foi possível vincular as matérias do professor na turma");
+  }
+}
+
 export async function enviarConviteProfessorEscola(
   escolaId: string,
   dados: { email: string; tags_areas?: string[]; link_base?: string },
@@ -719,6 +741,7 @@ export const apiRepository: DataRepository = {
       serie_ano?: string | null;
       letra?: string | null;
       horario?: string | null;
+      disciplinas?: string[] | null;
     }>;
     if (!Array.isArray(dados)) return [];
     return dados.map((t) => ({
@@ -728,6 +751,7 @@ export const apiRepository: DataRepository = {
       ...(t.serie_ano ? { serieAno: t.serie_ano } : {}),
       ...(t.letra ? { letra: t.letra } : {}),
       ...(t.horario ? { horario: t.horario } : {}),
+      ...(Array.isArray(t.disciplinas) ? { disciplinas: t.disciplinas } : {}),
     }));
   },
 
@@ -742,6 +766,7 @@ export const apiRepository: DataRepository = {
         ...(input.serieAno ? { serie_ano: input.serieAno } : {}),
         ...(input.letra ? { letra: input.letra } : {}),
         ...(input.horario ? { horario: input.horario } : {}),
+        ...(input.disciplinas ? { disciplinas: input.disciplinas } : {}),
       }),
     });
     if (!resp.ok) {
@@ -754,6 +779,7 @@ export const apiRepository: DataRepository = {
       serie_ano?: string | null;
       letra?: string | null;
       horario?: string | null;
+      disciplinas?: string[] | null;
     };
     return {
       id: String(criado.id_turma),
@@ -766,6 +792,11 @@ export const apiRepository: DataRepository = {
       ...(criado.serie_ano ?? input.serieAno ? { serieAno: criado.serie_ano ?? input.serieAno } : {}),
       ...(criado.letra ?? input.letra ? { letra: criado.letra ?? input.letra } : {}),
       ...(criado.horario ?? input.horario ? { horario: criado.horario ?? input.horario } : {}),
+      ...(Array.isArray(criado.disciplinas)
+        ? { disciplinas: criado.disciplinas }
+        : input.disciplinas
+          ? { disciplinas: input.disciplinas }
+          : {}),
     };
   },
 
@@ -782,6 +813,7 @@ export const apiRepository: DataRepository = {
         ...(input.serieAno ? { serie_ano: input.serieAno } : {}),
         ...(input.letra !== undefined ? { letra: input.letra || null } : {}),
         ...(input.horario !== undefined ? { horario: input.horario || null } : {}),
+        ...(input.disciplinas !== undefined ? { disciplinas: input.disciplinas } : {}),
       }),
     });
     if (!resp.ok) {
@@ -794,6 +826,7 @@ export const apiRepository: DataRepository = {
       serie_ano?: string | null;
       letra?: string | null;
       horario?: string | null;
+      disciplinas?: string[] | null;
     };
     return {
       id: String(atualizado.id_turma ?? numId),
@@ -802,6 +835,11 @@ export const apiRepository: DataRepository = {
       ...(atualizado.serie_ano ?? input.serieAno ? { serieAno: atualizado.serie_ano ?? input.serieAno } : {}),
       ...(atualizado.letra ? { letra: atualizado.letra } : {}),
       ...(atualizado.horario ? { horario: atualizado.horario } : {}),
+      ...(Array.isArray(atualizado.disciplinas)
+        ? { disciplinas: atualizado.disciplinas }
+        : input.disciplinas
+          ? { disciplinas: input.disciplinas }
+          : {}),
     };
   },
 
@@ -1076,7 +1114,7 @@ export const apiRepository: DataRepository = {
       method: "PUT",
       body: JSON.stringify({
         nomeReal,
-        nomeProf: perfil?.nome_usuario || nomeReal,
+        nomeProf: nomeReal,
         emailprof: perfil?.email_usuario ?? null,
         numprof: perfil?.telefone_usuario ?? null,
         tags,
@@ -1089,8 +1127,34 @@ export const apiRepository: DataRepository = {
       setSavedUserProfile({
         ...perfil,
         nome_real: nomeReal,
+        nome_usuario: nomeReal,
         tags,
         perfil_professor_feito: true,
+        identificacao_feita: true,
+      });
+    }
+  },
+
+  async saveFullName(nomeReal: string): Promise<void> {
+    exigirToken();
+    const perfil = getSavedUserProfile();
+    const resp = await apiDbFetch("/autenticar/EditaProfessor/", {
+      method: "PUT",
+      body: JSON.stringify({
+        nomeReal,
+      }),
+    });
+    if (!resp.ok) {
+      throw await extrairErroApi(resp, "Não foi possível atualizar o nome completo");
+    }
+    const atualizado = (await resp.json().catch(() => ({}))) as {
+      dias_para_trocar_nome_real?: number;
+    };
+    if (perfil) {
+      setSavedUserProfile({
+        ...perfil,
+        nome_real: nomeReal,
+        dias_para_trocar_nome_real: atualizado.dias_para_trocar_nome_real ?? 30,
       });
     }
   },

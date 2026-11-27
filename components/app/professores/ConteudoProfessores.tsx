@@ -18,6 +18,7 @@ import {
   listarConvitesEscola,
   listarProfessoresEscola,
   removerProfessorEscola,
+  vincularProfessorTurma,
 } from "@/utils/data/apiRepository";
 import { turmasDaEscola } from "@/utils/data/types";
 import AdcProfIcon from "@/public/adcprof.svg";
@@ -94,9 +95,9 @@ export default function ConteudoProfessores() {
 
   const escolaId = escolaAlvo?.id ?? "";
 
-  const turmasParaForm = useMemo<DropDownOption[]>(() => {
+  const turmasParaForm = useMemo(() => {
     const lista = escolaId ? turmasDaEscola(turmas, escolaId) : turmas;
-    return lista.map((t) => ({ value: t.id, label: t.nome }));
+    return lista.map((t) => ({ value: t.id, label: t.nome, disciplinas: t.disciplinas }));
   }, [turmas, escolaId]);
 
   const professoresQuery = useQuery({
@@ -169,23 +170,51 @@ export default function ConteudoProfessores() {
     );
   }, [professores, busca, ordenacao]);
 
-  async function salvarProfessor(dados: { email: string; turmaId: string }) {
+  async function salvarProfessor(dados: {
+    email: string;
+    disciplinas: string[];
+    vinculos: Array<{ turmaId: string; disciplinas: string[] }>;
+  }): Promise<boolean> {
     const limpo = dados.email.trim();
-    if (!limpo) return;
+    if (!limpo) return false;
 
-    if (!edicaoId && escolaId) {
+    if (escolaId) {
       try {
-        const res = await enviarConviteProfessorEscola(escolaId, {
-          email: limpo,
-          tags_areas: [],
-        });
-        mostrar({
-          tom: "info",
-          titulo: "Convite enviado",
-          descricao: res.email_enviado
-            ? `Link de convite enviado para ${limpo}.`
-            : `Convite criado para ${limpo}${res.codigo_convite ? ` (código: ${res.codigo_convite})` : ""}.`,
-        });
+        if (!edicaoId) {
+          const res = await enviarConviteProfessorEscola(escolaId, {
+            email: limpo,
+            tags_areas: dados.disciplinas,
+          });
+          await Promise.allSettled(
+            dados.vinculos.map((v) =>
+              vincularProfessorTurma(v.turmaId, {
+                email: limpo,
+                disciplinas: v.disciplinas,
+              }),
+            ),
+          );
+          mostrar({
+            tom: "info",
+            titulo: "Convite enviado",
+            descricao: res.email_enviado
+              ? `Link de convite enviado para ${limpo}.`
+              : `Convite criado para ${limpo}${res.codigo_convite ? ` (código: ${res.codigo_convite})` : ""}.`,
+          });
+        } else {
+          await Promise.all(
+            dados.vinculos.map((v) =>
+              vincularProfessorTurma(v.turmaId, {
+                email: limpo,
+                disciplinas: v.disciplinas,
+              }),
+            ),
+          );
+          mostrar({
+            tom: "info",
+            titulo: "Professor atualizado",
+            descricao: "Turmas e matérias atualizadas com sucesso.",
+          });
+        }
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["escola-professores", escolaId] }),
           queryClient.invalidateQueries({ queryKey: ["escola-convites", escolaId] }),
@@ -194,17 +223,20 @@ export default function ConteudoProfessores() {
       } catch (err) {
         mostrar({
           tom: "danger",
-          titulo: "Não foi possível enviar o convite",
+          titulo: edicaoId ? "Não foi possível atualizar o professor" : "Não foi possível enviar o convite",
           descricao: err instanceof Error ? err.message : "Tente novamente.",
         });
-        return;
+        return false;
       }
     }
 
-    setEmailProfessor("");
-    setTurmaProfessor("");
-    setEdicaoId(null);
-    setMostrarForm(false);
+    if (edicaoId) {
+      setEmailProfessor("");
+      setTurmaProfessor("");
+      setEdicaoId(null);
+      setMostrarForm(false);
+    }
+    return true;
   }
 
   async function excluirProfessor(id: string) {
@@ -385,7 +417,7 @@ export default function ConteudoProfessores() {
           turmaInicial={turmaProfessor}
           turmas={turmasParaForm}
           onClose={() => setMostrarForm(false)}
-          onSalvar={(dados) => void salvarProfessor(dados)}
+          onSalvar={(dados) => salvarProfessor(dados)}
         />
       ) : null}
 

@@ -4,6 +4,7 @@ import Button from "@/components/common/Button"
 import { OverlayCarregando } from "@/components/common/Carregando"
 import DropDown from "@/components/common/DropDown"
 import { PeiFlowProvider, usePeiFlow } from "@/components/app/state/PeiFlowProvider"
+import { useData } from "@/components/app/state/DataProvider"
 import GuidedQuestionsScreen from "@/components/app/pei/GuidedQuestionsScreen"
 import InfoNotice from "@/components/app/pei/InfoNotice"
 import ChatInput from "@/components/app/pei/ChatInput"
@@ -79,10 +80,18 @@ function ConteudopeiConteudo({
         limpar,
     } = usePeiFlow()
 
+    const { turmas } = useData()
     const perfilSalvo = getSavedUserProfile()
-    const opcoesComponente = obterOpcoesComponente(
-        perfilSalvo?.tags?.length ? perfilSalvo.tags : perfilSalvo?.tags_areas,
-    )
+    const turmaDoAluno = aluno?.turmaId
+        ? turmas.find((t) => t.id === aluno.turmaId)
+        : undefined
+    const disciplinasDaTurma =
+        turmaDoAluno?.disciplinas && turmaDoAluno.disciplinas.length > 0
+            ? turmaDoAluno.disciplinas
+            : perfilSalvo?.tags?.length
+              ? perfilSalvo.tags
+              : perfilSalvo?.tags_areas
+    const opcoesComponente = obterOpcoesComponente(disciplinasDaTurma)
     const componenteValido = opcoesComponente.some((o) => o.value === componente)
         ? componente
         : (opcoesComponente[0]?.value ?? "")

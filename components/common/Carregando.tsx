@@ -55,11 +55,11 @@ export function OverlayCarregando({
       aria-busy="true"
       aria-label={mensagem}
       className={twMerge(
-        "absolute inset-0 z-30 flex items-center justify-center rounded-[inherit] bg-surface-inverse/25 backdrop-blur-[1.5px]",
+        "absolute inset-0 z-30 flex items-start justify-center overflow-hidden rounded-[inherit] bg-surface-inverse/25",
         className,
       )}
     >
-      <BarraCarregando />
+      <BarraCarregando className="h-1.5 w-full rounded-none" />
     </div>
   );
 }

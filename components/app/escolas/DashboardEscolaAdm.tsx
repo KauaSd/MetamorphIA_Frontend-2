@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import AdcAlunosIcon from "@/public/adcalunos.svg";
 import AdcProfIcon from "@/public/adcprof.svg";
@@ -27,6 +27,7 @@ import {
 import {
   buscarResumoPeisEscola,
   enviarConviteProfessorEscola,
+  listarConvitesEscola,
   listarProfessoresEscola,
 } from "@/utils/data/apiRepository";
 import type { Aluno, Escola, Turma } from "@/utils/data/types";
@@ -40,19 +41,6 @@ export interface ProfessorEscolaSlot {
 }
 
 const TOTAL_SLOTS = 9;
-const STORAGE_KEY_PREFIX = "metamorphia:adm:professores:";
-
-function lerProfessoresSalvos(escolaId: string): ProfessorEscolaSlot[] {
-  if (typeof window === "undefined" || !escolaId) return [];
-  try {
-    const raw = window.localStorage.getItem(`${STORAGE_KEY_PREFIX}${escolaId}`);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as ProfessorEscolaSlot[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
 interface DashboardEscolaAdmProps {
   escolaId: string;
@@ -69,17 +57,14 @@ export default function DashboardEscolaAdm({
   escola,
   escolas,
   turmasDaEscolaList,
-  alunosDaEscola,
   ehAdminRede = false,
   onRecarregar,
 }: DashboardEscolaAdmProps) {
+  const queryClient = useQueryClient();
   const { alerta, mostrar, limpar } = useAlerta();
   const [modalAberto, setModalAberto] = useState<
     "aluno" | "turma" | "professor" | null
   >(null);
-  const [professoresLocais, setProfessoresLocais] = useState<ProfessorEscolaSlot[]>(() =>
-    lerProfessoresSalvos(escolaId),
-  );
 
   const resumoQuery = useQuery({
     queryKey: ["escola-peis-resumo", escolaId],
@@ -90,6 +75,12 @@ export default function DashboardEscolaAdm({
   const professoresQuery = useQuery({
     queryKey: ["escola-professores", escolaId],
     queryFn: ({ signal }) => listarProfessoresEscola(escolaId, signal),
+    enabled: Boolean(escolaId),
+  });
+
+  const convitesQuery = useQuery({
+    queryKey: ["escola-convites", escolaId],
+    queryFn: ({ signal }) => listarConvitesEscola(escolaId, signal),
     enabled: Boolean(escolaId),
   });
 
@@ -113,14 +104,27 @@ export default function DashboardEscolaAdm({
       total: p.peis_total ?? p.total ?? 0,
     }));
 
-    if (daApi.length === 0) return professoresLocais;
-
-    const nomesApi = new Set(daApi.map((p) => p.nome.trim().toLowerCase()));
-    const extrasLocais = professoresLocais.filter(
-      (p) => !nomesApi.has(p.nome.trim().toLowerCase()),
+    const emailsJaAtivos = new Set(
+      listaApi
+        .map((p) => (p.email_usuario ?? "").trim().toLowerCase())
+        .filter(Boolean),
     );
-    return [...daApi, ...extrasLocais];
-  }, [resumoQuery.data?.professores, professoresQuery.data, professoresLocais]);
+    const pendentes: ProfessorEscolaSlot[] = (convitesQuery.data ?? [])
+      .filter(
+        (c) =>
+          (c.status ?? "").toLowerCase() === "pendente" &&
+          !emailsJaAtivos.has((c.email_convidado ?? "").trim().toLowerCase()),
+      )
+      .map((c) => ({
+        id: `convite-${c.id_convite}`,
+        nome: c.email_convidado,
+        turma: "Convite pendente",
+        concluidos: 0,
+        total: 0,
+      }));
+
+    return [...daApi, ...pendentes];
+  }, [resumoQuery.data?.professores, professoresQuery.data, convitesQuery.data]);
 
   const escolasParaForm = useMemo<DropDownOption[]>(
     () => escolas.map((e) => ({ value: e.id, label: e.nome })),
@@ -189,6 +193,11 @@ export default function DashboardEscolaAdm({
             ? `Link de convite enviado para ${limpo}.`
             : `Convite criado para ${limpo}${res.codigo_convite ? ` (código: ${res.codigo_convite})` : ""}.`,
         });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["escola-professores", escolaId] }),
+          queryClient.invalidateQueries({ queryKey: ["escola-convites", escolaId] }),
+          queryClient.invalidateQueries({ queryKey: ["escola-peis-resumo", escolaId] }),
+        ]);
       } catch (err) {
         mostrar({
           tom: "danger",
@@ -198,28 +207,6 @@ export default function DashboardEscolaAdm({
         return;
       }
     }
-
-    const turmaNome =
-      turmasDaEscolaList.find((t) => t.id === dados.turmaId)?.nome ?? "Sem turma";
-    const totalAlunosTurma = dados.turmaId
-      ? alunosDaEscola.filter((a) => a.turmaId === dados.turmaId).length
-      : 0;
-
-    const novo: ProfessorEscolaSlot = {
-      id: `prof-${Date.now()}`,
-      nome: limpo,
-      turma: turmaNome || "Sem turma",
-      concluidos: 0,
-      total: totalAlunosTurma,
-    };
-    const atualizados = [...professoresLocais, novo];
-    setProfessoresLocais(atualizados);
-    try {
-      window.localStorage.setItem(
-        `${STORAGE_KEY_PREFIX}${escolaId}`,
-        JSON.stringify(atualizados),
-      );
-    } catch {}
     setModalAberto(null);
   }
 

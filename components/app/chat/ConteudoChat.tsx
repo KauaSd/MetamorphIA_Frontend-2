@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FileText } from "lucide-react";
@@ -14,7 +15,7 @@ import Toast, { useAlerta } from "@/components/common/Toast";
 
 import { useData } from "@/components/app/state/DataProvider";
 import { primeiraNeuro, resolverChat, type AnexoMensagem, type Mensagem } from "@/utils/data/types";
-import { addMessage } from "@/utils/data/controller";
+import { addMessage, openChatWith } from "@/utils/data/controller";
 import { substituirIdConversaEmMemoria } from "@/utils/data/apiRepository";
 import { repository } from "@/utils/data/dataRepository";
 import { ALERTAS } from "@/utils/alertas";
@@ -58,10 +59,12 @@ function Dots() {
 }
 
 export default function ConteudoChat() {
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
   const conversaId = searchParams.get("conversaId");
   const alunoId = searchParams.get("alunoId");
+  const novaConversa = searchParams.get("nova") === "true";
   const deveAbrirPei = searchParams.get("gerarPei") === "true" || searchParams.get("pei") === "true";
 
   const {
@@ -92,7 +95,8 @@ export default function ConteudoChat() {
   const [peiEditadoNoChat, setPeiEditadoNoChat] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const transicionandoIdRef = useRef<string | null>(null);
-  const chaveRotaAtual = `${conversaId ?? ""}|${alunoId ?? ""}`;
+  const mensagensEndRef = useRef<HTMLDivElement | null>(null);
+  const chaveRotaAtual = `${conversaId ?? ""}|${alunoId ?? ""}|${deveAbrirPei ? "pei" : ""}|${novaConversa ? "nova" : ""}`;
   const chaveRotaAnteriorRef = useRef(chaveRotaAtual);
 
   useEffect(() => {
@@ -115,7 +119,10 @@ export default function ConteudoChat() {
     setMostrarCriacao(false);
   }, [chaveRotaAtual, conversaId, deveAbrirPei]);
 
-  const aguardandoConversa = Boolean(conversaId && carregandoConversas);
+  const jaTemConversaEmMemoria = Boolean(
+    conversaId && conversas.some((item) => item.id === conversaId),
+  );
+  const aguardandoConversa = Boolean(conversaId && carregandoConversas && !jaTemConversaEmMemoria);
 
   // regra: chat sem aluno nao existe. Antes da hidratacao os dados ainda estao
   // vazios, entao nada e decidido nesse meio-tempo
@@ -192,10 +199,11 @@ export default function ConteudoChat() {
     autor: "professor" | "aluno",
     anexos?: AnexoMensagem[],
     conversaIdOverride?: string | null,
+    tituloOverride?: string,
   ): Promise<boolean> {
     const idAlvo = conversaIdOverride ?? conversaId ?? conversa?.id;
     if (!idAlvo) return false;
-    const resultado = await addMessage(idAlvo, texto, autor, anexos, aluno?.id);
+    const resultado = await addMessage(idAlvo, texto, autor, anexos, aluno?.id, tituloOverride);
     if (!resultado.ok) {
       mostrar(resultado.erro);
       return false;
@@ -206,12 +214,12 @@ export default function ConteudoChat() {
   const handleConcluirPei = async (
     mensagemPei: string,
     anexosPei?: AnexoMensagem[],
-    opcoes?: { aguardarDocumento?: boolean },
+    opcoes?: { aguardarDocumento?: boolean; tituloConversa?: string },
   ) => {
     setMostrarPainel(false);
     setMostrarCriacao(false);
 
-    const anexosIniciais = opcoes?.aguardarDocumento ? undefined : anexosPei;
+    const anexosIniciais = anexosPei;
     if (opcoes?.aguardarDocumento && anexosPei?.length) {
       setPeiPendenteAnexos(anexosPei);
       setPeiEditadoNoChat(false);
@@ -221,20 +229,36 @@ export default function ConteudoChat() {
     }
 
     const idDoBot = `pei-${Date.now()}-bot`;
-    setIsThinking(true);
+    setIsThinking(false);
     setUltimasOpcoes([]);
     setRascunho((prev) => [
       ...prev,
-      { id: idDoBot, texto: "", autor: "aluno", streaming: true },
+      { id: idDoBot, texto: mensagemPei, autor: "aluno", streaming: false, anexos: anexosIniciais },
     ]);
 
     try {
-      await new Promise((resolver) => setTimeout(resolver, 400));
+      let idConvAlvo = conversaId ?? conversa?.id ?? null;
+      if (!idConvAlvo && aluno?.id) {
+        const criada = await openChatWith(aluno.id, { nova: true });
+        if (criada.ok && criada.conversaId) {
+          idConvAlvo = criada.conversaId;
+        }
+      }
 
-      const persistiu = await persistir(mensagemPei, "aluno", anexosIniciais);
+      const persistiu = await persistir(
+        mensagemPei,
+        "aluno",
+        anexosIniciais,
+        idConvAlvo,
+        opcoes?.tituloConversa,
+      );
       if (persistiu) {
         await recarregar();
         setRascunho([]);
+        if (idConvAlvo && !conversaId) {
+          transicionandoIdRef.current = idConvAlvo;
+          router.replace(`/chat?conversaId=${idConvAlvo}`);
+        }
       } else {
         setRascunho((prev) =>
           prev.map((item) =>
@@ -345,33 +369,49 @@ export default function ConteudoChat() {
       let respondeuViaApiAutenticada = false;
 
       if (numAluno !== null) {
-        try {
-          const dbRoute = querAdaptar
-            ? `/AI/chat/aluno/${numAluno}/adaptar-atividade`
-            : `/AI/chat/aluno/${numAluno}`;
-          const iaRoute = querAdaptar
-            ? `/alunos/${numAluno}/adaptar-atividade`
-            : `/alunos/${numAluno}/chat`;
+        const dbRoute = querAdaptar
+          ? `/AI/chat/aluno/${numAluno}/adaptar-atividade`
+          : `/AI/chat/aluno/${numAluno}`;
+        const iaRoute = querAdaptar
+          ? `/alunos/${numAluno}/adaptar-atividade`
+          : `/alunos/${numAluno}/chat`;
 
-          const respApi = await apiAiGatewayOrDirect(dbRoute, iaRoute, {
-            method: "POST",
-            body: JSON.stringify({
-              mensagem: pediuDocumento
-                ? "Gere e envie o documento .docx atualizado do PEI do aluno."
-                : conteudo,
-              conversa_id: idConvAtual,
-              anexos: temAnexo ? listaAnexos : undefined,
-              gerar_arquivo_atividade: querAdaptar ? true : undefined,
-              modo_adaptacao: opcoesExtras?.modo_adaptacao,
-              template_id: opcoesExtras?.template_id,
-              formato_saida: opcoesExtras?.formato_saida,
-              instrucoes_ia: instrucoesIa,
-            }),
-            signal: controller.signal,
-          });
+        const respApi = await apiAiGatewayOrDirect(dbRoute, iaRoute, {
+          method: "POST",
+          body: JSON.stringify({
+            mensagem: pediuDocumento
+              ? "Gere e envie o documento .docx atualizado do PEI do aluno."
+              : conteudo,
+            conversa_id: idConvAtual,
+            anexos: temAnexo ? listaAnexos : undefined,
+            gerar_arquivo_atividade: querAdaptar ? true : undefined,
+            modo_adaptacao: opcoesExtras?.modo_adaptacao,
+            template_id: opcoesExtras?.template_id,
+            formato_saida: opcoesExtras?.formato_saida,
+            instrucoes_ia: instrucoesIa,
+            modo_revisao_pei:
+              Boolean(
+                (peiPendenteAnexos?.length ||
+                  mensagensSalvas.some((m) =>
+                    m.texto.includes("Texto consolidado que irá para o documento do PEI"),
+                  )) &&
+                  !pediuDocumento,
+              ),
+          }),
+          signal: controller.signal,
+        });
 
-          if (respApi.ok) {
-            const dados = (await respApi.json()) as {
+        if (!respApi.ok) {
+          let detalheErro = `Erro ${respApi.status} ao enviar mensagem.`;
+          try {
+            const errJson = (await respApi.json()) as { detail?: string };
+            if (errJson?.detail) detalheErro = errJson.detail;
+          } catch {}
+          if (respApi.status === 403) {
+            throw new Error(detalheErro);
+          }
+        } else {
+          const dados = (await respApi.json()) as {
               conversa_id?: string | null;
               id_conversa?: string | null;
               conversaId?: string | null;
@@ -417,6 +457,11 @@ export default function ConteudoChat() {
             if (idConvApi && idConvApi !== idConvAtual) {
               if (idConvAtual) {
                 substituirIdConversaEmMemoria(idConvAtual, idConvApi);
+                setMensagensLazy((prev) => {
+                  const existentes = prev[idConvAtual];
+                  if (!existentes) return prev;
+                  return { ...prev, [idConvApi]: existentes };
+                });
               }
               idConvFinal = idConvApi;
               transicionandoIdRef.current = idConvApi;
@@ -505,7 +550,6 @@ export default function ConteudoChat() {
               setPeiPendenteAnexos(null);
             }
           }
-        } catch {}
       }
 
       if (!respondeuViaApiAutenticada && temAnexo) {
@@ -568,6 +612,24 @@ export default function ConteudoChat() {
       if (opcoesRetornadas && opcoesRetornadas.length > 0) {
         setUltimasOpcoes(opcoesRetornadas);
       }
+
+      if (respostaCompleta.trim()) {
+        const totalChars = respostaCompleta.length;
+        const passos = Math.min(24, Math.max(8, Math.ceil(totalChars / 35)));
+        const tamanhoPasso = Math.ceil(totalChars / passos);
+        for (let pos = tamanhoPasso; pos < totalChars; pos += tamanhoPasso) {
+          if (controller.signal.aborted) break;
+          const trecho = respostaCompleta.slice(0, pos);
+          setRascunho((prev) =>
+            prev.map((bolha) =>
+              bolha.id === idDoBot ? { ...bolha, texto: trecho, streaming: true } : bolha,
+            ),
+          );
+          mensagensEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+          await new Promise((resolve) => setTimeout(resolve, 18));
+        }
+      }
+
       setRascunho((prev) =>
         prev.map((bolha) =>
           bolha.id === idDoBot
@@ -575,42 +637,65 @@ export default function ConteudoChat() {
                 ...bolha,
                 texto: respostaCompleta,
                 anexos: anexosDaResposta,
+                streaming: false,
               }
             : bolha,
         ),
       );
+      mensagensEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
 
-      await persistir(
-        textoExibicao,
-        "professor",
-        listaAnexos.length > 0 ? listaAnexos : undefined,
-        idConvFinal,
-      );
-      if (respostaCompleta.trim() || (anexosDaResposta && anexosDaResposta.length > 0)) {
-        await persistir(respostaCompleta, "aluno", anexosDaResposta, idConvFinal);
+      const chaveConv = idConvFinal ?? conversa?.id;
+      if (chaveConv) {
+        const agoraIso = new Date().toISOString();
+        const novasMsgs: Mensagem[] = [
+          {
+            id: idDaMinha,
+            texto: textoExibicao,
+            autor: "professor",
+            em: agoraIso,
+            ...(listaAnexos.length > 0 ? { anexos: listaAnexos } : {}),
+          },
+          ...(respostaCompleta.trim() || (anexosDaResposta && anexosDaResposta.length > 0)
+            ? [
+                {
+                  id: idDoBot,
+                  texto: respostaCompleta,
+                  autor: "aluno" as const,
+                  em: agoraIso,
+                  ...(anexosDaResposta ? { anexos: anexosDaResposta } : {}),
+                },
+              ]
+            : []),
+        ];
+        setMensagensLazy((prev) => ({
+          ...prev,
+          [chaveConv]: [...(prev[chaveConv] ?? conversa?.mensagens ?? []), ...novasMsgs],
+        }));
       }
+      void queryClient.invalidateQueries({ queryKey: ["conversas"] });
+      void queryClient.invalidateQueries({ queryKey: ["student-insights"] });
     } catch (error) {
       if (controller.signal.aborted) return;
 
       console.error("Erro ao receber resposta:", error);
-
-      await persistir(
-        textoExibicao,
-        "professor",
-        listaAnexos.length > 0 ? listaAnexos : undefined,
-        idConvFinal,
-      );
+      const msgErro =
+        error instanceof Error && error.message
+          ? error.message
+          : "Não foi possível obter uma resposta da IA.";
 
       setRascunho((prev) =>
         prev.map((bolha) =>
           bolha.id === idDoBot
-            ? { ...bolha, texto: "Não foi possível obter uma resposta da IA." }
+            ? { ...bolha, texto: msgErro, streaming: false }
             : bolha,
         ),
       );
-      mostrar(ALERTAS.CHAT_IA_FALHOU);
+      mostrar({
+        tom: "danger",
+        titulo: ALERTAS.CHAT_IA_FALHOU.titulo,
+        descricao: msgErro,
+      });
     } finally {
-      await recarregar();
       setRascunho([]);
       setIsThinking(false);
     }
@@ -778,6 +863,7 @@ export default function ConteudoChat() {
                     </div>
                   );
                   })}
+                  <div ref={mensagensEndRef} />
                   {ultimasOpcoes.length > 0 && !isThinking && (
                     <div className="flex flex-wrap gap-2 pl-2">
                       {ultimasOpcoes.map((op, idx) => {

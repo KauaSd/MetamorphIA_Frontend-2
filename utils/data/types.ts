@@ -111,6 +111,8 @@ export interface PeisPorDisciplinaResumo {
   ultimoEnvio?: string | null;
   proximoPeriodo?: string | null;
   atrasado?: boolean;
+  todosConcluidos?: boolean;
+  pendentes?: string[];
 }
 
 export type StatusMetaBimestre = "em_progresso" | "a_iniciar" | "atingida";

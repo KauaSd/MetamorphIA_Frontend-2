@@ -151,13 +151,13 @@ export default function ChatInput({
 
       <div
         className={twMerge(
-          `flex w-full items-center rounded-[70px] bg-surface-base px-4 sm:px-5 md:px-6 ${
-            multiline ? "py-2" : "h-11"
+          `flex w-full bg-surface-base px-4 sm:px-5 md:px-6 ${
+            multiline ? "items-end rounded-[28px] py-3" : "h-11 items-center rounded-[70px]"
           }`,
           className
         )}
       >
-        <div className="flex w-full items-center justify-between">
+        <div className={`flex w-full justify-between ${multiline ? "items-end gap-2" : "items-center"}`}>
           <div className="flex shrink-0 items-center gap-3">
             <input
               type="file"
@@ -192,8 +192,8 @@ export default function ChatInput({
                 }}
                 disabled={disabled}
                 placeholder={placeholder}
-                rows={1}
-                className="max-h-32 min-h-[2.75rem] w-full resize-none bg-transparent px-3 text-sm text-primary outline-none focus:outline-none focus:ring-0 sm:text-base disabled:cursor-not-allowed"
+                rows={3}
+                className="max-h-48 min-h-[5.5rem] w-full resize-y bg-transparent px-3 py-1 text-sm leading-relaxed text-primary outline-none focus:outline-none focus:ring-0 sm:text-base disabled:cursor-not-allowed"
               />
             ) : (
               <input

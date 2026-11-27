@@ -108,9 +108,6 @@ export function FormLogin() {
           const me = (await meResp.json()) as UserProfile;
           setSavedUserProfile(me);
           rotaDestino = resolverRotaInicialPosLogin(me);
-          if (me.nome_usuario) {
-            await saveTeacherName(me.nome_usuario);
-          }
         }
       } catch {}
 

@@ -430,15 +430,15 @@ export async function buscarConversaPorId(
  */
 export async function buscarPerfilMe(signal?: AbortSignal): Promise<UserProfile | null> {
   if (!getAuthToken()) return null;
-  try {
-    const resp = await apiDbFetch("/autenticar/me", { signal });
-    if (resp.ok) {
-      const perfil = (await resp.json()) as UserProfile;
-      setSavedUserProfile(perfil);
-      return perfil;
-    }
-  } catch {}
-  return getSavedUserProfile();
+  const resp = await apiDbFetch("/autenticar/me", { signal });
+  if (resp.ok) {
+    const perfil = (await resp.json()) as UserProfile;
+    setSavedUserProfile(perfil);
+    return perfil;
+  }
+  const cached = getSavedUserProfile();
+  if (cached) return cached;
+  throw await extrairErroApi(resp, "Não foi possível carregar o perfil do usuário");
 }
 
 export interface ProfessorEscolaApi {
@@ -567,6 +567,48 @@ export async function buscarResumoPeisEscola(
     return (await resp.json()) as EscolaPeisResumoApi;
   } catch {
     return null;
+  }
+}
+
+export interface ConviteEscolaItemApi {
+  id_convite: number;
+  email_convidado: string;
+  status: string;
+  tags_areas?: string[];
+  criado_em?: string | null;
+}
+
+export async function listarConvitesEscola(
+  escolaId: string,
+  signal?: AbortSignal,
+): Promise<ConviteEscolaItemApi[]> {
+  const numId = parseNumeroId(escolaId);
+  if (numId === null || !getAuthToken()) return [];
+  try {
+    const resp = await apiDbFetch(`/escolas/${numId}/convites`, { signal });
+    if (!resp.ok) return [];
+    const dados = await resp.json();
+    return Array.isArray(dados) ? (dados as ConviteEscolaItemApi[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function removerProfessorEscola(
+  escolaId: string,
+  usuarioId: string | number,
+): Promise<void> {
+  exigirToken();
+  const numEscola = parseNumeroId(escolaId);
+  const numUsuario = parseNumeroId(usuarioId);
+  if (numEscola === null || numUsuario === null) {
+    throw new Error("Escola ou professor inválido.");
+  }
+  const resp = await apiDbFetch(`/escolas/${numEscola}/professores/${numUsuario}`, {
+    method: "DELETE",
+  });
+  if (!resp.ok) {
+    throw await extrairErroApi(resp, "Não foi possível remover o professor da escola");
   }
 }
 
@@ -1154,6 +1196,8 @@ export const apiRepository: DataRepository = {
             proximo_periodo?: string | null;
             atrasado?: boolean;
             prazo_expirado?: boolean;
+            todos_concluidos?: boolean;
+            pendentes?: string[];
           };
           metas_bimestre?: Array<{ id?: string; titulo?: string; descricao?: string; status?: string }>;
           metas?: Array<{ id?: string; titulo?: string; descricao?: string; status?: string }>;
@@ -1206,6 +1250,8 @@ export const apiRepository: DataRepository = {
               ultimoEnvio: peisApi.ultimo_envio ?? null,
               proximoPeriodo: peisApi.proximo_periodo ?? null,
               atrasado: Boolean(peisApi.atrasado ?? peisApi.prazo_expirado),
+              todosConcluidos: peisApi.todos_concluidos,
+              pendentes: peisApi.pendentes,
             }
           : peisPadrao;
 

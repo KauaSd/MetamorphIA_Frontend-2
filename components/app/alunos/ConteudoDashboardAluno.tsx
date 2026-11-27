@@ -136,12 +136,7 @@ export default function ConteudoDashboardAluno() {
   async function handleCriarPei() {
     if (!alunoId) return;
     setAbrindoChat(true);
-    const convExistente = conversasDoAluno.find((c) => !c.id.startsWith("con_"));
-    if (convExistente) {
-      router.push(`/chat?conversaId=${convExistente.id}&gerarPei=true`);
-    } else {
-      router.push(`/chat?alunoId=${alunoId}&gerarPei=true`);
-    }
+    router.push(`/chat?alunoId=${alunoId}&gerarPei=true&nova=true`);
   }
 
   async function handleBaixarPei() {
@@ -186,9 +181,12 @@ export default function ConteudoDashboardAluno() {
 
   const peiFeito = Boolean(
     insights &&
-      (insights.peiGerado > 0 ||
-        insights.peisPorDisciplina.concluidos > 0 ||
-        insights.peisPorDisciplina.disciplinas.some((d) => d.status === "concluido")),
+      (insights.peisPorDisciplina.todosConcluidos !== undefined
+        ? insights.peisPorDisciplina.todosConcluidos
+        : insights.peisPorDisciplina.total > 0
+          ? insights.peisPorDisciplina.concluidos >= insights.peisPorDisciplina.total &&
+            !insights.peisPorDisciplina.atrasado
+          : insights.peiGerado > 0),
   );
 
   return (
@@ -235,6 +233,8 @@ export default function ConteudoDashboardAluno() {
         <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[minmax(0,383fr)_minmax(0,624fr)] lg:gap-8">
           <div className="flex flex-col gap-5 lg:h-[548px] lg:justify-between lg:gap-[14px]">
             <PeisDisciplinaCard
+              alunoId={aluno.id}
+              conversas={conversasDoAluno}
               dados={
                 insights?.peisPorDisciplina ?? {
                   statusGeral: "NÃO INICIADA",
@@ -244,7 +244,7 @@ export default function ConteudoDashboardAluno() {
                 }
               }
             />
-            <MetasBimestreCard metas={insights?.metasDoBimestre ?? []} />
+            <MetasBimestreCard metas={peiFeito ? (insights?.metasDoBimestre ?? []) : []} />
           </div>
 
           <div className="min-w-0">

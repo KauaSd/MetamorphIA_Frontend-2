@@ -31,7 +31,7 @@ export default function MetasBimestreCard({ metas }: MetasBimestreCardProps) {
 
       {metas.length === 0 ? (
         <p className="py-3 text-center font-(family-name:--font-poppins) text-xs text-secondary">
-          Nenhuma meta definida para este bimestre.
+          As metas do bimestre serão definidas após a conclusão de todos os PEIs.
         </p>
       ) : (
         <div className="flex max-h-[176px] flex-col gap-2 overflow-y-auto pr-2">

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EllipsisVertical } from "lucide-react";
 import BarraPesquisa from "@/components/common/Input";
 import Button from "@/components/common/Button";
@@ -15,7 +15,9 @@ import Toast, { useAlerta } from "@/components/common/Toast";
 import { useData } from "@/components/app/state/DataProvider";
 import {
   enviarConviteProfessorEscola,
+  listarConvitesEscola,
   listarProfessoresEscola,
+  removerProfessorEscola,
 } from "@/utils/data/apiRepository";
 import { turmasDaEscola } from "@/utils/data/types";
 import AdcProfIcon from "@/public/adcprof.svg";
@@ -34,28 +36,8 @@ const OPCOES_ORDENACAO: DropDownOption[] = [
   { value: "za", label: "Z-A" },
 ];
 
-const STORAGE_KEY_PREFIX = "metamorphia:adm:professores:";
-
-function lerProfessoresLocais(escolaId: string): ProfessorItem[] {
-  if (typeof window === "undefined" || !escolaId) return [];
-  try {
-    const raw = window.localStorage.getItem(`${STORAGE_KEY_PREFIX}${escolaId}`);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Array<{ id: string; nome: string; turma?: string }>;
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map((p) => ({
-      id: p.id,
-      nome: p.nome,
-      turmasTexto: p.turma || "Sem turma",
-      lecionaTexto: "Professor",
-      local: true,
-    }));
-  } catch {
-    return [];
-  }
-}
-
 export default function ConteudoProfessores() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { escolas, turmas, ehAdmin, ehAdminRede, escolaAdmId, hydrated } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
@@ -111,9 +93,6 @@ export default function ConteudoProfessores() {
   }, [escolas, escolaAdmId]);
 
   const escolaId = escolaAlvo?.id ?? "";
-  const [professoresLocais, setProfessoresLocais] = useState<ProfessorItem[]>(() =>
-    lerProfessoresLocais(escolaId),
-  );
 
   const turmasParaForm = useMemo<DropDownOption[]>(() => {
     const lista = escolaId ? turmasDaEscola(turmas, escolaId) : turmas;
@@ -126,8 +105,15 @@ export default function ConteudoProfessores() {
     enabled: Boolean(escolaId),
   });
 
+  const convitesQuery = useQuery({
+    queryKey: ["escola-convites", escolaId],
+    queryFn: ({ signal }) => listarConvitesEscola(escolaId, signal),
+    enabled: Boolean(escolaId),
+  });
+
   const professores = useMemo<ProfessorItem[]>(() => {
-    const daApi: ProfessorItem[] = (professoresQuery.data ?? []).map((p) => ({
+    const listaApi = professoresQuery.data ?? [];
+    const daApi: ProfessorItem[] = listaApi.map((p) => ({
       id: String(p.id_usuario),
       nome: p.nome_usuario || p.email_usuario || "Professor",
       email: p.email_usuario ?? undefined,
@@ -141,13 +127,28 @@ export default function ConteudoProfessores() {
       local: false,
     }));
 
-    if (daApi.length === 0) return professoresLocais;
-    const nomesApi = new Set(daApi.map((p) => p.nome.trim().toLowerCase()));
-    const extras = professoresLocais.filter(
-      (p) => !nomesApi.has(p.nome.trim().toLowerCase()),
+    const emailsAtivos = new Set(
+      listaApi
+        .map((p) => (p.email_usuario ?? "").trim().toLowerCase())
+        .filter(Boolean),
     );
-    return [...daApi, ...extras];
-  }, [professoresQuery.data, professoresLocais]);
+    const pendentes: ProfessorItem[] = (convitesQuery.data ?? [])
+      .filter(
+        (c) =>
+          (c.status ?? "").toLowerCase() === "pendente" &&
+          !emailsAtivos.has((c.email_convidado ?? "").trim().toLowerCase()),
+      )
+      .map((c) => ({
+        id: `convite-${c.id_convite}`,
+        nome: c.email_convidado,
+        email: c.email_convidado,
+        turmasTexto: "Convite pendente",
+        lecionaTexto: c.tags_areas?.length ? c.tags_areas.join(" • ") : "Convidado",
+        local: true,
+      }));
+
+    return [...daApi, ...pendentes];
+  }, [professoresQuery.data, convitesQuery.data]);
 
   const professoresFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -171,9 +172,6 @@ export default function ConteudoProfessores() {
   async function salvarProfessor(dados: { email: string; turmaId: string }) {
     const limpo = dados.email.trim();
     if (!limpo) return;
-    const turmaNome =
-      turmasParaForm.find((t) => t.value === dados.turmaId)?.label ??
-      (dados.turmaId.trim() || "Sem turma");
 
     if (!edicaoId && escolaId) {
       try {
@@ -188,6 +186,11 @@ export default function ConteudoProfessores() {
             ? `Link de convite enviado para ${limpo}.`
             : `Convite criado para ${limpo}${res.codigo_convite ? ` (código: ${res.codigo_convite})` : ""}.`,
         });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["escola-professores", escolaId] }),
+          queryClient.invalidateQueries({ queryKey: ["escola-convites", escolaId] }),
+          queryClient.invalidateQueries({ queryKey: ["escola-peis-resumo", escolaId] }),
+        ]);
       } catch (err) {
         mostrar({
           tom: "danger",
@@ -198,64 +201,32 @@ export default function ConteudoProfessores() {
       }
     }
 
-    let atualizados: ProfessorItem[];
-    if (edicaoId) {
-      atualizados = professoresLocais.map((p) =>
-        p.id === edicaoId ? { ...p, turmasTexto: turmaNome } : p,
-      );
-    } else {
-      atualizados = [
-        ...professoresLocais,
-        {
-          id: `prof-${Date.now()}`,
-          nome: limpo,
-          email: limpo,
-          turmasTexto: turmaNome,
-          lecionaTexto: "Professor",
-          local: true,
-        },
-      ];
-    }
-
-    setProfessoresLocais(atualizados);
-    try {
-      window.localStorage.setItem(
-        `${STORAGE_KEY_PREFIX}${escolaId}`,
-        JSON.stringify(
-          atualizados.map((p) => ({
-            id: p.id,
-            nome: p.nome,
-            turma: p.turmasTexto,
-            concluidos: 0,
-            total: 0,
-          })),
-        ),
-      );
-    } catch {}
-
     setEmailProfessor("");
     setTurmaProfessor("");
     setEdicaoId(null);
     setMostrarForm(false);
   }
 
-  function excluirProfessor(id: string) {
-    const atualizados = professoresLocais.filter((p) => p.id !== id);
-    setProfessoresLocais(atualizados);
+  async function excluirProfessor(id: string) {
+    if (!escolaId || id.startsWith("convite-")) return;
     try {
-      window.localStorage.setItem(
-        `${STORAGE_KEY_PREFIX}${escolaId}`,
-        JSON.stringify(
-          atualizados.map((p) => ({
-            id: p.id,
-            nome: p.nome,
-            turma: p.turmasTexto,
-            concluidos: 0,
-            total: 0,
-          })),
-        ),
-      );
-    } catch {}
+      await removerProfessorEscola(escolaId, id);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["escola-professores", escolaId] }),
+        queryClient.invalidateQueries({ queryKey: ["escola-peis-resumo", escolaId] }),
+      ]);
+      mostrar({
+        tom: "info",
+        titulo: "Professor removido",
+        descricao: "Vínculo com a escola removido com sucesso.",
+      });
+    } catch (err) {
+      mostrar({
+        tom: "danger",
+        titulo: "Não foi possível remover o professor",
+        descricao: err instanceof Error ? err.message : "Tente novamente.",
+      });
+    }
   }
 
   if (!hydrated || !ehAdmin) {
@@ -366,7 +337,7 @@ export default function ConteudoProfessores() {
                               }}
                               onExcluir={() => {
                                 setMenuAbertoId(null);
-                                excluirProfessor(prof.id);
+                                void excluirProfessor(prof.id);
                               }}
                             />
                           </div>

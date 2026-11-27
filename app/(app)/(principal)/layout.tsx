@@ -79,6 +79,7 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
   const {
     hydrated,
     teacherName,
+    tipoUsuario,
     plano,
     ehAdminRede,
     podeAlternarModoProfessor,
@@ -138,14 +139,16 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
     );
   const ehInstitucional = contaInstitucional || temEscolaInstitucional;
 
+  const perfilCarregado = hydrated && Boolean(tipoUsuario);
+
   // Modal 1: nome real + materias que leciona (nao se aplica a ADM de Rede sem chat)
   const precisaPerfilProfessor =
-    hydrated && !ehAdminRede && !perfilProfessorFeito && !perfilDispensado;
+    perfilCarregado && !ehAdminRede && !perfilProfessorFeito && !perfilDispensado;
   // Modal 2: como a IA vai chamar (so aparece depois do Modal 1)
   const precisaIdentificar =
-    hydrated && !precisaPerfilProfessor && (!identificacaoFeita || teacherName === null);
+    perfilCarregado && !precisaPerfilProfessor && (!identificacaoFeita || teacherName === null);
   const mostrarTutorialInstitucional =
-    hydrated &&
+    perfilCarregado &&
     ehInstitucional &&
     !tutorialInstitucionalVisto &&
     !precisaPerfilProfessor &&

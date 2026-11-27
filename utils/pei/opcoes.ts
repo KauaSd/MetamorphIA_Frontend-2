@@ -45,7 +45,16 @@ export function componenteLabel(valor: string): string {
     historia: "História",
     geografia: "Geografia",
     ingles: "L. Inglesa",
-    ed_fisica: "Ed. Física",
+    l_inglesa: "L. Inglesa",
+    l_portuguesa: "L. Portuguesa",
+    ed_fisica: "Educação Física",
+    educacao_fisica: "Educação Física",
+    fisica: "Física",
+    quimica: "Química",
+    biologia: "Biologia",
+    filosofia: "Filosofia",
+    sociologia: "Sociologia",
+    ensino_religioso: "Ensino Religioso",
   };
   return extras[valor] ?? valor;
 }

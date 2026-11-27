@@ -1,14 +1,15 @@
 import { ChevronRight, ChevronLeft, X } from "lucide-react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Button from "@/components/common/Button"
 import { OverlayCarregando } from "@/components/common/Carregando"
 import DropDown from "@/components/common/DropDown"
 import { PeiFlowProvider, usePeiFlow } from "@/components/app/state/PeiFlowProvider"
+import { useData } from "@/components/app/state/DataProvider"
 import GuidedQuestionsScreen from "@/components/app/pei/GuidedQuestionsScreen"
 import InfoNotice from "@/components/app/pei/InfoNotice"
 import ChatInput from "@/components/app/pei/ChatInput"
 import Icon from "@/public/icon.png"
-import { OPCOES_PERIODO, obterOpcoesComponente } from "@/utils/pei/opcoes"
+import { OPCOES_PERIODO, componenteLabel, obterOpcoesComponente } from "@/utils/pei/opcoes"
 import { getSavedUserProfile } from "@/utils/apiClient"
 import { letraDaOpcao } from "@/utils/pei/types"
 import { peiService } from "@/utils/pei/service"
@@ -20,7 +21,7 @@ interface ConteudopeiProps {
     onConcluirPei?: (
         mensagem: string,
         anexos?: AnexoMensagem[],
-        opcoes?: { aguardarDocumento?: boolean },
+        opcoes?: { aguardarDocumento?: boolean; tituloConversa?: string },
     ) => void
     mostrarCriacao?: boolean
     nomeAluno?: string | null
@@ -79,13 +80,27 @@ function ConteudopeiConteudo({
         limpar,
     } = usePeiFlow()
 
+    const { turmas } = useData()
     const perfilSalvo = getSavedUserProfile()
-    const opcoesComponente = obterOpcoesComponente(
-        perfilSalvo?.tags?.length ? perfilSalvo.tags : perfilSalvo?.tags_areas,
-    )
+    const turmaDoAluno = aluno?.turmaId
+        ? turmas.find((t) => t.id === aluno.turmaId)
+        : undefined
+    const disciplinasDaTurma =
+        turmaDoAluno?.disciplinas && turmaDoAluno.disciplinas.length > 0
+            ? turmaDoAluno.disciplinas
+            : perfilSalvo?.tags?.length
+              ? perfilSalvo.tags
+              : perfilSalvo?.tags_areas
+    const opcoesComponente = obterOpcoesComponente(disciplinasDaTurma)
     const componenteValido = opcoesComponente.some((o) => o.value === componente)
         ? componente
         : (opcoesComponente[0]?.value ?? "")
+
+    useEffect(() => {
+        if (componenteValido && componente !== componenteValido) {
+            setComponente(componenteValido)
+        }
+    }, [componenteValido, componente, setComponente])
     const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false)
     const [gerandoPei, setGerandoPei] = useState(false)
     const [acaoPei, setAcaoPei] = useState<"importando" | "gerando" | null>(null)
@@ -111,9 +126,17 @@ function ConteudopeiConteudo({
                 componente,
                 periodo,
             })
-            const mensagem = `O PEI de **${aluno.nome}** foi importado com sucesso a partir do arquivo **${arquivo.name}**! 🎉\n\nO contexto pedagógico do estudante já foi atualizado na IA e o documento está anexado abaixo para consulta ou download.`
+            const pendentes = resultado.disciplinasPendentes ?? []
+            const avisoPendentes =
+                resultado.todosPeisConcluidos === false && pendentes.length > 0
+                    ? `\n\n⚠️ Para liberar o chat deste aluno, ainda falta concluir o PEI de: **${pendentes.join(", ")}**.`
+                    : ""
+            const nomeComp = componenteLabel(componente) || componente
+            const mensagem = `O PEI de **${aluno.nome}** (${nomeComp}) foi importado com sucesso a partir do arquivo **${arquivo.name}**! 🎉\n\nO contexto pedagógico do estudante já foi atualizado no banco vetorial da IA e o documento está anexado abaixo.${avisoPendentes}`
             limpar()
-            onConcluirPei?.(mensagem, resultado.anexo ? [resultado.anexo] : undefined)
+            onConcluirPei?.(mensagem, resultado.anexo ? [resultado.anexo] : undefined, {
+                tituloConversa: `PEI - ${nomeComp}`,
+            })
         } finally {
             setGerandoPei(false)
             setAcaoPei(null)
@@ -146,6 +169,9 @@ function ConteudopeiConteudo({
             })
 
             let anexosGerados: AnexoMensagem[] | undefined
+            let respostasGeraisDoc: Record<string, string> | undefined
+            let todosConcluidos: boolean | undefined
+            let pendentes: string[] = []
             if (aluno) {
                 const gerado = await peiService.gerarPeiDocumento({
                     aluno,
@@ -158,15 +184,33 @@ function ConteudopeiConteudo({
                 if (gerado?.anexo) {
                     anexosGerados = [gerado.anexo]
                 }
+                respostasGeraisDoc = gerado?.respostasGerais
+                todosConcluidos = gerado?.todosPeisConcluidos
+                pendentes = gerado?.disciplinasPendentes ?? []
             }
 
+            const blocoDocumento = respostasGeraisDoc && Object.keys(respostasGeraisDoc).length > 0
+                ? `\n\n---\n\n**Texto consolidado que irá para o documento do PEI:**\n\n${Object.entries(respostasGeraisDoc)
+                      .map(([pergunta, texto]) => `**${pergunta}**\n${texto}`)
+                      .join("\n\n")}`
+                : ""
+
+            const avisoPendentes =
+                todosConcluidos === false && pendentes.length > 0
+                    ? `\n\n⚠️ **Falta concluir outros PEIs antes de liberar o chat de adaptação de atividades:** ${pendentes.join(", ")}. Enquanto isso, você pode usar este chat apenas para ajustar as respostas deste PEI ou digitar **"Documento"** para baixar o **.docx**.`
+                    : ""
+
+            const nomeComp = componenteLabel(componente) || componente
             const mensagem = anexosGerados?.length
-                ? `A criação do PEI foi um sucesso! 🎉\nAbaixo estão as respostas que defini para cada pergunta. Se quiser mudar alguma coisa, é só me pedir aqui no chat!\n\n---\n\n${linhas.join("\n\n")}\n\n---\n\nQuando estiver tudo certo e quiser baixar o arquivo **.docx**, basta digitar **"Documento"**!`
+                ? `A criação do PEI de **${nomeComp}** foi um sucesso! 🎉\nAbaixo estão as suas respostas e o texto que irá para o documento. Se quiser trocar ou ajustar alguma resposta, é só me pedir aqui no chat!\n\n---\n\n${linhas.join("\n\n")}${blocoDocumento}\n\n---\n\nQuando estiver tudo certo e quiser baixar o arquivo **.docx**, basta digitar **"Documento"**!${avisoPendentes}`
                 : `Registrei as respostas do PEI abaixo, mas não foi possível gerar o arquivo **.docx** no servidor agora (verifique se sua sessão ainda está ativa ou faça login novamente).\n\n---\n\n${linhas.join("\n\n")}`
 
             setMostrarRevisao(false)
             limpar()
-            onConcluirPei?.(mensagem, anexosGerados, { aguardarDocumento: Boolean(anexosGerados?.length) })
+            onConcluirPei?.(mensagem, anexosGerados, {
+                aguardarDocumento: Boolean(anexosGerados?.length),
+                tituloConversa: `PEI - ${nomeComp}`,
+            })
         } finally {
             setGerandoPei(false)
             setAcaoPei(null)
@@ -236,6 +280,7 @@ function ConteudopeiConteudo({
                             <div className="pt-1">
                                 <ChatInput
                                     validarPrivacidade
+                                    multiline
                                     placeholder="Digite sua resposta aqui"
                                     enviarLabel="Enviar resposta"
                                     disabled={status === "salvando"}

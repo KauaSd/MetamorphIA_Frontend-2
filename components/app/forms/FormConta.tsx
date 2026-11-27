@@ -94,7 +94,6 @@ function ModalConfirmacaoConta({
 }
 
 export function FormDeletaConta({onClose}: FormProps){
-  const router = useRouter();
   const queryClient = useQueryClient();
   async function confirmar() {
     const perfil = getSavedUserProfile();
@@ -105,10 +104,11 @@ export function FormDeletaConta({onClose}: FormProps){
         });
       } catch {}
     }
+    await queryClient.cancelQueries();
     clearAuthSession();
     queryClient.clear();
     onClose();
-    router.push("/auth/login");
+    window.location.replace("/auth/login");
   }
   return (
     <ModalConfirmacaoConta
@@ -124,7 +124,6 @@ export function FormDeletaConta({onClose}: FormProps){
 }
 
 export function FormDesconectaTodos({onClose}: FormProps){
-  const router = useRouter();
   const queryClient = useQueryClient();
   async function confirmar() {
     if (getAuthToken()) {
@@ -134,10 +133,11 @@ export function FormDesconectaTodos({onClose}: FormProps){
         });
       } catch {}
     }
+    await queryClient.cancelQueries();
     clearAuthSession();
     queryClient.clear();
     onClose();
-    router.push("/auth/login");
+    window.location.replace("/auth/login");
   }
   return (
     <ModalConfirmacaoConta
@@ -152,13 +152,13 @@ export function FormDesconectaTodos({onClose}: FormProps){
 }
 
 export function FormDesconecta({onClose}: FormProps){
-  const router = useRouter();
   const queryClient = useQueryClient();
   function confirmar() {
+    void queryClient.cancelQueries();
     clearAuthSession();
     queryClient.clear();
     onClose();
-    router.push("/auth/login");
+    window.location.replace("/auth/login");
   }
   return (
     <ModalConfirmacaoConta

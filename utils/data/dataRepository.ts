@@ -23,6 +23,7 @@ export interface DataRepository {
     serieAno?: string;
     letra?: string;
     horario?: string;
+    disciplinas?: string[];
   }): Promise<Turma>;
   updateTurma(
     id: string,
@@ -32,6 +33,7 @@ export interface DataRepository {
       serieAno?: string;
       letra?: string;
       horario?: string;
+      disciplinas?: string[];
     },
   ): Promise<Turma>;
   deleteTurma(id: string): Promise<void>;
@@ -56,6 +58,7 @@ export interface DataRepository {
   // identificacao e onboarding
   getTeacherName(signal?: AbortSignal): Promise<string | null>;
   saveTeacherName(nome: string): Promise<void>;
+  saveFullName(nomeReal: string): Promise<void>;
   saveProfessorPerfil(nomeReal: string, tags: string[]): Promise<void>;
   getOnboardingStatus(): Promise<{
     perfilProfessorFeito: boolean;

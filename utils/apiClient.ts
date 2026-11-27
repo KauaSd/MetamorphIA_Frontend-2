@@ -17,7 +17,17 @@ export const REFRESH_TOKEN_STORAGE_KEY = "metamorphia:auth:refresh_token";
 export const PENDING_2FA_TOKEN_KEY = "metamorphia:auth:pending_2fa_token";
 export const PENDING_RESET_IDENTIFIER_KEY = "metamorphia:auth:pending_reset_identifier";
 export const PENDING_RESET_TOKEN_KEY = "metamorphia:auth:pending_reset_token";
-export const USER_PROFILE_KEY = "metamorphia:auth:user";
+export const AUTH_SESSION_CHANGED_EVENT = "metamorphia:auth-session-changed";
+export const USER_PROFILE_UPDATED_EVENT = "metamorphia:user-profile-updated";
+
+let cachedUserProfile: UserProfile | null = null;
+
+function notificarMudancaSessao(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(new Event(AUTH_SESSION_CHANGED_EVENT));
+  } catch {}
+}
 
 export interface UserPermissoes {
   eh_admin_rede?: boolean;
@@ -53,6 +63,8 @@ export interface UserProfile {
   tags_areas?: string[];
   instrucoes_ia?: string | null;
   nome_real?: string | null;
+  nome_real_atualizado_em?: string | null;
+  dias_para_trocar_nome_real?: number;
   perfil_professor_feito?: boolean;
   identificacao_feita?: boolean;
   tutorial_visto?: boolean;
@@ -131,6 +143,7 @@ export function setAuthTokens(
   if (refreshToken !== undefined) {
     setRefreshToken(refreshToken);
   }
+  notificarMudancaSessao();
 }
 
 export function getPending2FAToken(): string | null {
@@ -154,24 +167,16 @@ export function setPending2FAToken(token: string | null): void {
 }
 
 export function getSavedUserProfile(): UserProfile | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(USER_PROFILE_KEY);
-    return raw ? (JSON.parse(raw) as UserProfile) : null;
-  } catch {
-    return null;
-  }
+  return cachedUserProfile;
 }
 
 export function setSavedUserProfile(profile: UserProfile | null): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (profile) {
-      window.localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
-    } else {
-      window.localStorage.removeItem(USER_PROFILE_KEY);
-    }
-  } catch {}
+  cachedUserProfile = profile;
+  if (typeof window !== "undefined" && profile !== null) {
+    try {
+      window.dispatchEvent(new CustomEvent(USER_PROFILE_UPDATED_EVENT, { detail: profile }));
+    } catch {}
+  }
 }
 
 export function getPendingResetIdentifier(): string | null {
@@ -237,6 +242,7 @@ export function clearAuthSession(): void {
       }
     } catch {}
   }
+  notificarMudancaSessao();
 }
 
 export function parseNumeroId(id: string | number | null | undefined): number | null {

@@ -72,9 +72,9 @@ export default function Turma( props:TurmaProps) {
         <div className="flex flex-col gap-2 sm:gap-2.5">
             <div className="flex items-center justify-between pr-8">
                 <p className="
-                    truncate text-xl sm:text-2xl
+                    line-clamp-2 break-words leading-snug text-xl sm:text-2xl
                     font-(family-name:--font-text-me-one)
-                ">
+                " title={props.nomeTurma}>
                     {props.nomeTurma}
                 </p>
             </div>
@@ -109,11 +109,11 @@ export default function Turma( props:TurmaProps) {
     // dentro de um link e invalido e dispararia a navegacao
     const superficie = `
         relative flex w-full flex-col
-        min-h-[130px] sm:min-h-[135px]
+        min-h-[150px] sm:min-h-[160px]
         bg-surface-base
         rounded-[50px]
-        px-7 sm:px-8
-        py-3.5
+        px-7 sm:px-9
+        py-4
         transition-colors
     `;
 

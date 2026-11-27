@@ -46,12 +46,16 @@ export function resolverTipoPlano({
   escolaInstitucional,
   podeAlternarModoProfessor,
   modoAtivo,
+  ehAdmin,
+  escolaAtualId,
 }: {
   plano?: string | null;
-  escolas: Array<{ institucional?: boolean; plano?: string | null }>;
+  escolas: Array<{ id?: string; institucional?: boolean; plano?: string | null }>;
   escolaInstitucional?: boolean;
   podeAlternarModoProfessor?: boolean;
   modoAtivo?: string | null;
+  ehAdmin?: boolean;
+  escolaAtualId?: string | null;
 }): TipoPlanoStatus {
   const planoNormalizado = (plano ?? "").trim().toLowerCase();
   const emModoProfessor = Boolean(podeAlternarModoProfessor) && modoAtivo === "professor";
@@ -63,6 +67,21 @@ export function resolverTipoPlano({
   if (emModoProfessor) {
     return planoIndividualPro ? "pro" : "basico";
   }
+
+  // Professor convidado (nao-ADM) so ve o marcador amarelo dentro da escola institucional
+  if (ehAdmin === false) {
+    if (escolaAtualId) {
+      const escolaAtual = escolas.find((esc) => esc.id === escolaAtualId);
+      const atualEhInstitucional = Boolean(
+        escolaAtual &&
+          (escolaAtual.institucional ||
+            (escolaAtual.plano ?? "").trim().toLowerCase().includes("institucional")),
+      );
+      if (atualEhInstitucional) return "institucional";
+    }
+    return planoIndividualPro ? "pro" : "basico";
+  }
+
   const ehInstitucional =
     Boolean(escolaInstitucional) ||
     planoNormalizado.includes("institucional") ||

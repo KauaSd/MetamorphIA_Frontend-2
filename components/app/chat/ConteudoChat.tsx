@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FileText } from "lucide-react";
@@ -15,10 +16,12 @@ import Toast, { useAlerta } from "@/components/common/Toast";
 import { useData } from "@/components/app/state/DataProvider";
 import { primeiraNeuro, resolverChat, type AnexoMensagem, type Mensagem } from "@/utils/data/types";
 import { addMessage, openChatWith } from "@/utils/data/controller";
+import { substituirIdConversaEmMemoria } from "@/utils/data/apiRepository";
 import { repository } from "@/utils/data/dataRepository";
 import { ALERTAS } from "@/utils/alertas";
 import {
   apiAiGatewayOrDirect,
+  apiDbFetch,
   baixarArquivoDeAnexo,
   getSavedUserProfile,
   parseNumeroId,
@@ -56,13 +59,23 @@ function Dots() {
 }
 
 export default function ConteudoChat() {
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const router = useRouter();
   const conversaId = searchParams.get("conversaId");
   const alunoId = searchParams.get("alunoId");
+  const novaConversa = searchParams.get("nova") === "true";
   const deveAbrirPei = searchParams.get("gerarPei") === "true" || searchParams.get("pei") === "true";
 
-  const { conversas, alunos, teacherName, podeChat, hydrated, recarregar } = useData();
+  const {
+    conversas,
+    alunos,
+    teacherName,
+    podeChat,
+    hydrated,
+    carregandoConversas,
+    recarregar,
+  } = useData();
   const { alerta, mostrar, limpar } = useAlerta();
 
   useEffect(() => {
@@ -78,19 +91,66 @@ export default function ConteudoChat() {
   const [isThinking, setIsThinking] = useState(false);
   const [mostrarPainel, setMostrarPainel] = useState(deveAbrirPei);
   const [mostrarCriacao, setMostrarCriacao] = useState(false);
+  const [peiPendenteAnexos, setPeiPendenteAnexos] = useState<AnexoMensagem[] | null>(null);
+  const [peiEditadoNoChat, setPeiEditadoNoChat] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const transicionandoIdRef = useRef<string | null>(null);
+  const ultimoAlunoIdRef = useRef<string | null>(alunoId);
+  const mensagensEndRef = useRef<HTMLDivElement | null>(null);
+  const chaveRotaAtual = `${conversaId ?? ""}|${alunoId ?? ""}|${deveAbrirPei ? "pei" : ""}|${novaConversa ? "nova" : ""}`;
+  const chaveRotaAnteriorRef = useRef(chaveRotaAtual);
+
+  useEffect(() => {
+    if (alunoId) {
+      ultimoAlunoIdRef.current = alunoId;
+    }
+  }, [alunoId]);
+
+  useEffect(() => {
+    if (chaveRotaAnteriorRef.current === chaveRotaAtual) return;
+    chaveRotaAnteriorRef.current = chaveRotaAtual;
+
+    if (conversaId && transicionandoIdRef.current === conversaId) {
+      transicionandoIdRef.current = null;
+      return;
+    }
+    transicionandoIdRef.current = null;
+
+    abortRef.current?.abort();
+    setRascunho([]);
+    setUltimasOpcoes([]);
+    setIsThinking(false);
+    setPeiPendenteAnexos(null);
+    setPeiEditadoNoChat(false);
+    setMostrarPainel(deveAbrirPei);
+    setMostrarCriacao(false);
+  }, [chaveRotaAtual, conversaId, deveAbrirPei]);
+
+  const jaTemConversaEmMemoria = Boolean(
+    conversaId && conversas.some((item) => item.id === conversaId),
+  );
+  const aguardandoConversa = Boolean(
+    conversaId && (carregandoConversas || isThinking || rascunho.length > 0) && !jaTemConversaEmMemoria,
+  );
 
   // regra: chat sem aluno nao existe. Antes da hidratacao os dados ainda estao
   // vazios, entao nada e decidido nesse meio-tempo
   const resolucao = useMemo(
-    () => resolverChat(conversas, alunos, { conversaId, alunoId }),
+    () =>
+      resolverChat(conversas, alunos, {
+        conversaId,
+        alunoId: alunoId ?? ultimoAlunoIdRef.current,
+      }),
     [conversas, alunos, conversaId, alunoId],
   );
-  const semAluno = hydrated && resolucao.status === "sem-aluno";
+  const semAluno =
+    hydrated &&
+    !aguardandoConversa &&
+    !isThinking &&
+    rascunho.length === 0 &&
+    resolucao.status === "sem-aluno";
   const aluno = resolucao.status === "ok" ? resolucao.aluno : undefined;
   const conversa = resolucao.status === "ok" ? resolucao.conversa : undefined;
-  const precisaCriar = resolucao.status === "ok" && resolucao.precisaCriar;
-  const idDoAluno = resolucao.status === "ok" ? resolucao.aluno.id : null;
 
   useEffect(() => {
     if (deveAbrirPei) {
@@ -102,35 +162,10 @@ export default function ConteudoChat() {
     if (semAluno) router.replace("/alunos");
   }, [semAluno, router]);
 
-  // chegou pelo alunoId: a conversa nasce aqui e a URL vira canonica, para as
-  // mensagens terem um conversaId para persistir
-  useEffect(() => {
-    if (!hydrated || !precisaCriar || !idDoAluno) return;
-    let cancelado = false;
-
-    (async () => {
-      const resultado = await openChatWith(idDoAluno);
-      await recarregar();
-      if (cancelado) return;
-
-      if (resultado.ok && resultado.conversaId) {
-        router.replace(`/chat?conversaId=${resultado.conversaId}${deveAbrirPei ? "&gerarPei=true" : ""}`);
-      } else if (!resultado.ok) {
-        // so falha quando o aluno nao existe mais: ai o chat sai da rota
-        mostrar(resultado.erro);
-        router.replace("/alunos");
-      }
-    })();
-
-    return () => {
-      cancelado = true;
-    };
-  }, [hydrated, precisaCriar, idDoAluno, recarregar, router, mostrar]);
-
   // carrega mensagens da conversa apenas quando ela for aberta no chat
   useEffect(() => {
     if (!hydrated || !conversa) return;
-    if (conversa.mensagens.length > 0 || conversa.id.startsWith("con_")) return;
+    if (conversa.mensagens.length > 0) return;
     if (conversa.id in mensagensLazy) return;
 
     let cancelado = false;
@@ -181,10 +216,12 @@ export default function ConteudoChat() {
     texto: string,
     autor: "professor" | "aluno",
     anexos?: AnexoMensagem[],
+    conversaIdOverride?: string | null,
+    tituloOverride?: string,
   ): Promise<boolean> {
-    const idAlvo = conversaId ?? conversa?.id;
+    const idAlvo = conversaIdOverride ?? conversaId ?? conversa?.id;
     if (!idAlvo) return false;
-    const resultado = await addMessage(idAlvo, texto, autor, anexos, aluno?.id);
+    const resultado = await addMessage(idAlvo, texto, autor, anexos, aluno?.id, tituloOverride);
     if (!resultado.ok) {
       mostrar(resultado.erro);
       return false;
@@ -192,18 +229,15 @@ export default function ConteudoChat() {
     return true;
   }
 
-  const [peiPendenteAnexos, setPeiPendenteAnexos] = useState<AnexoMensagem[] | null>(null);
-  const [peiEditadoNoChat, setPeiEditadoNoChat] = useState(false);
-
   const handleConcluirPei = async (
     mensagemPei: string,
     anexosPei?: AnexoMensagem[],
-    opcoes?: { aguardarDocumento?: boolean },
+    opcoes?: { aguardarDocumento?: boolean; tituloConversa?: string },
   ) => {
     setMostrarPainel(false);
     setMostrarCriacao(false);
 
-    const anexosIniciais = opcoes?.aguardarDocumento ? undefined : anexosPei;
+    const anexosIniciais = anexosPei;
     if (opcoes?.aguardarDocumento && anexosPei?.length) {
       setPeiPendenteAnexos(anexosPei);
       setPeiEditadoNoChat(false);
@@ -213,20 +247,40 @@ export default function ConteudoChat() {
     }
 
     const idDoBot = `pei-${Date.now()}-bot`;
-    setIsThinking(true);
+    setIsThinking(false);
     setUltimasOpcoes([]);
     setRascunho((prev) => [
       ...prev,
-      { id: idDoBot, texto: "", autor: "aluno", streaming: true },
+      { id: idDoBot, texto: mensagemPei, autor: "aluno", streaming: false, anexos: anexosIniciais },
     ]);
 
     try {
-      await new Promise((resolver) => setTimeout(resolver, 400));
+      let idConvAlvo = conversaId ?? conversa?.id ?? null;
+      if (!idConvAlvo && aluno?.id) {
+        const criada = await openChatWith(aluno.id, { nova: true });
+        if (criada.ok && criada.conversaId) {
+          idConvAlvo = criada.conversaId;
+        }
+      }
 
-      const persistiu = await persistir(mensagemPei, "aluno", anexosIniciais);
+      const persistiu = await persistir(
+        mensagemPei,
+        "aluno",
+        anexosIniciais,
+        idConvAlvo,
+        opcoes?.tituloConversa,
+      );
       if (persistiu) {
         await recarregar();
         setRascunho([]);
+        if (idConvAlvo && !conversaId) {
+          transicionandoIdRef.current = idConvAlvo;
+          router.replace(
+            `/chat?conversaId=${encodeURIComponent(idConvAlvo)}${
+              aluno?.id ? `&alunoId=${encodeURIComponent(aluno.id)}` : ""
+            }`,
+          );
+        }
       } else {
         setRascunho((prev) =>
           prev.map((item) =>
@@ -259,8 +313,8 @@ export default function ConteudoChat() {
       gerar_arquivo_atividade?: boolean;
     },
   ) => {
-    // sem conversa criada ainda nao ha onde persistir a mensagem
-    if (!conversaId && !conversa?.id) return;
+    // precisa de uma conversa ou de um aluno para iniciar a conversa na API
+    if (!conversaId && !conversa?.id && !aluno?.id) return;
 
     const conteudo = texto.trim();
     const listaAnexos: AnexoMensagem[] = (anexosEnviados ?? []).map((a) => ({
@@ -326,43 +380,63 @@ export default function ConteudoChat() {
     let respostaCompleta = "";
     let anexosDaResposta: AnexoMensagem[] | undefined;
     let opcoesRetornadas: OpcaoAdaptacao[] | undefined;
+    let idConvFinal: string | null = conversaId ?? conversa?.id ?? null;
 
     try {
       const numAluno = parseNumeroId(aluno?.id);
-      const idConvAtual = conversaId ?? conversa?.id ?? null;
+      const idConvAtual = idConvFinal;
       const temAnexo = listaAnexos.length > 0;
       const querAdaptar = temAnexo || Boolean(opcoesExtras?.gerar_arquivo_atividade);
       const instrucoesIa = getSavedUserProfile()?.instrucoes_ia?.trim() || undefined;
       let respondeuViaApiAutenticada = false;
 
       if (numAluno !== null) {
-        try {
-          const dbRoute = querAdaptar
-            ? `/AI/chat/aluno/${numAluno}/adaptar-atividade`
-            : `/AI/chat/aluno/${numAluno}`;
-          const iaRoute = querAdaptar
-            ? `/alunos/${numAluno}/adaptar-atividade`
-            : `/alunos/${numAluno}/chat`;
+        const dbRoute = querAdaptar
+          ? `/AI/chat/aluno/${numAluno}/adaptar-atividade`
+          : `/AI/chat/aluno/${numAluno}`;
+        const iaRoute = querAdaptar
+          ? `/alunos/${numAluno}/adaptar-atividade`
+          : `/alunos/${numAluno}/chat`;
 
-          const respApi = await apiAiGatewayOrDirect(dbRoute, iaRoute, {
-            method: "POST",
-            body: JSON.stringify({
-              mensagem: pediuDocumento
-                ? "Gere e envie o documento .docx atualizado do PEI do aluno."
-                : conteudo,
-              conversa_id: idConvAtual,
-              anexos: temAnexo ? listaAnexos : undefined,
-              gerar_arquivo_atividade: querAdaptar ? true : undefined,
-              modo_adaptacao: opcoesExtras?.modo_adaptacao,
-              template_id: opcoesExtras?.template_id,
-              formato_saida: opcoesExtras?.formato_saida,
-              instrucoes_ia: instrucoesIa,
-            }),
-            signal: controller.signal,
-          });
+        const respApi = await apiAiGatewayOrDirect(dbRoute, iaRoute, {
+          method: "POST",
+          body: JSON.stringify({
+            mensagem: pediuDocumento
+              ? "Gere e envie o documento .docx atualizado do PEI do aluno."
+              : conteudo,
+            conversa_id: idConvAtual,
+            anexos: temAnexo ? listaAnexos : undefined,
+            gerar_arquivo_atividade: querAdaptar ? true : undefined,
+            modo_adaptacao: opcoesExtras?.modo_adaptacao,
+            template_id: opcoesExtras?.template_id,
+            formato_saida: opcoesExtras?.formato_saida,
+            instrucoes_ia: instrucoesIa,
+            modo_revisao_pei:
+              Boolean(
+                (peiPendenteAnexos?.length ||
+                  mensagensSalvas.some((m) =>
+                    m.texto.includes("Texto consolidado que irá para o documento do PEI"),
+                  )) &&
+                  !pediuDocumento,
+              ),
+          }),
+          signal: controller.signal,
+        });
 
-          if (respApi.ok) {
-            const dados = (await respApi.json()) as {
+        if (!respApi.ok) {
+          let detalheErro = `Erro ${respApi.status} ao enviar mensagem.`;
+          try {
+            const errJson = (await respApi.json()) as { detail?: string };
+            if (errJson?.detail) detalheErro = errJson.detail;
+          } catch {}
+          if (respApi.status === 403) {
+            throw new Error(detalheErro);
+          }
+        } else {
+          const dados = (await respApi.json()) as {
+              conversa_id?: string | null;
+              id_conversa?: string | null;
+              conversaId?: string | null;
               resposta?: string;
               anexos?: AnexoMensagem[];
               atividade_id?: string | null;
@@ -374,6 +448,51 @@ export default function ConteudoChat() {
               download_url_persistente?: string | null;
               opcoes_adaptacao?: OpcaoAdaptacao[] | null;
             };
+            let idConvApi = (
+              dados.conversa_id ??
+              dados.id_conversa ??
+              dados.conversaId
+            )?.trim();
+            if (!idConvApi && (!idConvAtual || idConvAtual.startsWith("con_"))) {
+              try {
+                const respRec = await apiDbFetch(
+                  "/conversas/recentes?ordenar_por=data&ordem=desc&limit=5",
+                );
+                if (respRec.ok) {
+                  const recentes = (await respRec.json()) as Array<{
+                    conversa_id?: string;
+                    id_aluno?: number | string;
+                  }>;
+                  const encontrada = Array.isArray(recentes)
+                    ? recentes.find(
+                        (r) =>
+                          r.conversa_id &&
+                          String(r.id_aluno ?? "") === String(numAluno),
+                      )
+                    : undefined;
+                  if (encontrada?.conversa_id) {
+                    idConvApi = encontrada.conversa_id;
+                  }
+                }
+              } catch {}
+            }
+            if (idConvApi && idConvApi !== idConvAtual) {
+              if (idConvAtual) {
+                substituirIdConversaEmMemoria(idConvAtual, idConvApi);
+                setMensagensLazy((prev) => {
+                  const existentes = prev[idConvAtual];
+                  if (!existentes) return prev;
+                  return { ...prev, [idConvApi]: existentes };
+                });
+              }
+              idConvFinal = idConvApi;
+              transicionandoIdRef.current = idConvApi;
+              router.replace(
+                `/chat?conversaId=${encodeURIComponent(idConvApi)}${
+                  aluno?.id ? `&alunoId=${encodeURIComponent(aluno.id)}` : ""
+                }`,
+              );
+            }
             respostaCompleta = dados.resposta ?? "";
             if (Array.isArray(dados.opcoes_adaptacao) && dados.opcoes_adaptacao.length > 0) {
               opcoesRetornadas = dados.opcoes_adaptacao;
@@ -457,7 +576,6 @@ export default function ConteudoChat() {
               setPeiPendenteAnexos(null);
             }
           }
-        } catch {}
       }
 
       if (!respondeuViaApiAutenticada && temAnexo) {
@@ -520,6 +638,24 @@ export default function ConteudoChat() {
       if (opcoesRetornadas && opcoesRetornadas.length > 0) {
         setUltimasOpcoes(opcoesRetornadas);
       }
+
+      if (respostaCompleta.trim()) {
+        const totalChars = respostaCompleta.length;
+        const passos = Math.min(24, Math.max(8, Math.ceil(totalChars / 35)));
+        const tamanhoPasso = Math.ceil(totalChars / passos);
+        for (let pos = tamanhoPasso; pos < totalChars; pos += tamanhoPasso) {
+          if (controller.signal.aborted) break;
+          const trecho = respostaCompleta.slice(0, pos);
+          setRascunho((prev) =>
+            prev.map((bolha) =>
+              bolha.id === idDoBot ? { ...bolha, texto: trecho, streaming: true } : bolha,
+            ),
+          );
+          mensagensEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+          await new Promise((resolve) => setTimeout(resolve, 18));
+        }
+      }
+
       setRascunho((prev) =>
         prev.map((bolha) =>
           bolha.id === idDoBot
@@ -527,39 +663,74 @@ export default function ConteudoChat() {
                 ...bolha,
                 texto: respostaCompleta,
                 anexos: anexosDaResposta,
+                streaming: false,
               }
             : bolha,
         ),
       );
+      mensagensEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
 
-      await persistir(textoExibicao, "professor", listaAnexos.length > 0 ? listaAnexos : undefined);
-      if (respostaCompleta.trim() || (anexosDaResposta && anexosDaResposta.length > 0)) {
-        await persistir(respostaCompleta, "aluno", anexosDaResposta);
+      const chaveConv = idConvFinal ?? conversa?.id;
+      if (chaveConv) {
+        const agoraIso = new Date().toISOString();
+        const novasMsgs: Mensagem[] = [
+          {
+            id: idDaMinha,
+            texto: textoExibicao,
+            autor: "professor",
+            em: agoraIso,
+            ...(listaAnexos.length > 0 ? { anexos: listaAnexos } : {}),
+          },
+          ...(respostaCompleta.trim() || (anexosDaResposta && anexosDaResposta.length > 0)
+            ? [
+                {
+                  id: idDoBot,
+                  texto: respostaCompleta,
+                  autor: "aluno" as const,
+                  em: agoraIso,
+                  ...(anexosDaResposta ? { anexos: anexosDaResposta } : {}),
+                },
+              ]
+            : []),
+        ];
+        setMensagensLazy((prev) => ({
+          ...prev,
+          [chaveConv]: [...(prev[chaveConv] ?? conversa?.mensagens ?? []), ...novasMsgs],
+        }));
       }
+      void queryClient.invalidateQueries({ queryKey: ["conversas"] });
+      void queryClient.invalidateQueries({ queryKey: ["student-insights"] });
     } catch (error) {
       if (controller.signal.aborted) return;
 
       console.error("Erro ao receber resposta:", error);
-
-      await persistir(textoExibicao, "professor", listaAnexos.length > 0 ? listaAnexos : undefined);
+      const msgErro =
+        error instanceof Error && error.message
+          ? error.message
+          : "Não foi possível obter uma resposta da IA.";
 
       setRascunho((prev) =>
         prev.map((bolha) =>
           bolha.id === idDoBot
-            ? { ...bolha, texto: "Não foi possível obter uma resposta da IA." }
+            ? { ...bolha, texto: msgErro, streaming: false }
             : bolha,
         ),
       );
-      mostrar(ALERTAS.CHAT_IA_FALHOU);
+      mostrar({
+        tom: "danger",
+        titulo: ALERTAS.CHAT_IA_FALHOU.titulo,
+        descricao: msgErro,
+      });
     } finally {
-      await recarregar();
       setRascunho([]);
       setIsThinking(false);
     }
   };
 
   // chat sem aluno nao existe: a rota so renderiza com aluno resolvido
-  if (!hydrated || !podeChat) return <CarregandoDashboard mensagem="Carregando conversa..." />;
+  if (!hydrated || aguardandoConversa || !podeChat) {
+    return <CarregandoDashboard mensagem="Carregando conversa..." />;
+  }
   if (semAluno) return null;
 
   // barra de escrita: fica sozinha no chat normal e entra dentro do painel de PEI
@@ -583,7 +754,7 @@ export default function ConteudoChat() {
         />
       </div>
 
-        <div className="relative flex h-full flex-1 items-center justify-center px-2">
+        <div className="relative flex min-h-0 flex-1 items-center justify-center px-2">
            <div
              className={`absolute left-1/2 top-[30%] -translate-x-1/2 -translate-y-1/2 text-center transition-all duration-700 ease-out ${
                hasStarted || mostrarPainel
@@ -600,24 +771,24 @@ export default function ConteudoChat() {
           <div
             className={`absolute left-0 w-full px-4 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] sm:px-8 md:px-5 lg:px-20 ${
               mostrarPainel
-                 ? "inset-x-0 top-8 sm:top-12 bottom-0 flex flex-col"
+                ? "inset-x-0 top-8 sm:top-12 bottom-0 flex flex-col"
                 : hasStarted
-                  ? "bottom-0"
+                  ? "inset-0 flex flex-col pt-3"
                   : "top-[52%] -translate-y-1/2 opacity-100"
             }`}
           >
             <div
-              className={`relative mx-auto flex w-full flex-col gap-6 h-full ${
-              mostrarPainel ? "max-w-none h-full justify-center" : "max-w-[64rem]"
-            }`}
+              className={`relative mx-auto flex w-full flex-col gap-4 h-full min-h-0 ${
+                mostrarPainel ? "max-w-none h-full justify-center" : "max-w-[64rem]"
+              }`}
             >
               {/* bolhas da conversa */}
               {hasStarted && (
                 <div
-                  className={`flex flex-col gap-4 overflow-y-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  className={`flex flex-col gap-4 overflow-y-auto pr-1 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     mostrarPainel
                       ? "absolute left-0 right-0 top-0 z-10 w-full max-h-[55vh] opacity-0 translate-y-16 pointer-events-none"
-                      : "relative max-h-[55vh] w-full opacity-100 translate-y-0"
+                      : "relative flex-1 min-h-0 w-full opacity-100 translate-y-0"
                   }`}
                 >
                   {bolhas.map((bolha) => {
@@ -718,6 +889,7 @@ export default function ConteudoChat() {
                     </div>
                   );
                   })}
+                  <div ref={mensagensEndRef} />
                   {ultimasOpcoes.length > 0 && !isThinking && (
                     <div className="flex flex-wrap gap-2 pl-2">
                       {ultimasOpcoes.map((op, idx) => {
@@ -738,7 +910,7 @@ export default function ConteudoChat() {
                                 modo_adaptacao: op.modo_adaptacao,
                                 template_id: op.template_id,
                                 formato_saida: op.formato_saida || "docx",
-                                gerar_arquivo_atividade: true,
+                                gerar_arquivo_atividade: false,
                               })
                             }
                             className="cursor-pointer rounded-full bg-surface-accent px-4 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-surface-accent-strong sm:text-sm"

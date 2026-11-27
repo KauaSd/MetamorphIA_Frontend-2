@@ -167,18 +167,14 @@
 }
 
 /* barra horizontal de carregamento indeterminado:
-   surge na borda esquerda, cruza, encolhe ate sumir na borda direita e volta */
+   surge na borda esquerda, vai ate o fim na direita e reaparece no inicio */
 @keyframes loading-bar-slide {
   0% {
     transform: translateX(-100%);
   }
 
-  50% {
-    transform: translateX(250%);
-  }
-
   100% {
-    transform: translateX(-100%);
+    transform: translateX(250%);
   }
 }
 

@@ -1,13 +1,45 @@
-import type { PeisPorDisciplinaResumo, StatusPeiDisciplina } from "@/utils/data/types";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import type { Conversa, PeisPorDisciplinaResumo, StatusPeiDisciplina } from "@/utils/data/types";
 
 interface PeisDisciplinaCardProps {
   dados: PeisPorDisciplinaResumo;
+  alunoId?: string;
+  conversas?: Conversa[];
+}
+
+function normalizarDisc(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function encontrarConversaDaDisciplina(
+  disciplina: string,
+  conversas: Conversa[],
+): Conversa | undefined {
+  const alvo = normalizarDisc(disciplina);
+  const aliases = [alvo];
+  if (alvo.includes("fisica") && (alvo.includes("ed") || alvo.includes("educacao"))) {
+    aliases.push("ed fisica", "educacao fisica", "ed_fisica");
+  }
+  if (alvo.includes("portugues")) aliases.push("portugues", "l portuguesa", "lingua portuguesa");
+  if (alvo.includes("ingles")) aliases.push("ingles", "l inglesa", "lingua inglesa");
+
+  return conversas.find((conv) => {
+    const titulo = normalizarDisc(conv.titulo);
+    const msgs = normalizarDisc(conv.mensagens.map((m) => m.texto).join(" "));
+    return aliases.some((a) => titulo.includes(a) || msgs.includes(`pei de ${a}`) || msgs.includes(`pei - ${a}`));
+  });
 }
 
 const COR_STATUS_DISCIPLINA: Record<StatusPeiDisciplina, string> = {
   concluido: "bg-surface-success-strong",
   em_andamento: "bg-surface-warning-strong",
-  nao_iniciado: "bg-surface-danger-strong",
+  nao_iniciado: "bg-[#FF9999]",
 };
 
 function periodoPassou(proximoPeriodo?: string | null): boolean {
@@ -44,12 +76,16 @@ function resolverStatusGeralPei(dados: PeisPorDisciplinaResumo): {
     dados.statusGeral.toUpperCase().includes("NÃO INICIAD") ||
     dados.statusGeral.toUpperCase().includes("NAO INICIAD")
   ) {
-    return { label: "NÃO INICIADA", cor: "text-danger" };
+    return { label: "NÃO INICIADA", cor: "text-[#FF9999]" };
   }
   return { label: "EM ANDAMENTO", cor: "text-warning" };
 }
 
-export default function PeisDisciplinaCard({ dados }: PeisDisciplinaCardProps) {
+export default function PeisDisciplinaCard({
+  dados,
+  alunoId,
+  conversas = [],
+}: PeisDisciplinaCardProps) {
   const statusGeral = resolverStatusGeralPei(dados);
 
   return (
@@ -72,20 +108,55 @@ export default function PeisDisciplinaCard({ dados }: PeisDisciplinaCardProps) {
         </p>
       ) : (
         <div className="flex max-h-[130px] flex-col gap-1.5 overflow-y-auto pr-2">
-          {dados.disciplinas.map((item) => (
-            <div
-              key={item.id}
-              className="flex h-7 shrink-0 items-center gap-2 rounded-full bg-surface-muted px-3"
-            >
-              <span
-                className={`h-2 w-2 shrink-0 rounded-full ${COR_STATUS_DISCIPLINA[item.status]}`}
-                aria-hidden="true"
-              />
-              <span className="truncate font-(family-name:--font-poppins) text-xs text-primary">
-                {item.disciplina}
-              </span>
-            </div>
-          ))}
+          {dados.disciplinas.map((item) => {
+            const conversaMatch = encontrarConversaDaDisciplina(item.disciplina, conversas);
+            const href = conversaMatch
+              ? `/chat?conversaId=${conversaMatch.id}`
+              : item.status === "concluido"
+                ? conversas.length > 0
+                  ? `/chat?conversaId=${conversas[0].id}`
+                  : alunoId
+                    ? `/chat?alunoId=${alunoId}`
+                    : null
+                : alunoId
+                  ? `/chat?alunoId=${alunoId}&gerarPei=true&nova=true`
+                  : null;
+            const conteudo = (
+              <>
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full ${COR_STATUS_DISCIPLINA[item.status]}`}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0 flex-1 truncate font-(family-name:--font-poppins) text-xs text-primary">
+                  {item.disciplina}
+                </span>
+                {href ? (
+                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-secondary" aria-hidden="true" />
+                ) : null}
+              </>
+            );
+            return href ? (
+              <Link
+                key={item.id}
+                href={href}
+                title={
+                  conversaMatch
+                    ? `Abrir conversa do PEI de ${item.disciplina}`
+                    : `Criar PEI de ${item.disciplina}`
+                }
+                className="flex h-7 shrink-0 items-center gap-2 rounded-full bg-surface-muted px-3 transition-colors hover:bg-surface-base-hover"
+              >
+                {conteudo}
+              </Link>
+            ) : (
+              <div
+                key={item.id}
+                className="flex h-7 shrink-0 items-center gap-2 rounded-full bg-surface-muted px-3"
+              >
+                {conteudo}
+              </div>
+            );
+          })}
         </div>
       )}
 

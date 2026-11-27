@@ -98,6 +98,8 @@ export function FormLogin() {
         return;
       }
 
+      const { clearAuthSession } = await import("@/utils/apiClient");
+      clearAuthSession();
       setAuthTokens(tokenData.access_token, tokenData.refresh_token);
       let rotaDestino = "/alunos";
       try {
@@ -106,9 +108,6 @@ export function FormLogin() {
           const me = (await meResp.json()) as UserProfile;
           setSavedUserProfile(me);
           rotaDestino = resolverRotaInicialPosLogin(me);
-          if (me.nome_usuario) {
-            await saveTeacherName(me.nome_usuario);
-          }
         }
       } catch {}
 
@@ -231,8 +230,15 @@ export function FormCadastro() {
       return;
     }
 
-    // senha fraca nao gera alert, o checklist abaixo do campo ja mostra
-    if (validarSenha(senha).length > 0) return;
+    const errosSenha = validarSenha(senha);
+    if (errosSenha.length > 0) {
+      setAlerta({
+        tom: "danger",
+        titulo: "Senha fora dos requisitos",
+        descricao: `Falta: ${errosSenha.join(", ")}.`,
+      });
+      return;
+    }
 
     if (!aceitaTermos) {
       setAlerta(ALERTAS.CAD_TERMOS);
@@ -502,6 +508,8 @@ export function FormToken() {
           refresh_token?: string | null;
         };
         setPending2FAToken(null);
+        const { clearAuthSession } = await import("@/utils/apiClient");
+        clearAuthSession();
         setAuthTokens(dados.access_token, dados.refresh_token);
         setAlerta(null);
         router.push("/alunos");

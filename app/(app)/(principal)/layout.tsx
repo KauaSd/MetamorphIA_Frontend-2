@@ -5,10 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CarregandoDashboard from "@/components/app/layout/CarregandoDashboard";
 import Menu from "@/components/app/layout/Menu";
 import Tutorial, { type tutId } from "@/components/app/layout/Tutorial";
-import {
-  FormIdentificacao,
-  FormIdentificacaoProfessor,
-} from "@/components/app/forms/FormAlunoTurma";
+import { FormIdentificacao } from "@/components/app/forms/FormAlunoTurma";
 import FormVincularInstituicao from "@/components/app/forms/FormVincularInstituicao";
 import { useData } from "@/components/app/state/DataProvider";
 import { getAuthToken } from "@/utils/apiClient";
@@ -72,6 +69,83 @@ function VincularInstituicaoPorLink({
   );
 }
 
+function StatusPlanoContextual({
+  alternandoModo,
+  onAlternarModo,
+}: {
+  alternandoModo: boolean;
+  onAlternarModo: () => void;
+}) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const {
+    plano,
+    escolas,
+    turmas,
+    alunos,
+    conversas,
+    escolaInstitucional,
+    podeAlternarModoProfessor,
+    modoAtivo,
+    ehAdmin,
+  } = useData();
+
+  let escolaAtualId: string | null = null;
+  if (pathname === "/dashboardEscola") {
+    escolaAtualId = searchParams.get("id");
+  } else if (pathname === "/dashboardTurma") {
+    const turmaId = searchParams.get("id");
+    escolaAtualId = turmas.find((t) => t.id === turmaId)?.escolaId ?? null;
+  } else if (pathname === "/dashboardAluno") {
+    const alunoId = searchParams.get("id");
+    const aluno = alunos.find((a) => a.id === alunoId);
+    escolaAtualId = aluno
+      ? turmas.find((t) => t.id === aluno.turmaId)?.escolaId ?? null
+      : null;
+  } else if (pathname === "/chat") {
+    const alunoIdParam =
+      searchParams.get("alunoId") ??
+      conversas.find((c) => c.id === searchParams.get("conversaId"))?.alunoId ??
+      null;
+    const aluno = alunos.find((a) => a.id === alunoIdParam);
+    escolaAtualId = aluno
+      ? turmas.find((t) => t.id === aluno.turmaId)?.escolaId ?? null
+      : null;
+  }
+
+  const tipoPlano: TipoPlanoStatus = resolverTipoPlano({
+    plano,
+    escolas,
+    escolaInstitucional,
+    podeAlternarModoProfessor,
+    modoAtivo,
+    ehAdmin,
+    escolaAtualId,
+  });
+
+  return (
+    <StatusPlano
+      tipo={tipoPlano}
+      onClick={podeAlternarModoProfessor ? onAlternarModo : undefined}
+      disabled={alternandoModo}
+      title={
+        podeAlternarModoProfessor
+          ? modoAtivo === "professor"
+            ? "Modo Professor ativo — clique para voltar ao Modo ADM"
+            : "Modo ADM ativo — clique para entrar como Professor"
+          : undefined
+      }
+      ariaLabel={
+        podeAlternarModoProfessor
+          ? modoAtivo === "professor"
+            ? "Voltar para Modo ADM"
+            : "Alternar para Modo Professor"
+          : undefined
+      }
+    />
+  );
+}
+
 export default function PrincipalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -79,20 +153,19 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
   const {
     hydrated,
     teacherName,
+    tipoUsuario,
     plano,
     ehAdminRede,
     podeAlternarModoProfessor,
     modoAtivo,
     escolaInstitucional,
     escolas,
-    perfilProfessorFeito,
     identificacaoFeita,
     tutorialVisto,
     tutorialInstitucionalVisto,
     recarregar,
   } = useData();
   const [passoTutorial, setPassoTutorial] = useState<tutId | null>(null);
-  const [perfilDispensado, setPerfilDispensado] = useState(false);
   const [alternandoModo, setAlternandoModo] = useState(false);
   const [autenticado, setAutenticado] = useState<boolean | null>(null);
 
@@ -138,23 +211,16 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
     );
   const ehInstitucional = contaInstitucional || temEscolaInstitucional;
 
-  // Modal 1: nome real + materias que leciona (nao se aplica a ADM de Rede sem chat)
-  const precisaPerfilProfessor =
-    hydrated && !ehAdminRede && !perfilProfessorFeito && !perfilDispensado;
-  // Modal 2: como a IA vai chamar (so aparece depois do Modal 1)
+  const perfilCarregado = hydrated && Boolean(tipoUsuario);
+
+  // Identificação inicial única: pede nome completo e define também como a IA chama o usuário
   const precisaIdentificar =
-    hydrated && !precisaPerfilProfessor && (!identificacaoFeita || teacherName === null);
+    perfilCarregado && !ehAdminRede && (!identificacaoFeita || teacherName === null);
   const mostrarTutorialInstitucional =
-    hydrated &&
+    perfilCarregado &&
     ehInstitucional &&
     !tutorialInstitucionalVisto &&
-    !precisaPerfilProfessor &&
     !precisaIdentificar;
-
-  const handleSalvarPerfilProfessor = async () => {
-    setPerfilDispensado(true);
-    await recarregar();
-  };
 
   // quem acabou de responder "Como devemos te chamar?" ve o tutorial normal
   const handleSalvarIdentificacao = async () => {
@@ -168,18 +234,14 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
     setPassoTutorial(null);
     await markTutorialSeen(variante);
     await recarregar();
+    if (pathname !== "/escolas") {
+      router.push("/escolas");
+    }
   };
 
   const varianteAtiva = mostrarTutorialInstitucional ? "institucional" : "padrao";
   const exibirTutorial =
     mostrarTutorialInstitucional || Boolean(passoTutorial && !tutorialVisto && !ehInstitucional);
-  const tipoPlano: TipoPlanoStatus = resolverTipoPlano({
-    plano,
-    escolas,
-    escolaInstitucional,
-    podeAlternarModoProfessor,
-    modoAtivo,
-  });
 
   return (
     <div className="flex min-h-screen w-full flex-row">
@@ -187,31 +249,12 @@ export default function PrincipalLayout({ children }: { children: React.ReactNod
       <main className={`flex flex-1 min-w-0 flex-col ${ehChat ? "" : "pt-14 md:pt-0"}`}>
         {children}
       </main>
-      <StatusPlano
-        tipo={tipoPlano}
-        onClick={podeAlternarModoProfessor ? () => void handleAlternarModo() : undefined}
-        disabled={alternandoModo}
-        title={
-          podeAlternarModoProfessor
-            ? modoAtivo === "professor"
-              ? "Modo Professor ativo — clique para voltar ao Modo ADM"
-              : "Modo ADM ativo — clique para entrar como Professor"
-            : undefined
-        }
-        ariaLabel={
-          podeAlternarModoProfessor
-            ? modoAtivo === "professor"
-              ? "Voltar para Modo ADM"
-              : "Alternar para Modo Professor"
-            : undefined
-        }
-      />
-      {precisaPerfilProfessor && (
-        <FormIdentificacaoProfessor
-          onSalvar={handleSalvarPerfilProfessor}
-          onClose={() => setPerfilDispensado(true)}
+      <Suspense fallback={null}>
+        <StatusPlanoContextual
+          alternandoModo={alternandoModo}
+          onAlternarModo={() => void handleAlternarModo()}
         />
-      )}
+      </Suspense>
       {precisaIdentificar && <FormIdentificacao onSalvar={handleSalvarIdentificacao} />}
       {exibirTutorial && (
         <Tutorial

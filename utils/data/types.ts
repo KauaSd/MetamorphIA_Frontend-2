@@ -16,6 +16,7 @@ export interface Turma {
   serieAno?: string;
   letra?: string;
   horario?: string;
+  disciplinas?: string[];
 }
 
 export interface Aluno {
@@ -55,6 +56,7 @@ export interface Conversa {
 export interface AppData {
   teacherName: string | null;
   nomeReal: string | null;
+  diasParaTrocarNomeReal: number;
   tipoUsuario: string | null;
   modoAtivo: string | null;
   escolaAdmId: string | null;
@@ -111,6 +113,8 @@ export interface PeisPorDisciplinaResumo {
   ultimoEnvio?: string | null;
   proximoPeriodo?: string | null;
   atrasado?: boolean;
+  todosConcluidos?: boolean;
+  pendentes?: string[];
 }
 
 export type StatusMetaBimestre = "em_progresso" | "a_iniciar" | "atingida";
@@ -153,6 +157,7 @@ export function dadosVazios(): AppData {
   return {
     teacherName: null,
     nomeReal: null,
+    diasParaTrocarNomeReal: 0,
     tipoUsuario: null,
     modoAtivo: null,
     escolaAdmId: null,

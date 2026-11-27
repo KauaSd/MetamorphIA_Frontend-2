@@ -230,7 +230,7 @@ export default function DropDown({
   return (
     <div
       ref={dropdownRef}
-      className={`relative ${small ? "w-36" : "w-full"}`}
+      className={`relative ${small ? "min-w-36 w-fit max-w-full" : "w-full"}`}
     >
       {/* botão principal */}
       <button
@@ -268,7 +268,7 @@ export default function DropDown({
       <div
         onWheel={handleWheel}
         className={`
-          absolute left-0 z-30 w-full
+          absolute left-0 z-30 ${small ? "min-w-full w-max max-w-[min(22rem,85vw)]" : "w-full"}
           mt-2 p-1.5
           rounded-3xl
           bg-sunken

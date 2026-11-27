@@ -23,6 +23,9 @@ interface HeaderDashAlProps {
   onBatePapo: () => void;
   onCriarPei?: () => void;
   onBaixarPei?: () => void;
+  disciplinasConcluidas?: string[];
+  onBaixarDisciplina?: (disciplina: string) => void;
+  onBaixarTodos?: () => void;
   /** retrocompatibilidade com onGerarPei */
   onGerarPei?: () => void;
   abrindoChat: boolean;
@@ -39,6 +42,9 @@ export default function HeaderDashAl({
   onBatePapo,
   onCriarPei,
   onBaixarPei,
+  disciplinasConcluidas = [],
+  onBaixarDisciplina,
+  onBaixarTodos,
   onGerarPei,
   abrindoChat,
   chatLiberado = true,
@@ -187,8 +193,20 @@ export default function HeaderDashAl({
             </Button>
 
             {isPeiOpen ? (
-              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-50">
-                <MenuPei onCriar={handleCriarPei} onBaixar={handleBaixarPei} />
+              <div className="absolute right-0 top-full mt-2 z-50">
+                <MenuPei
+                  onCriar={handleCriarPei}
+                  onBaixar={handleBaixarPei}
+                  disciplinasConcluidas={disciplinasConcluidas}
+                  onBaixarDisciplina={(disc) => {
+                    setIsPeiOpen(false);
+                    onBaixarDisciplina?.(disc);
+                  }}
+                  onBaixarTodos={() => {
+                    setIsPeiOpen(false);
+                    onBaixarTodos?.();
+                  }}
+                />
               </div>
             ) : null}
           </div>

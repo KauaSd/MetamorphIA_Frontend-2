@@ -1,4 +1,6 @@
 import {
+  API_DB_URL,
+  AUTH_SESSION_CHANGED_EVENT,
   apiAiGatewayOrDirect,
   apiDbFetch,
   getAuthToken,
@@ -117,6 +119,21 @@ function normalizarCorIndicador(cor?: string, index = 0): CorIndicador {
 
 // Mantém apenas conversas recém-abertas em memória na sessão atual até a primeira mensagem ir para a API
 const conversasEmMemoria = new Map<string, Conversa>();
+
+if (typeof window !== "undefined") {
+  window.addEventListener(AUTH_SESSION_CHANGED_EVENT, () => {
+    conversasEmMemoria.clear();
+  });
+}
+
+export function substituirIdConversaEmMemoria(idAntigo: string, idNovo: string): void {
+  if (!idAntigo || !idNovo || idAntigo === idNovo) return;
+  const antiga = conversasEmMemoria.get(idAntigo);
+  conversasEmMemoria.delete(idAntigo);
+  if (antiga && !conversasEmMemoria.has(idNovo)) {
+    conversasEmMemoria.set(idNovo, { ...antiga, id: idNovo });
+  }
+}
 
 function formatarIsoParaDDMMAAAA(iso?: string | null): string {
   if (!iso) return hojeDDMMAAAA();
@@ -247,6 +264,43 @@ export async function buscarConversas(
     porId.set(cid, conv);
   }
 
+  try {
+    const respRecentes = await apiDbFetch(
+      "/conversas/recentes?ordenar_por=data&ordem=desc&limit=100",
+      { signal },
+    );
+    if (respRecentes.ok) {
+      const recentes = (await respRecentes.json()) as Array<{
+        conversa_id: string;
+        titulo?: string;
+        data?: string;
+        id_aluno?: number | string;
+      }>;
+      if (Array.isArray(recentes)) {
+        for (const resumo of recentes) {
+          const cid = resumo.conversa_id;
+          const aid = resumo.id_aluno !== undefined && resumo.id_aluno !== null
+            ? String(resumo.id_aluno)
+            : "";
+          if (!cid || !aid) continue;
+          const emMemoria = conversasEmMemoria.get(cid);
+          const conversaApi: Conversa = {
+            id: cid,
+            alunoId: aid,
+            titulo: resumo.titulo || "Nova conversa",
+            data: formatarIsoParaDDMMAAAA(resumo.data),
+            mensagens: emMemoria?.mensagens ?? [],
+          };
+          if (emMemoria?.mensagens?.length) {
+            conversasEmMemoria.set(cid, conversaApi);
+          }
+          porId.set(cid, conversaApi);
+        }
+        return Array.from(porId.values());
+      }
+    }
+  } catch {}
+
   await Promise.all(
     alunoIds.map(async (alunoId) => {
       const numAluno = parseNumeroId(alunoId);
@@ -288,20 +342,103 @@ export async function buscarConversas(
   return Array.from(porId.values());
 }
 
+export interface ConversaCompletaApi {
+  conversa: Conversa;
+  nomeAluno?: string;
+  neuroAluno?: string;
+  peiAtivo?: boolean;
+}
+
+export async function buscarConversaPorId(
+  conversaId: string,
+  signal?: AbortSignal,
+): Promise<ConversaCompletaApi | null> {
+  if (!getAuthToken() || !conversaId) return null;
+  try {
+    const resp = await apiDbFetch(
+      `/conversas/${encodeURIComponent(conversaId)}`,
+      { signal },
+    );
+    if (!resp.ok) return null;
+    const det = (await resp.json()) as {
+      conversa_id?: string;
+      titulo?: string;
+      data?: string;
+      id_aluno?: number | string;
+      nome_aluno?: string;
+      neuro_aluno?: string;
+      pei_ativo?: boolean;
+      mensagens?: Array<{
+        role: string;
+        conteudo: string;
+        data: string;
+        anexos?: Array<{
+          name?: string;
+          nome?: string;
+          type?: string;
+          tipo?: string;
+          size?: number;
+          dataUrl?: string;
+          url?: string;
+        }> | null;
+      }>;
+    };
+    const cid = det.conversa_id || conversaId;
+    const mensagens: Mensagem[] = (det.mensagens ?? []).map((m, idx) => ({
+      id: `${cid}_m_${idx}`,
+      texto: m.conteudo,
+      autor: m.role === "user" ? "professor" : "aluno",
+      em: m.data || new Date().toISOString(),
+      ...(m.anexos && m.anexos.length > 0
+        ? {
+            anexos: m.anexos.map((a) => {
+              const rawUrl = a.dataUrl ?? a.url;
+              const dataUrl =
+                rawUrl && rawUrl.startsWith("/") ? `${API_DB_URL}${rawUrl}` : rawUrl;
+              return {
+                name: a.name ?? a.nome ?? "arquivo",
+                type: a.type ?? a.tipo ?? "application/octet-stream",
+                size: a.size ?? 0,
+                dataUrl,
+              };
+            }),
+          }
+        : {}),
+    }));
+    return {
+      conversa: {
+        id: cid,
+        alunoId:
+          det.id_aluno !== undefined && det.id_aluno !== null
+            ? String(det.id_aluno)
+            : "",
+        titulo: det.titulo || "Nova conversa",
+        data: formatarIsoParaDDMMAAAA(det.data),
+        mensagens,
+      },
+      nomeAluno: det.nome_aluno,
+      neuroAluno: det.neuro_aluno,
+      peiAtivo: det.pei_ativo,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Busca centralizada do perfil do usuário autenticado (/autenticar/me).
  */
 export async function buscarPerfilMe(signal?: AbortSignal): Promise<UserProfile | null> {
   if (!getAuthToken()) return null;
-  try {
-    const resp = await apiDbFetch("/autenticar/me", { signal });
-    if (resp.ok) {
-      const perfil = (await resp.json()) as UserProfile;
-      setSavedUserProfile(perfil);
-      return perfil;
-    }
-  } catch {}
-  return getSavedUserProfile();
+  const resp = await apiDbFetch("/autenticar/me", { signal });
+  if (resp.ok) {
+    const perfil = (await resp.json()) as UserProfile;
+    setSavedUserProfile(perfil);
+    return perfil;
+  }
+  const cached = getSavedUserProfile();
+  if (cached) return cached;
+  throw await extrairErroApi(resp, "Não foi possível carregar o perfil do usuário");
 }
 
 export interface ProfessorEscolaApi {
@@ -346,6 +483,28 @@ export interface ConviteCriadoApi {
   link_convite?: string | null;
   email_enviado?: boolean;
   codigo_convite?: string | null;
+}
+
+export async function vincularProfessorTurma(
+  turmaId: string,
+  dados: { email?: string; id_usuario?: number; disciplinas: string[] },
+): Promise<void> {
+  exigirToken();
+  const numTurma = parseNumeroId(turmaId);
+  if (numTurma === null) {
+    throw new Error("Selecione uma turma válida.");
+  }
+  const resp = await apiDbFetch(`/turma/${numTurma}/professores`, {
+    method: "PUT",
+    body: JSON.stringify({
+      ...(dados.email ? { email: dados.email } : {}),
+      ...(dados.id_usuario ? { id_usuario: dados.id_usuario } : {}),
+      disciplinas: dados.disciplinas,
+    }),
+  });
+  if (!resp.ok) {
+    throw await extrairErroApi(resp, "Não foi possível vincular as matérias do professor na turma");
+  }
 }
 
 export async function enviarConviteProfessorEscola(
@@ -430,6 +589,48 @@ export async function buscarResumoPeisEscola(
     return (await resp.json()) as EscolaPeisResumoApi;
   } catch {
     return null;
+  }
+}
+
+export interface ConviteEscolaItemApi {
+  id_convite: number;
+  email_convidado: string;
+  status: string;
+  tags_areas?: string[];
+  criado_em?: string | null;
+}
+
+export async function listarConvitesEscola(
+  escolaId: string,
+  signal?: AbortSignal,
+): Promise<ConviteEscolaItemApi[]> {
+  const numId = parseNumeroId(escolaId);
+  if (numId === null || !getAuthToken()) return [];
+  try {
+    const resp = await apiDbFetch(`/escolas/${numId}/convites`, { signal });
+    if (!resp.ok) return [];
+    const dados = await resp.json();
+    return Array.isArray(dados) ? (dados as ConviteEscolaItemApi[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function removerProfessorEscola(
+  escolaId: string,
+  usuarioId: string | number,
+): Promise<void> {
+  exigirToken();
+  const numEscola = parseNumeroId(escolaId);
+  const numUsuario = parseNumeroId(usuarioId);
+  if (numEscola === null || numUsuario === null) {
+    throw new Error("Escola ou professor inválido.");
+  }
+  const resp = await apiDbFetch(`/escolas/${numEscola}/professores/${numUsuario}`, {
+    method: "DELETE",
+  });
+  if (!resp.ok) {
+    throw await extrairErroApi(resp, "Não foi possível remover o professor da escola");
   }
 }
 
@@ -540,6 +741,7 @@ export const apiRepository: DataRepository = {
       serie_ano?: string | null;
       letra?: string | null;
       horario?: string | null;
+      disciplinas?: string[] | null;
     }>;
     if (!Array.isArray(dados)) return [];
     return dados.map((t) => ({
@@ -549,6 +751,7 @@ export const apiRepository: DataRepository = {
       ...(t.serie_ano ? { serieAno: t.serie_ano } : {}),
       ...(t.letra ? { letra: t.letra } : {}),
       ...(t.horario ? { horario: t.horario } : {}),
+      ...(Array.isArray(t.disciplinas) ? { disciplinas: t.disciplinas } : {}),
     }));
   },
 
@@ -563,6 +766,7 @@ export const apiRepository: DataRepository = {
         ...(input.serieAno ? { serie_ano: input.serieAno } : {}),
         ...(input.letra ? { letra: input.letra } : {}),
         ...(input.horario ? { horario: input.horario } : {}),
+        ...(input.disciplinas ? { disciplinas: input.disciplinas } : {}),
       }),
     });
     if (!resp.ok) {
@@ -575,6 +779,7 @@ export const apiRepository: DataRepository = {
       serie_ano?: string | null;
       letra?: string | null;
       horario?: string | null;
+      disciplinas?: string[] | null;
     };
     return {
       id: String(criado.id_turma),
@@ -587,6 +792,11 @@ export const apiRepository: DataRepository = {
       ...(criado.serie_ano ?? input.serieAno ? { serieAno: criado.serie_ano ?? input.serieAno } : {}),
       ...(criado.letra ?? input.letra ? { letra: criado.letra ?? input.letra } : {}),
       ...(criado.horario ?? input.horario ? { horario: criado.horario ?? input.horario } : {}),
+      ...(Array.isArray(criado.disciplinas)
+        ? { disciplinas: criado.disciplinas }
+        : input.disciplinas
+          ? { disciplinas: input.disciplinas }
+          : {}),
     };
   },
 
@@ -603,6 +813,7 @@ export const apiRepository: DataRepository = {
         ...(input.serieAno ? { serie_ano: input.serieAno } : {}),
         ...(input.letra !== undefined ? { letra: input.letra || null } : {}),
         ...(input.horario !== undefined ? { horario: input.horario || null } : {}),
+        ...(input.disciplinas !== undefined ? { disciplinas: input.disciplinas } : {}),
       }),
     });
     if (!resp.ok) {
@@ -615,6 +826,7 @@ export const apiRepository: DataRepository = {
       serie_ano?: string | null;
       letra?: string | null;
       horario?: string | null;
+      disciplinas?: string[] | null;
     };
     return {
       id: String(atualizado.id_turma ?? numId),
@@ -623,6 +835,11 @@ export const apiRepository: DataRepository = {
       ...(atualizado.serie_ano ?? input.serieAno ? { serieAno: atualizado.serie_ano ?? input.serieAno } : {}),
       ...(atualizado.letra ? { letra: atualizado.letra } : {}),
       ...(atualizado.horario ? { horario: atualizado.horario } : {}),
+      ...(Array.isArray(atualizado.disciplinas)
+        ? { disciplinas: atualizado.disciplinas }
+        : input.disciplinas
+          ? { disciplinas: input.disciplinas }
+          : {}),
     };
   },
 
@@ -752,11 +969,17 @@ export const apiRepository: DataRepository = {
     if (numAluno === null || !conversaId) return [];
 
     try {
-      const respDet = await apiAiGatewayOrDirect(
-        `/AI/chat/aluno/${numAluno}/conversas/${conversaId}`,
-        `/alunos/${numAluno}/conversas/${conversaId}`,
+      let respDet = await apiAiGatewayOrDirect(
+        `/AI/chat/aluno/${numAluno}/conversas/${encodeURIComponent(conversaId)}`,
+        `/alunos/${numAluno}/conversas/${encodeURIComponent(conversaId)}`,
         { signal },
       );
+      if (!respDet.ok) {
+        respDet = await apiDbFetch(
+          `/conversas/${encodeURIComponent(conversaId)}`,
+          { signal },
+        );
+      }
       if (!respDet.ok) return [];
       const det = (await respDet.json()) as {
         mensagens?: Array<{
@@ -764,11 +987,14 @@ export const apiRepository: DataRepository = {
           conteudo: string;
           data: string;
           anexos?: Array<{
-            name: string;
+            name?: string;
+            nome?: string;
             type?: string;
+            tipo?: string;
             size?: number;
             dataUrl?: string;
-          }>;
+            url?: string;
+          }> | null;
         }>;
       };
       return (det.mensagens ?? []).map((m, idx) => ({
@@ -778,12 +1004,17 @@ export const apiRepository: DataRepository = {
         em: m.data || new Date().toISOString(),
         ...(m.anexos && m.anexos.length > 0
           ? {
-              anexos: m.anexos.map((a) => ({
-                name: a.name,
-                type: a.type ?? "application/octet-stream",
-                size: a.size ?? 0,
-                dataUrl: a.dataUrl,
-              })),
+              anexos: m.anexos.map((a) => {
+                const rawUrl = a.dataUrl ?? a.url;
+                const dataUrl =
+                  rawUrl && rawUrl.startsWith("/") ? `${API_DB_URL}${rawUrl}` : rawUrl;
+                return {
+                  name: a.name ?? a.nome ?? "arquivo",
+                  type: a.type ?? a.tipo ?? "application/octet-stream",
+                  size: a.size ?? 0,
+                  dataUrl,
+                };
+              }),
             }
           : {}),
       }));
@@ -883,7 +1114,7 @@ export const apiRepository: DataRepository = {
       method: "PUT",
       body: JSON.stringify({
         nomeReal,
-        nomeProf: perfil?.nome_usuario || nomeReal,
+        nomeProf: nomeReal,
         emailprof: perfil?.email_usuario ?? null,
         numprof: perfil?.telefone_usuario ?? null,
         tags,
@@ -896,8 +1127,34 @@ export const apiRepository: DataRepository = {
       setSavedUserProfile({
         ...perfil,
         nome_real: nomeReal,
+        nome_usuario: nomeReal,
         tags,
         perfil_professor_feito: true,
+        identificacao_feita: true,
+      });
+    }
+  },
+
+  async saveFullName(nomeReal: string): Promise<void> {
+    exigirToken();
+    const perfil = getSavedUserProfile();
+    const resp = await apiDbFetch("/autenticar/EditaProfessor/", {
+      method: "PUT",
+      body: JSON.stringify({
+        nomeReal,
+      }),
+    });
+    if (!resp.ok) {
+      throw await extrairErroApi(resp, "Não foi possível atualizar o nome completo");
+    }
+    const atualizado = (await resp.json().catch(() => ({}))) as {
+      dias_para_trocar_nome_real?: number;
+    };
+    if (perfil) {
+      setSavedUserProfile({
+        ...perfil,
+        nome_real: nomeReal,
+        dias_para_trocar_nome_real: atualizado.dias_para_trocar_nome_real ?? 30,
       });
     }
   },
@@ -990,6 +1247,7 @@ export const apiRepository: DataRepository = {
           atividades_adaptadas?: number;
           engajamento_percent?: number;
           pei_gerado?: boolean;
+          desc_aluno?: string | null;
           perfil_ia?: string | null;
           descricao_breve?: string | null;
           desempenho_por_area?: Record<string, number>;
@@ -1002,6 +1260,8 @@ export const apiRepository: DataRepository = {
             proximo_periodo?: string | null;
             atrasado?: boolean;
             prazo_expirado?: boolean;
+            todos_concluidos?: boolean;
+            pendentes?: string[];
           };
           metas_bimestre?: Array<{ id?: string; titulo?: string; descricao?: string; status?: string }>;
           metas?: Array<{ id?: string; titulo?: string; descricao?: string; status?: string }>;
@@ -1054,6 +1314,8 @@ export const apiRepository: DataRepository = {
               ultimoEnvio: peisApi.ultimo_envio ?? null,
               proximoPeriodo: peisApi.proximo_periodo ?? null,
               atrasado: Boolean(peisApi.atrasado ?? peisApi.prazo_expirado),
+              todosConcluidos: peisApi.todos_concluidos,
+              pendentes: peisApi.pendentes,
             }
           : peisPadrao;
 
@@ -1084,7 +1346,11 @@ export const apiRepository: DataRepository = {
           atividadesAdaptadas: dados.atividades_adaptadas ?? 0,
           engajamento: dados.engajamento_percent ?? 0,
           peiGerado: dados.pei_gerado ? 1 : 0,
-          resumo: dados.descricao_breve?.trim() || dados.perfil_ia?.trim() || "",
+          resumo:
+            dados.desc_aluno?.trim() ||
+            dados.descricao_breve?.trim() ||
+            dados.perfil_ia?.trim() ||
+            "",
           engajamentoPorMateria: mapearEngajamento(dados.desempenho_por_area),
           peisPorDisciplina,
           metasDoBimestre,

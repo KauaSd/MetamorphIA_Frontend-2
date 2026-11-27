@@ -10,10 +10,10 @@ import {
   escolaPorId,
   turmaPorId,
 } from "@/utils/data/types";
-import { updateAluno, deleteAluno, openChatWith, type Resultado } from "@/utils/data/controller";
+import { updateAluno, deleteAluno, type Resultado } from "@/utils/data/controller";
 import { repository } from "@/utils/data/dataRepository";
 import { apiDbFetch, getAuthToken, parseNumeroId } from "@/utils/apiClient";
-import { peiService } from "@/utils/pei/service";
+import { baixarPeiAlunoPorFiltro, peiService } from "@/utils/pei/service";
 import { ALERTAS } from "@/utils/alertas";
 import Resumo from "@/components/app/alunos/Resumo";
 import Toast, { useAlerta } from "@/components/common/Toast";
@@ -130,32 +130,56 @@ export default function ConteudoDashboardAluno() {
   async function handleBatePapo() {
     if (!alunoId) return;
     setAbrindoChat(true);
-    const resultado = await openChatWith(alunoId, { nova: true });
-    if (!resultado.ok) {
-      setAbrindoChat(false);
-      mostrar(resultado.erro);
-      return;
-    }
-    await recarregar();
-    setAbrindoChat(false);
-    if (resultado.conversaId) {
-      router.push(`/chat?conversaId=${resultado.conversaId}`);
-    }
+    router.push(`/chat?alunoId=${alunoId}&nova=true`);
   }
 
   async function handleCriarPei() {
     if (!alunoId) return;
     setAbrindoChat(true);
-    const resultado = await openChatWith(alunoId);
-    if (!resultado.ok) {
-      setAbrindoChat(false);
-      mostrar(resultado.erro);
+    router.push(`/chat?alunoId=${alunoId}&gerarPei=true&nova=true`);
+  }
+
+  async function handleBaixarPeiDisciplina(disciplina: string) {
+    if (!aluno || baixandoPei) return;
+    setBaixandoPei(true);
+    try {
+      const baixou = await baixarPeiAlunoPorFiltro(aluno, { disciplina });
+      if (baixou) {
+        mostrar(ALERTAS.ALTERACAO_PEI);
+      } else {
+        mostrar({
+          tom: "danger",
+          titulo: "PEI não encontrado",
+          descricao: `Não foi encontrado documento para ${disciplina}.`,
+        });
+      }
+    } finally {
+      setBaixandoPei(false);
+    }
+  }
+
+  async function handleBaixarTodosPeis() {
+    if (!aluno || baixandoPei) return;
+    const concluidas =
+      insights?.peisPorDisciplina?.disciplinas
+        .filter((d) => d.status === "concluido")
+        .map((d) => d.disciplina) ?? [];
+    if (concluidas.length === 0) {
+      await handleBaixarPei();
       return;
     }
-    await recarregar();
-    setAbrindoChat(false);
-    if (resultado.conversaId) {
-      router.push(`/chat?conversaId=${resultado.conversaId}&gerarPei=true`);
+    setBaixandoPei(true);
+    try {
+      let baixouAlgum = false;
+      for (const disc of concluidas) {
+        const ok = await baixarPeiAlunoPorFiltro(aluno, { disciplina: disc });
+        if (ok) baixouAlgum = true;
+      }
+      if (baixouAlgum) {
+        mostrar(ALERTAS.ALTERACAO_PEI);
+      }
+    } finally {
+      setBaixandoPei(false);
     }
   }
 
@@ -201,9 +225,12 @@ export default function ConteudoDashboardAluno() {
 
   const peiFeito = Boolean(
     insights &&
-      (insights.peiGerado > 0 ||
-        insights.peisPorDisciplina.concluidos > 0 ||
-        insights.peisPorDisciplina.disciplinas.some((d) => d.status === "concluido")),
+      (insights.peisPorDisciplina.todosConcluidos !== undefined
+        ? insights.peisPorDisciplina.todosConcluidos
+        : insights.peisPorDisciplina.total > 0
+          ? insights.peisPorDisciplina.concluidos >= insights.peisPorDisciplina.total &&
+            !insights.peisPorDisciplina.atrasado
+          : insights.peiGerado > 0),
   );
 
   return (
@@ -217,6 +244,13 @@ export default function ConteudoDashboardAluno() {
           onBatePapo={handleBatePapo}
           onCriarPei={handleCriarPei}
           onBaixarPei={() => void handleBaixarPei()}
+          disciplinasConcluidas={
+            insights?.peisPorDisciplina?.disciplinas
+              .filter((d) => d.status === "concluido")
+              .map((d) => d.disciplina) ?? []
+          }
+          onBaixarDisciplina={(disc) => void handleBaixarPeiDisciplina(disc)}
+          onBaixarTodos={() => void handleBaixarTodosPeis()}
           abrindoChat={abrindoChat}
           chatLiberado={peiFeito}
           onEditar={
@@ -250,6 +284,8 @@ export default function ConteudoDashboardAluno() {
         <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[minmax(0,383fr)_minmax(0,624fr)] lg:gap-8">
           <div className="flex flex-col gap-5 lg:h-[548px] lg:justify-between lg:gap-[14px]">
             <PeisDisciplinaCard
+              alunoId={aluno.id}
+              conversas={conversasDoAluno}
               dados={
                 insights?.peisPorDisciplina ?? {
                   statusGeral: "NÃO INICIADA",
@@ -259,7 +295,7 @@ export default function ConteudoDashboardAluno() {
                 }
               }
             />
-            <MetasBimestreCard metas={insights?.metasDoBimestre ?? []} />
+            <MetasBimestreCard metas={peiFeito ? (insights?.metasDoBimestre ?? []) : []} />
           </div>
 
           <div className="min-w-0">

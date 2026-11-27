@@ -7,12 +7,16 @@ import {
 import type { Aluno, AnexoMensagem } from "@/utils/data/types";
 import type { Answer, Question } from "@/utils/pei/types";
 import { letraDaOpcao } from "@/utils/pei/types";
+import { componenteLabel } from "@/utils/pei/opcoes";
 
 export interface PeiGeradoResultado {
   peiId: string;
   documentoGerado: string;
   arquivoNome: string;
   anexo?: AnexoMensagem;
+  respostasGerais?: Record<string, string>;
+  todosPeisConcluidos?: boolean;
+  disciplinasPendentes?: string[];
 }
 
 export interface PeiService {
@@ -102,7 +106,7 @@ export const peiService: PeiService = {
         method: "POST",
         body: JSON.stringify({
           descricao_aluno: descricao,
-          componente_curricular: componente || "Língua Portuguesa",
+          componente_curricular: componenteLabel(componente) || componente || "Língua Portuguesa",
           periodo_bimestre: bimestre,
         }),
       },
@@ -156,7 +160,7 @@ export const peiService: PeiService = {
       method: "POST",
       body: JSON.stringify({
         nome_professor_regente: professor || "Professor(a)",
-        componente_curricular: componente || "Língua Portuguesa",
+        componente_curricular: componenteLabel(componente) || componente || "Língua Portuguesa",
         periodo_bimestre: bimestre,
         respostas: itensRespostas,
       }),
@@ -168,7 +172,10 @@ export const peiService: PeiService = {
       pei_id: string;
       documento_gerado: string;
       arquivo_nome?: string;
+      respostas_gerais?: Record<string, string>;
       documento_docx_base64?: string;
+      todos_peis_concluidos?: boolean;
+      disciplinas_pendentes?: string[];
     };
     const arquivoNome =
       dados.arquivo_nome || `PEI_${aluno.nome.replace(/\s+/g, "_")}_${bimestre}Bim_2026.docx`;
@@ -187,6 +194,9 @@ export const peiService: PeiService = {
       documentoGerado: dados.documento_gerado,
       arquivoNome,
       anexo,
+      respostasGerais: dados.respostas_gerais,
+      todosPeisConcluidos: dados.todos_peis_concluidos,
+      disciplinasPendentes: dados.disciplinas_pendentes,
     };
   },
 
@@ -231,7 +241,10 @@ export const peiService: PeiService = {
       pei_id: string;
       documento_gerado: string;
       arquivo_nome?: string;
+      respostas_gerais?: Record<string, string>;
       documento_docx_base64?: string;
+      todos_peis_concluidos?: boolean;
+      disciplinas_pendentes?: string[];
     };
     const arquivoNome = dados.arquivo_nome || arquivo.name;
     const b64 = dados.documento_docx_base64;
@@ -254,6 +267,9 @@ export const peiService: PeiService = {
       documentoGerado: dados.documento_gerado,
       arquivoNome,
       anexo,
+      respostasGerais: dados.respostas_gerais,
+      todosPeisConcluidos: dados.todos_peis_concluidos,
+      disciplinasPendentes: dados.disciplinas_pendentes,
     };
   },
 
